@@ -1,0 +1,10 @@
+
+*.tex
+*.stpr
+*.sublime-workspace
+**/output
+**/input
+docs
+build/cleaned
+build/raw
+**/temp
