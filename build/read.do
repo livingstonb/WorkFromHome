@@ -24,9 +24,6 @@ local keepvars
 keep `keepvars';
 #delimit cr
 
-keep if (age >= 16) & !missing(age)
-keep if (incwage > 0) & !missing(incwage)
-
 * Rename variables
 rename educ educ_orig
 rename educd educd_orig
@@ -68,6 +65,10 @@ recode incinvst (999999 = .)
 recode incretir (999999 = .)
 recode incsupp (99999 = .)
 recode incother (99999 = .)
+
+* Drop observations
+keep if (age >= 16) & !missing(age)
+keep if (incwage > 0) & !missing(incwage)
 
 * Generate unique identifier
 gen id = _n

@@ -1,0 +1,3 @@
+STATATMP="/home/statatmp"
+export STATATMP
+/usr/local/xstata-se

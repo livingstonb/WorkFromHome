@@ -1,22 +1,32 @@
 clear
 
-if "$build" == "" {
-	global build "/media/hdd/GitHub/WorkFromHome/build"
-}
-
-label drop _all
-label define bin_lbl 0 "No" 1 "Yes"
+label define bin_lbl 0 "No" 1 "Yes", replace
 
 * Read data after coding missing values
 use "$build/temp/acs_temp.dta", clear
 
-* Adjust income to 1999 prices
+* Adjust income to 2018 prices
+quietly sum cpi99 if (year == 2018)
+local cpi1999_2018 = `r(max)'
+gen cpi2018 = cpi99 / `cpi1999_2018'
+
 #delimit ;
 foreach var of varlist
 	inctot incwage incbus00 incss
 	incwelfr incinvst incretir incsupp
 	incother {;
-replace `var' = `var' * cpi99;
+replace `var' = `var' * cpi2018;
+};
+#delimit cr
+
+* Recode certain binary variables
+#delimit ;
+foreach var of varlist
+	amindian asian black pacislander
+	white otherrace diff*
+{;
+	recode `var' (1 = 0) (2 = 1);
+	label values `var' bin_lbl;
 };
 #delimit cr
 
@@ -108,16 +118,6 @@ label define agecat_lbl 65 "65 + years", add
 label variable agecat "Age group"
 label values agecat agecat_lbl
 
-* Generate/recode variables
-#delimit ;
-foreach var of varlist
-	amindian asian black pacislander
-	white otherrace {;
-recode `var' (1 = 0) (2 = 1);
-label values `var' bin_lbl;
-};
-#delimit cr
-
 gen race = .
 replace race = 1 if (white == 1)
 replace race = 2 if (black == 1)
@@ -139,6 +139,10 @@ label values hashealthins bin_lbl
 gen married = inlist(marst, 1, 2) if !missing(marst)
 label variable married "Currently married"
 label values married bin_lbl
+
+gen haschildren = (nchild > 0) if !missing(nchild)
+label variable haschildren "Has at least one child"
+label values haschildren bin_lbl
 
 gen hispanic = inlist(hispan, 1, 2, 3, 4) if !missing(hispan)
 replace hispanic = . if (hispan == 9)
@@ -177,7 +181,7 @@ label values stemdegree bin_lbl
 
 gen workdifficulty = 0
 foreach var of varlist diff* {
-	replace workdifficulty = 1 if (`var' == 2)
+	replace workdifficulty = 1 if (`var' == 1)
 }
 label variable workdifficulty "Reported a health difficulty"
 label values workdifficulty bin_lbl
@@ -190,6 +194,15 @@ gen worker =
 	!missing(wkswork2, uhrswork, incwage);
 #delimit cr
 drop if (worker != 1)
+
+// WAGE QUINTILES
+gen wage_quintile = .
+forvalues yr = 2000/2018 {
+	xtile tmp = incwage [pw=perwt] if (year == `yr'), nq(5)
+	replace wage_quintile = tmp if (year == `yr')
+	drop tmp
+}
+label variable wage_quintile "Wage quintile within the given year"
 
 drop hispan diff* worker
 
