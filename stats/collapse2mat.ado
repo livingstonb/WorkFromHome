@@ -13,6 +13,7 @@ program collapse2mat, rclass
 
 	decode `by', gen(row_lbls)
 	drop `by'
+	order row_lbls
 
 	capture matrix drop collapsed
 	local matvars

@@ -49,6 +49,7 @@ if "$occ_ind_breakdown" == "1" {
 }
 else {
 	* Rename variables
+	rename ind industry
 	rename educ educ_orig
 	rename educd educd_orig
 	rename racamind amindian
@@ -81,7 +82,7 @@ else {
 	recode metropolitan (0 9 = .)
 	recode workplace_metro (0 = .)
 	recode residence_metro (0 = .)
-	recode ind (9920 0 = .)
+	recode industry (9920 0 = .)
 
 	foreach var of varlist diff* {
 		recode `var' (0 = .)

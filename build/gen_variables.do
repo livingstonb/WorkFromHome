@@ -3,7 +3,12 @@ clear
 label define bin_lbl 0 "No" 1 "Yes", replace
 
 * Read data after coding missing values
-use "$build/temp/acs_temp.dta", clear
+if "$allyears" == "1" {
+	use "$build/temp/acs_temp.dta", clear
+}
+else {
+	use "$build/temp/acs_temp.dta" if (year == 2018), clear
+}
 
 * Nominal wage income
 gen nincwage = incwage
@@ -13,6 +18,7 @@ label variable nincwage "Wage and salary income, nominal"
 quietly sum cpi99 if (year == 2018)
 local cpi1999_2018 = `r(max)'
 gen cpi2018 = cpi99 / `cpi1999_2018'
+drop cpi99
 
 #delimit ;
 foreach var of varlist
@@ -44,58 +50,63 @@ label variable metropolitan "Lived in metropolitan area"
 label values metropolitan bin_lbl
 
 * Generate 2010 occupation categories
-#delimit ;
-local occ2010_categories
-	10/430 500/730 800/950 1000/1240
-	1300/1540 1550/1560 1600/1980
-	2000/2060 2100/2150 2200/2550
-	2600/2920 3000/3540 3600/3650
-	3700/3950 4000/4150 4200/4250
-	4300/4650 4700/4965 5000/5940
-	6005/6130 6200/6765 6800/6940
-	7000/7630 7700/8965 9000/9750
-	9800/9830;
-#delimit cr
+if "$allyears" == "1" {
+	#delimit ;
+	local occ2010_categories
+		10/430 500/730 800/950 1000/1240
+		1300/1540 1550/1560 1600/1980
+		2000/2060 2100/2150 2200/2550
+		2600/2920 3000/3540 3600/3650
+		3700/3950 4000/4150 4200/4250
+		4300/4650 4700/4965 5000/5940
+		6005/6130 6200/6765 6800/6940
+		7000/7630 7700/8965 9000/9750
+		9800/9830;
+	#delimit cr
 
-gen occupation = occ2010
-local occrecode
-forvalues i = 1/26 {
-	local occrange `: word `i' of `occ2010_categories''
-	local occrecode `occrecode' (`occrange' = `i')
+	gen occupation = occ2010 if (year < 2018)
+	local occrecode
+	forvalues i = 1/26 {
+		local occrange `: word `i' of `occ2010_categories''
+		local occrecode `occrecode' (`occrange' = `i')
+	}
+	recode occupation `occrecode' if (year < 2018)
+
+	label variable occupation "Occupation, 26 categories aggregated from OCC2010"
+	label define occupation_lbl 1 "Management, Business, Science, and Arts"
+	label define occupation_lbl 2 "Business Operations Specialists", add
+	label define occupation_lbl 3 "Financial Specialists", add
+	label define occupation_lbl 4 "Computer and Mathematical", add
+	label define occupation_lbl 5 "Architecture and Engineering", add
+	label define occupation_lbl 6 "Technicians", add
+	label define occupation_lbl 7 "Life, Physical, and Social Science", add
+	label define occupation_lbl 8 "Community and Social Services", add
+	label define occupation_lbl 9 "Legal", add
+	label define occupation_lbl 10 "Education, Training, and Library", add
+	label define occupation_lbl 11 "Arts, Design, Entertainment, Sports, and Media", add
+	label define occupation_lbl 12 "Healthcare Practitioners and Technicians", add
+	label define occupation_lbl 13 "Healthcare Support", add
+	label define occupation_lbl 14 "Protective Service", add
+	label define occupation_lbl 15 "Food Preparation and Serving", add
+	label define occupation_lbl 16 "Building and Grounds Cleaning and Maintenance", add
+	label define occupation_lbl 17 "Personal Care and Service", add
+	label define occupation_lbl 18 "Sales and Related", add
+	label define occupation_lbl 19 "Office and Administrative Support", add
+	label define occupation_lbl 20 "Farming, Fishing, and Forestry", add
+	label define occupation_lbl 21 "Construction", add
+	label define occupation_lbl 22 "Extraction", add
+	label define occupation_lbl 23 "Installation, Maintenance, and Repair", add
+	label define occupation_lbl 24 "Production", add
+	label define occupation_lbl 25 "Transportation and Material Moving", add
+	label define occupation_lbl 26 "Military Specific", add
+	label values occupation occupation_lbl
 }
-recode occupation `occrecode'
-
-label variable occupation "Occupation, 26 categories aggregated from OCC2010"
-label define occupation_lbl 1 "Management, Business, Science, and Arts"
-label define occupation_lbl 2 "Business Operations Specialists", add
-label define occupation_lbl 3 "Financial Specialists", add
-label define occupation_lbl 4 "Computer and Mathematical", add
-label define occupation_lbl 5 "Architecture and Engineering", add
-label define occupation_lbl 6 "Technicians", add
-label define occupation_lbl 7 "Life, Physical, and Social Science", add
-label define occupation_lbl 8 "Community and Social Services", add
-label define occupation_lbl 9 "Legal", add
-label define occupation_lbl 10 "Education, Training, and Library", add
-label define occupation_lbl 11 "Arts, Design, Entertainment, Sports, and Media", add
-label define occupation_lbl 12 "Healthcare Practitioners and Technicians", add
-label define occupation_lbl 13 "Healthcare Support", add
-label define occupation_lbl 14 "Protective Service", add
-label define occupation_lbl 15 "Food Preparation and Serving", add
-label define occupation_lbl 16 "Building and Grounds Cleaning and Maintenance", add
-label define occupation_lbl 17 "Personal Care and Service", add
-label define occupation_lbl 18 "Sales and Related", add
-label define occupation_lbl 19 "Office and Administrative Support", add
-label define occupation_lbl 20 "Farming, Fishing, and Forestry", add
-label define occupation_lbl 21 "Construction", add
-label define occupation_lbl 22 "Extraction", add
-label define occupation_lbl 23 "Installation, Maintenance, and Repair", add
-label define occupation_lbl 24 "Production", add
-label define occupation_lbl 25 "Transportation and Material Moving", add
-label define occupation_lbl 26 "Military Specific", add
-label values occupation occupation_lbl
+else {
+	gen occupation = .
+}
 
 * Generate education categories
-gen education = .
+gen byte education = .
 replace education = 1 if inrange(educd_orig, 2, 61)
 replace education = 2 if inrange(educd_orig, 62, 64)
 replace education = 3 if inrange(educd_orig, 65, 100)
@@ -119,7 +130,7 @@ label variable bs_or_higher "Has a bachelor's deg or higher"
 label values bs_or_higher bin_lbl
 
 * Generate age groups
-gen agecat = .
+gen agecat = age
 recode agecat (18/24 = 18) (25/34 = 25) (35/44 = 35) (45/54 = 45)
 recode agecat (55/64 = 55) (65/150 = 65)
 label define agecat_lbl 18 "18 - 24 years"
@@ -132,7 +143,7 @@ label variable agecat "Age group"
 label values agecat agecat_lbl
 
 * Other variables
-gen race = .
+gen byte race = .
 replace race = 1 if (white == 1)
 replace race = 2 if (black == 1)
 replace race = 3 if (asian == 1)
@@ -150,42 +161,42 @@ label values veteran bin_lbl
 recode hashealthins (1 = 0) (2 = 1)
 label values hashealthins bin_lbl
 
-gen married = inlist(marst, 1, 2) if !missing(marst)
+gen byte married = inlist(marst, 1, 2) if !missing(marst)
 label variable married "Currently married"
 label values married bin_lbl
 
-gen hispanic = inlist(hispan, 1, 2, 3, 4) if !missing(hispan)
+gen byte hispanic = inlist(hispan, 1, 2, 3, 4) if !missing(hispan)
 replace hispanic = . if (hispan == 9)
 label variable hispanic "Of Hispanic origin"
 label values hispanic bin_lbl
 
-gen employed = (empstat == 1) if !missing(empstat)
+gen byte employed = (empstat == 1) if !missing(empstat)
 label variable employed "Currently employed"
 label values employed bin_lbl
 
-gen armedforces = inrange(empstatd, 3, 5) if !missing(empstatd)
+gen byte armedforces = inrange(empstatd, 3, 5) if !missing(empstatd)
 label variable armedforces "Member of the armed forces"
 label values armedforces bin_lbl
 
-gen selfemployed = (classwkr == 1) if !missing(classwkr)
+gen byte selfemployed = (classwkr == 1) if !missing(classwkr)
 label variable selfemployed "Self-employed worker"
 label values selfemployed bin_lbl
 
-gen govworker = inlist(classwkrd, 24, 25, 27, 28) if !missing(classwkrd)
+gen byte govworker = inlist(classwkrd, 24, 25, 27, 28) if !missing(classwkrd)
 label variable govworker "Government worker"
 label values govworker bin_lbl
 
-gen workfromhome = (tranwork == 70) if !missing(tranwork)
+gen byte workfromhome = (tranwork == 70) if !missing(tranwork)
 label variable workfromhome "Worked from home"
 label values workfromhome bin_lbl
 
-gen stemdegree = inlist(degfield, 13 24 25 36 37 50/52 56/59 61)
+gen byte stemdegree = inlist(degfield, 13 24 25 36 37 50/52 56/59 61)
 replace stemdegree = 0 if (bs_or_higher != 1)
 replace stemdegree = . if missing(degfield, bs_or_higher)
 label variable stemdegree "BS or higher and degree field is STEM-related"
 label values stemdegree bin_lbl
 
-gen work_live_same_metarea = (workplace_metro == residence_metro) if !missing(workplace_metro, residence_metro)
+gen byte work_live_same_metarea = (workplace_metro == residence_metro) if !missing(workplace_metro, residence_metro)
 label variable work_live_same_metarea "Res and work are in same metro area"
 label values work_live_same_metarea bin_lbl
 
@@ -207,18 +218,18 @@ gen fulltime = (uhrswork >= 34)
 label variable fulltime "Worked at least 34 hrs per week"
 label values fulltime bin_lbl
 
-// WAGE QUINTILES
-
-gen wage_quintile = .
-forvalues yr = 2000/2018 {
-	count if (year == `yr')
-	if `r(N)' > 5 {
-		xtile tmp = incwage [pw=perwt] if (year == `yr'), nq(5)
-		replace wage_quintile = tmp if (year == `yr')
-		drop tmp
-	}
-}
-label variable wage_quintile "Wage quintile within the given year"
+// // WAGE QUINTILES
+//
+// gen wage_quintile = .
+// forvalues yr = 2000/2018 {
+// 	count if (year == `yr')
+// 	if `r(N)' > 5 {
+// 		xtile tmp = incwage [pw=perwt] if (year == `yr'), nq(5)
+// 		replace wage_quintile = tmp if (year == `yr')
+// 		drop tmp
+// 	}
+// }
+// label variable wage_quintile "Wage quintile within the given year"
 
 drop hispan diff* armedforces employed
 
@@ -232,41 +243,31 @@ merge m:1 occn year using "$maindir/other/occindex.dta",
 	keepusing(occfine) keep(match master) nogen;
 #delimit cr
 
-save "$build/cleaned/acs_cleaned.dta", replace
-// COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, THREE DIGIT OCC
-drop if year < 2018
+* 2-category industry
 #delimit ;
-collapse (median) medwage3digit=incwage (mean) meanwage3digit=incwage
-	[iw=perwt], by(occfine) fast;
-#delimit cr
-gen year = 2018
-tempfile wagetmp
-save `wagetmp'
-
-use "$build/cleaned/acs_cleaned.dta", clear
-
-#delimit ;
-merge m:1 year occfine using `wagetmp',
-	keepusing(medwage3digit meanwage3digit) nogen;
+merge m:1 industry year using "$maindir/other/industryindex2018.dta",
+	keepusing(sector) keep(match master) nogen;
 #delimit cr
 
-compress
-save "$build/cleaned/acs_cleaned.dta", replace
 // COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, BROADER OCC
-drop if year < 2018
-#delimit ;
-collapse (median) medwage2digit=incwage (mean) meanwage2digit=incwage
-	[iw=perwt], by(year occupation) fast;
-#delimit cr
-gen year = 2018
+if "$allyears" == "1" {
+	compress
+	save "$build/cleaned/acs_cleaned.dta", replace
 
-save `wagetmp', replace
-use "$build/cleaned/acs_cleaned.dta", clear
+	#delimit ;
+	collapse (median) medwage2digit=incwage (mean) meanwage2digit=incwage
+		[iw=perwt], by(year occupation) fast;
+	#delimit cr
 
-#delimit ;
-merge m:1 year occupation using `wagetmp',
-	keepusing(medwage2digit meanwage2digit) nogen;
-#delimit cr
+	tempfile wagetmp
+	save `wagetmp'
+	use "$build/cleaned/acs_cleaned.dta", clear
+
+	#delimit ;
+	merge m:1 year occupation using `wagetmp',
+		keepusing(medwage2digit meanwage2digit) nogen;
+	#delimit cr
+}
 
 // * Median wage for each metro area
 // bysort year workplace_metro: egen area_medwage = median(incwage)

@@ -119,6 +119,7 @@ matrix statsmat = r(stats)
 mat2excel statsmat using "`xlxname'", replace title("% WFH by sex")
 
 // WFH BY OCCUPATION, THREE DIGIT
+* WFH-flexible threshold is 4%
 gen nworkers_unw = 1
 label variable nworkers_unw "n, unwtd"
 
