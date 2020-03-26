@@ -16,6 +16,7 @@ foreach var of varlist
 
 * WFH averages by year
 global wfh_vars pct_workfromhome
+global wfh_lbls `" "% WFH" "'
 forvalues yr = 2001(3)2016 {
 	local yr2 = `yr' + 2
 	gen wfh_yrs`yr'_`yr2' = pct_workfromhome if inrange(year, `yr', `yr2')
@@ -23,6 +24,7 @@ forvalues yr = 2001(3)2016 {
 	label values wfh_yrs`yr'_`yr2' bin_lbl
 
 	global wfh_vars $wfh_vars wfh_yrs`yr'_`yr2'
+	global wfh_lbls `" $wfh_lbls "%WFH, `yr'-`yr2'" "'
 }
 
 gen wfh_incwage = incwage if (workfromhome == 1)
@@ -47,6 +49,7 @@ label variable ones "Counts"
 // OCCUPATION COUNTS, BY YEAR
 global bylist occupation
 global vlist `yearcounts' (rawsum) n_unweighted=ones (sum) n_weighted=ones
+// global vlbls "Occupation" "n (unweighted)" "n (weighted)"
 global xlxpath "$statsout/occupation_counts.xlsx"
 do "$stats/collapse_table.do"
 
@@ -72,6 +75,7 @@ do "$stats/collapse_table.do"
 * Percent work from home by sex
 global bylist sex
 global vlist $wfh_vars
+global vlbls `" "Sex" $wfh_lbls "'
 global xlxpath "$statsout/wfh_by_sex.xlsx"
 do "$stats/collapse_table.do"
 
@@ -94,7 +98,7 @@ global xlxpath "$statsout/wfh_by_wage_quintile.xlsx"
 do "$stats/collapse_table.do"
 
 * WFH by age group
-global bylIst agecat
+global bylist agecat
 global vlist $wfh_vars
 global xlxpath "$statsout/wfh_by_age.xlsx"
 do "$stats/collapse_table.do"

@@ -4,6 +4,7 @@
 *.sublime-workspace
 **/output
 **/input
+**/other
 docs
 build/cleaned
 build/raw

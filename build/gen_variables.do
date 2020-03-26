@@ -5,6 +5,10 @@ label define bin_lbl 0 "No" 1 "Yes", replace
 * Read data after coding missing values
 use "$build/temp/acs_temp.dta", clear
 
+* Nominal wage income
+gen nincwage = incwage
+label variable nincwage "Wage and salary income, nominal"
+
 * Adjust income to 2018 prices
 quietly sum cpi99 if (year == 2018)
 local cpi1999_2018 = `r(max)'
@@ -14,8 +18,11 @@ gen cpi2018 = cpi99 / `cpi1999_2018'
 foreach var of varlist
 	inctot incwage incbus00 incss
 	incwelfr incinvst incretir incsupp
-	incother {;
+	incother rentgrs {;
 replace `var' = `var' * cpi2018;
+local vlab: variable label `var';
+local vlab "`vlab', 2018 dollars";
+label variable `var' "`vlab'";
 };
 #delimit cr
 
@@ -23,12 +30,18 @@ replace `var' = `var' * cpi2018;
 #delimit ;
 foreach var of varlist
 	amindian asian black pacislander
-	white otherrace diff*
+	white otherrace diff* farm
 {;
 	recode `var' (1 = 0) (2 = 1);
 	label values `var' bin_lbl;
 };
 #delimit cr
+
+label variable farm "Farm worker"
+
+recode metropolitan (2/5 = 1) (6/8 = 0)
+label variable metropolitan "Lived in metropolitan area"
+label values metropolitan bin_lbl
 
 * Generate 2010 occupation categories
 #delimit ;
@@ -118,6 +131,7 @@ label define agecat_lbl 65 "65 + years", add
 label variable agecat "Age group"
 label values agecat agecat_lbl
 
+* Other variables
 gen race = .
 replace race = 1 if (white == 1)
 replace race = 2 if (black == 1)
@@ -140,10 +154,6 @@ gen married = inlist(marst, 1, 2) if !missing(marst)
 label variable married "Currently married"
 label values married bin_lbl
 
-gen haschildren = (nchild > 0) if !missing(nchild)
-label variable haschildren "Has at least one child"
-label values haschildren bin_lbl
-
 gen hispanic = inlist(hispan, 1, 2, 3, 4) if !missing(hispan)
 replace hispanic = . if (hispan == 9)
 label variable hispanic "Of Hispanic origin"
@@ -152,10 +162,6 @@ label values hispanic bin_lbl
 gen employed = (empstat == 1) if !missing(empstat)
 label variable employed "Currently employed"
 label values employed bin_lbl
-
-gen employed_notworking = (empstatd == 2) if !missing(empstatd)
-label variable employed_notworking "Employed but not working"
-label values employed_notworking bin_lbl
 
 gen armedforces = inrange(empstatd, 3, 5) if !missing(empstatd)
 label variable armedforces "Member of the armed forces"
@@ -179,6 +185,10 @@ replace stemdegree = . if missing(degfield, bs_or_higher)
 label variable stemdegree "BS or higher and degree field is STEM-related"
 label values stemdegree bin_lbl
 
+gen work_live_same_metarea = (workplace_metro == residence_metro) if !missing(workplace_metro, residence_metro)
+label variable work_live_same_metarea "Res and work are in same metro area"
+label values work_live_same_metarea bin_lbl
+
 gen workdifficulty = 0
 foreach var of varlist diff* {
 	replace workdifficulty = 1 if (`var' == 1)
@@ -187,24 +197,96 @@ label variable workdifficulty "Reported a health difficulty"
 label values workdifficulty bin_lbl
 
 // DEFINITION OF A WORKER
-#delimit ;
-gen worker =
-	(employed == 1) & (wkswork2 >= 3) & (uhrswork >= 20) &
-	(incwage >= 10000) & (armedforces == 0) &
-	!missing(wkswork2, uhrswork, incwage);
-#delimit cr
-drop if (worker != 1)
+drop if (armedforces == 1) | missing(armedforces)
+drop if (incwage < 1000) | missing(incwage)
+drop if (wkswork2 < 3) | missing(wkswork2)
+drop if (uhrswork == 0) | missing(uhrswork)
+drop if missing(workfromhome)
+
+gen fulltime = (uhrswork >= 34)
+label variable fulltime "Worked at least 34 hrs per week"
+label values fulltime bin_lbl
 
 // WAGE QUINTILES
+
 gen wage_quintile = .
 forvalues yr = 2000/2018 {
-	xtile tmp = incwage [pw=perwt] if (year == `yr'), nq(5)
-	replace wage_quintile = tmp if (year == `yr')
-	drop tmp
+	count if (year == `yr')
+	if `r(N)' > 5 {
+		xtile tmp = incwage [pw=perwt] if (year == `yr'), nq(5)
+		replace wage_quintile = tmp if (year == `yr')
+		drop tmp
+	}
 }
 label variable wage_quintile "Wage quintile within the given year"
 
-drop hispan diff* worker
+drop hispan diff* armedforces employed
 
+* Hourly wage
+gen hrwage = incwage / uhrswork
+label variable hrwage "Hourly wage, incwage/uhrswork"
+
+* 3-digit occupation coding
+#delimit ;
+merge m:1 occn year using "$maindir/other/occindex.dta",
+	keepusing(occfine) keep(match master) nogen;
+#delimit cr
+
+save "$build/cleaned/acs_cleaned.dta", replace
+// COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, THREE DIGIT OCC
+drop if year < 2018
+#delimit ;
+collapse (median) medwage3digit=incwage (mean) meanwage3digit=incwage
+	[iw=perwt], by(occfine) fast;
+#delimit cr
+gen year = 2018
+tempfile wagetmp
+save `wagetmp'
+
+use "$build/cleaned/acs_cleaned.dta", clear
+
+#delimit ;
+merge m:1 year occfine using `wagetmp',
+	keepusing(medwage3digit meanwage3digit) nogen;
+#delimit cr
+
+compress
+save "$build/cleaned/acs_cleaned.dta", replace
+// COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, BROADER OCC
+drop if year < 2018
+#delimit ;
+collapse (median) medwage2digit=incwage (mean) meanwage2digit=incwage
+	[iw=perwt], by(year occupation) fast;
+#delimit cr
+gen year = 2018
+
+save `wagetmp', replace
+use "$build/cleaned/acs_cleaned.dta", clear
+
+#delimit ;
+merge m:1 year occupation using `wagetmp',
+	keepusing(medwage2digit meanwage2digit) nogen;
+#delimit cr
+
+// * Median wage for each metro area
+// bysort year workplace_metro: egen area_medwage = median(incwage)
+// label variable area_medwage "Median wage, unweighted, for metro-yr"
+
+// * Merge metropolitan area rent figures
+// #delimit ;
+// merge m:1 year workplace_metro using "$build/cleaned/acs_rents.dta",
+// 	keepusing(rent25 rent50 rent75) nogen;
+// rename rent25 work_rent25;
+// rename rent50 work_rent50;
+// rename rent75 work_rent75;
+//
+// merge m:1 year residence_metro using "$build/cleaned/acs_rents.dta",
+// 	keepusing(rent25 rent50 rent75) nogen;
+// rename rent25 home_rent25;
+// rename rent50 home_rent50;
+// rename rent75 home_rent75;
+// #delimit cr
+
+compress
 capture mkdir "$build/cleaned"
 save "$build/cleaned/acs_cleaned.dta", replace
