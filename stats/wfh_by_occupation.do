@@ -34,20 +34,21 @@ putexcel A1 = "SHEET" B1 = "DESCRIPTION"
 putexcel A2 = "1" B2 = "`sheet1'"
 putexcel A3 = "2" B3 = "`sheet2'"
 
+titlepage2excel using "`xlxname'", descriptions(`')
+
 forvalues sval = 0/1 {
 	#delimit ;
-	collapse2mat
+
+	local sheetnum = `sval' + 1;
+	local sheetname `sheet`sheetnum'';
+
+	collapse2excel
 		(sum) nworkers_wt
 		(rawsum) nworkers_unw
 		(mean) wfh_yrs2018
 		(mean) meanwage
-		[iw=perwt] if (sector == `sval'), by(occfine) keeplabels;
-		
-	matrix statsmat = r(stats);
-
-	local sheetnum = `sval' + 1;
-	local sheetname `sheet`sheetnum'';
-	mat2excel statsmat using "`xlxname'",
+		[iw=perwt] if (sector == `sval')
+		using "`xlxname'", by(occfine)
 		sheet("`sheetname'") title("`sheetname'");
 	#delimit cr
 }
