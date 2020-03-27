@@ -5,14 +5,15 @@ program collapse2excel
 		[, BY(varlist)]
 		[, TITLE(string)]
 		[, MODIFY]
-		[, SHEET(string)];
+		[, SHEET(string)]
+		[, CW];
 	#delimit cr
 
 	preserve
 
 	quietly drop if missing(`by')
 	marksample touse
-	collapse `collapse_commands' [`weight'`exp'] if `touse', by(`by') fast
+	collapse `collapse_commands' [`weight'`exp'] if `touse', by(`by') fast `cw'
 	
 	tempfile collapsetmp
 	save `collapsetmp'

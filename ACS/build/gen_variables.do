@@ -238,15 +238,15 @@ gen hrwage = incwage / uhrswork
 label variable hrwage "Hourly wage, incwage/uhrswork"
 
 * 3-digit occupation coding
-local occ2018dir "%{maindir}/other/occ_codes_2018/output"
+local occ2018dir "/media/hdd/GitHub/WorkFromHome/occ_ind_codes/occ2018/output"
 #delimit ;
 merge m:1 occn year using "`occ2018dir'/occindex2018.dta",
-	keepusing(occfine) keep(match master) nogen;
+	keepusing(occ3digit) keep(match master) nogen;
 #delimit cr
 
 * 2-category industry
 #delimit ;
-merge m:1 industry year using "$maindir/other/industryindex2018.dta",
+merge m:1 industry year using "/media/hdd/GitHub/WorkFromHome/occ_ind_codes/ind2018/industryindex2018.dta",
 	keepusing(sector) keep(match master) nogen;
 #delimit cr
 

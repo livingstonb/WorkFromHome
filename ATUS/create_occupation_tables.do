@@ -17,12 +17,30 @@ label variable nworkers_wt "Total workers in group"
 gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
+* Add empty observations so each occupation is represented
+append using "$maindir/occ_ind_codes/occ_sector_blanks.dta"
+foreach var of varlist nworkers_unw nworkers_wt {
+	replace `var' = 0 if (blankobs == 1)
+}
+replace normwt = 1 if (blankobs == 1)
+
+replace blankobs = 0 if missing(blankobs)
+label variable blankobs "Empty category"
+
 * Collapse and make spreadsheet
 discard
-local xlxname "$ATUSout/wfh_by_occ3digit_sector.xlsx"
+local xlxname "$ATUSout/ATUS_wfh_by_occ3digit_sector.xlsx"
+
+local title `"Dataset: ATUS"'
+local title `"`title'"' `"WFH statistics by 3-digit occupation"'
+
 local sheets `"Sector C"' `"Sector S"'
 local descriptions `"Sector C only"' `"Sector S only"'
-createxlsx using "`xlxname'", descriptions(`descriptions') sheetnames(`sheets') 
+
+#delimit ;
+createxlsx using "`xlxname'",
+	descriptions(`descriptions') sheetnames(`sheets') title(`title');
+#delimit cr
 
 forvalues sval = 0/1 {
 	#delimit ;
@@ -36,6 +54,7 @@ forvalues sval = 0/1 {
 		(mean) pct_canwfh
 		(mean) pct_doeswfh
 		(mean) meanwage
+		(min) blankobs
 		[iw=normwt] if (sector == `sval')
 		using "`xlxname'", by(occ3digit) modify sheet("`sheetname'");
 	#delimit cr
