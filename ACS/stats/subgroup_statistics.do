@@ -1,4 +1,4 @@
-use "$build/cleaned/acs_cleaned.dta", clear
+use "$ACScleaned/acs_cleaned.dta", clear
 label define bin_lbl 0 "No" 1 "Yes", replace
 label define bin_pct_lbl 0 "No" 100 "Yes", replace
 
@@ -67,7 +67,7 @@ compress
 * Contents sheet
 local sheet1 "Weighted estimates of total # workers in occupation"
 local sheet2 "Number of actual survey respondents in occupation"
-local xlxname "$statsout/occupation_counts.xlsx"
+local xlxname "$ACSstatsout/occupation_counts.xlsx"
 
 putexcel set "`xlxname'", replace sheet("Contents")
 putexcel A1 = "SHEET" B1 = "DESCRIPTION"
@@ -111,7 +111,7 @@ mat2excel statsmat using "$statsout/wfh_by_year.xlsx",
 drop temp*
 
 // WFH BY SEX
-local xlxname "$statsout/wfh_by_sex.xlsx"
+local xlxname "$ACSstatsout/wfh_by_sex.xlsx"
 
 collapse2mat (mean) $wfh_vars [iw=perwt], by(sex) keeplabels
 matrix statsmat = r(stats)

@@ -1,6 +1,10 @@
+clear
+capture log close
+log using "$ACSstatstemp/wfh_by_occupation.log", replace
+
 // WFH BY OCCUPATION, THREE DIGIT
-cd "$stats"
-use "$build/cleaned/acs_cleaned.dta" if (year == 2018), clear
+cd "$ACSdir"
+use "$ACScleaned/acs_cleaned.dta" if (year == 2018), clear
 drop if missing(sector, occ3digit)
 
 label define bin_lbl 0 "No" 1 "Yes", replace
@@ -25,8 +29,8 @@ label variable nworkers_wt "Total workers in group"
 gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
-* add blanks
-append using "/media/hdd/GitHub/WorkFromHome/occ_ind_codes/occ_sector_blanks.dta"
+* Add blanks
+append using "$WFHshared/occ_sector_blanks.dta"
 replace blankobs = 0 if missing(blankobs)
 replace perwt = 1 if (blankobs == 1)
 replace nworkers_wt = 0 if (blankobs == 1)
@@ -36,7 +40,7 @@ label variable blankobs "Empty category"
 discard
 local title `"Dataset: ACS"'
 local title `"`title'"' `"WFH statistics by 3-digit occupation"'
-local xlxname "$statsout/ACS_wfh_by_occ3digit_sector.xlsx"
+local xlxname "$ACSstatsout/ACS_wfh_by_occ3digit_sector.xlsx"
 local sheets `"Sector C"' `"Sector S"'
 local descriptions `"Sector C only"' `"Sector S only"'
 createxlsx using "`xlxname'", descriptions(`descriptions') sheetnames(`sheets') title(`title')
@@ -58,3 +62,4 @@ forvalues sval = 0/1 {
 	#delimit cr
 }
 drop nworkers_unw nworkers_wt meanwage
+log close

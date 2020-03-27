@@ -1,13 +1,15 @@
 clear
+capture log close
+log using "$ACSbuildtemp/gen_variables.log", replace
 
-label define bin_lbl 0 "No" 1 "Yes", replace
+capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
-if "$allyears" == "1" {
-	use "$build/temp/acs_temp.dta", clear
+if "$ACSallyears" == "1" {
+	use "$ACSbuildtemp/acs_temp.dta", clear
 }
 else {
-	use "$build/temp/acs_temp.dta" if (year == 2018), clear
+	use "$ACSbuildtemp/acs_temp.dta" if (year == 2018), clear
 }
 
 * Nominal wage income
@@ -50,7 +52,7 @@ label variable metropolitan "Lived in metropolitan area"
 label values metropolitan bin_lbl
 
 * Generate 2010 occupation categories
-if "$allyears" == "1" {
+if "$ACSbuildtemp" == "1" {
 	#delimit ;
 	local occ2010_categories
 		10/430 500/730 800/950 1000/1240
@@ -238,7 +240,7 @@ gen hrwage = incwage / uhrswork
 label variable hrwage "Hourly wage, incwage/uhrswork"
 
 * 3-digit occupation coding
-local occ2018dir "/media/hdd/GitHub/WorkFromHome/occ_ind_codes/occ2018/output"
+local occ2018dir "$WFHshared/occ2018/output"
 #delimit ;
 merge m:1 occn year using "`occ2018dir'/occindex2018.dta",
 	keepusing(occ3digit) keep(match master) nogen;
@@ -246,14 +248,14 @@ merge m:1 occn year using "`occ2018dir'/occindex2018.dta",
 
 * 2-category industry
 #delimit ;
-merge m:1 industry year using "/media/hdd/GitHub/WorkFromHome/occ_ind_codes/ind2018/industryindex2018.dta",
+merge m:1 industry year using "$WFHshared/ind2018/industryindex2018.dta",
 	keepusing(sector) keep(match master) nogen;
 #delimit cr
 
 // COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, BROADER OCC
 if "$allyears" == "1" {
 	compress
-	save "$build/cleaned/acs_cleaned.dta", replace
+	save "$ACScleaned/acs_cleaned.dta", replace
 
 	#delimit ;
 	collapse (median) medwage2digit=incwage (mean) meanwage2digit=incwage
@@ -262,7 +264,7 @@ if "$allyears" == "1" {
 
 	tempfile wagetmp
 	save `wagetmp'
-	use "$build/cleaned/acs_cleaned.dta", clear
+	use "$ACScleaned/acs_cleaned.dta", clear
 
 	#delimit ;
 	merge m:1 year occupation using `wagetmp',
@@ -290,5 +292,5 @@ if "$allyears" == "1" {
 // #delimit cr
 
 compress
-capture mkdir "$build/cleaned"
-save "$build/cleaned/acs_cleaned.dta", replace
+save "$ACScleaned/acs_cleaned.dta", replace
+log close
