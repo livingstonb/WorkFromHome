@@ -20,7 +20,7 @@ global ACSstats "$ACSdir/stats"
 global ACSstatsout "$ACSstats/output"
 global ACSstatstemp "$ACSstats/temp"
 
-global ACSallyears 0
+global ACSallyears 1
 
 capture mkdir "$ACSbuildtemp"
 capture mkdir "$ACScleaned"
