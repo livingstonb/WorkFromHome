@@ -30,9 +30,8 @@ gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
 * Add blanks
-append using "$WFHshared/occ_sector_blanks.dta"
+append using "$WFHshared/blanks.dta"
 replace blankobs = 0 if missing(blankobs)
-replace perwt = 1 if (blankobs == 1)
 replace nworkers_wt = 0 if (blankobs == 1)
 replace nworkers_unw = 0 if (blankobs == 1)
 label variable blankobs "Empty category"

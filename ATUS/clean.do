@@ -82,7 +82,7 @@ label variable ind2017 "Industry, 2017 Census coding"
 preserve
 tempfile indtmp
 
-use "$maindir/occ_ind_codes/ind2018/industryindex2018.dta", replace
+use "$WFHshared/ind2018/industryindex2018.dta", replace
 rename industry ind2017
 save `indtmp'
 

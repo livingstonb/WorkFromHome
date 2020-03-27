@@ -18,11 +18,10 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add empty observations so each occupation is represented
-append using "$maindir/occ_ind_codes/occ_sector_blanks.dta"
+append using "$WFHshared/occblanks.dta"
 foreach var of varlist nworkers_unw nworkers_wt {
 	replace `var' = 0 if (blankobs == 1)
 }
-replace normwt = 1 if (blankobs == 1)
 
 replace blankobs = 0 if missing(blankobs)
 label variable blankobs "Empty category"
