@@ -4,7 +4,7 @@ program collapse2excel
 		[fweight pweight iweight] [if] using/
 		[, BY(varlist)]
 		[, TITLE(string)]
-		[, REPLACE]
+		[, MODIFY]
 		[, SHEET(string)];
 	#delimit cr
 
@@ -53,14 +53,22 @@ program collapse2excel
 
 
 	// ADD TO SPREADSHEET
-	#delimit ;
-	export excel using "`using'", keepcellfmt `replace'
-		cell(A3) firstrow(varlabels) sheet("`sheet'", replace);
-	#delimit cr
-	
-	* Add title
-	putexcel set "`using'", modify sheet("`sheet'")
-	putexcel A1=("`title'")
+	if "`modify'" == "" {
+		#delimit ;
+		export excel using "`using'", keepcellfmt `replace'
+			cell(A3) firstrow(varlabels) sheet("`sheet'", replace);
+		#delimit cr
+		
+		* Add title
+		putexcel set "`using'", modify sheet("`sheet'")
+		putexcel A1=("`title'")
+	}
+	else {
+		#delimit ;
+		export excel using "`using'", keepcellfmt
+			cell(A3) firstrow(varlabels) sheet("`sheet'", modify);
+		#delimit cr
+	}
 	
 	restore
 end	

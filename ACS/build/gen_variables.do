@@ -238,8 +238,9 @@ gen hrwage = incwage / uhrswork
 label variable hrwage "Hourly wage, incwage/uhrswork"
 
 * 3-digit occupation coding
+local occ2018dir "%{maindir}/other/occ_codes_2018/output"
 #delimit ;
-merge m:1 occn year using "$maindir/other/occindex.dta",
+merge m:1 occn year using "`occ2018dir'/occindex2018.dta",
 	keepusing(occfine) keep(match master) nogen;
 #delimit cr
 
