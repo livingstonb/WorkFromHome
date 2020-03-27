@@ -1,16 +1,7 @@
-
-global maindir "/home/brian/Documents/GitHub/WFH/ATUS"
-global datadir "$maindir/data"
-//
-// * To look at Leave module specifically
-// use "$datadir/temp/leave.dta", clear
-
 * Load cleaned dataset
-cd "$maindir"
-use "data/cleaned/ATUS_cleaned.dta", clear
+cd "$ATUSdir"
+use "$ATUSdata/cleaned/ATUS_cleaned.dta", clear
 
-gen wt = leavewt / (365 * 2)
-gen nwt = wt / 1000
 gen nworkers = 1
 
 gen pct_canwfh = 100 * canwfh
@@ -47,7 +38,7 @@ label values haschild haschild_lbl
 local i = 0;
 foreach var of varlist
 	totw agecat sex race hispanic education haschild hasyoungchild
-	occupation  industry sector dprivatewkr dpublicwkr
+	occupation  industry gsector dprivatewkr dpublicwkr
 	singjob_fulltime earnq flexhours
 {;
 	preserve;
@@ -62,7 +53,7 @@ foreach var of varlist
 		(mean) pct_wfhpaidyes
 		(mean) pct_wfhpaidno
 		(mean) pct_wfhpaidboth
-		[iw=nwt], by(`var');
+		[iw=normwt], by(`var');
 
 	label variable nworkers "Total workers (thousands)";
 	label variable canwfh "Total (thousands)";

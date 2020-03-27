@@ -1,6 +1,6 @@
 // CLEAN MERGED DATASET
 
-cd "$datadir"
+cd "$ATUSdata"
 capture mkdir "cleaned"
 use "temp/merged.dta", clear
 
@@ -16,7 +16,7 @@ foreach var of varlist
 	peeduca trdpftpt trhhchild
 	teio1cow trmjocc1 trmjind1
 	trernhly temjot tryhhchild
-	teio1ocd {;
+	teio1ocd teio1icd teernwkp {;
 	recode `var' (-3 -2 -1 = .);
 };
 #delimit cr
@@ -44,16 +44,50 @@ rename tehrusl2 uhrsworked2
 rename tehruslt uhrsworkedt
 rename teio1cow classwkr1
 rename trmjocc1 occupation
-rename teio1ocd occ3digit
+rename teio1ocd occdetailed
+rename teio1icd inddetailed
 rename trmjind1 industry
 rename trernhly earnhr
 rename trernwa earnwk
+rename teernwkp workwks
 rename trdpftpt fulltime
 rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
-merge 1:
+preserve
+tempfile occtmp
+
+use "$maindir/occ_ind_codes/occ2010/output/occindex2010.dta", replace
+rename occcensus occdetailed
+save `occtmp'
+
+restore
+#delimit ;
+merge m:1 occdetailed using `occtmp',
+	nogen keep(match master) keepusing(occ3digit);
+#delimit cr
+label variable occ3digit "Occupation, 3 digit"
+
+* Use 2017 Census industry codes
+gen ind2017 = inddetailed
+recode ind2017 (1680 1690 = 1691) (3190 3290 = 3291) (4970 = 4971)
+recode ind2017 (5380 = 5381) (5390 = 5391) (5590/5592 = 5593)
+recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
+recode ind2017 (8190 = 8191) (8560 = 8563)
+recode ind2017 (8880 8890 = 8891)
+label variable ind2017 "Industry, 2017 Census coding"
+
+* Sector
+preserve
+tempfile indtmp
+
+use "$maindir/occ_ind_codes/ind2018/industryindex2018.dta", replace
+rename industry ind2017
+save `indtmp'
+
+restore
+merge m:1 ind2017 using `indtmp', nogen keep(match master) keepusing(sector)
 
 * Age groups
 gen int agecat = .
@@ -132,13 +166,18 @@ label define flexhours_lbl 1 "Had flexible schedule"
 label define flexhours_lbl 0 "Did not have flexible schedule", add
 label values flexhours flexhours_lbl
 
+* Adjust Leave module weights to produce annual figures
+gen normwt = leavewt / (365 * 2)
+replace normwt = normwt / 1000
+label variable normwt "Leave module weights for annual estimates"
+
 * Other new variables
-gen byte sector = .
-replace sector = 1 if inrange(classwkr1, 4, 5)
-replace sector = 2 if inrange(classwkr1, 1, 3)
-label variable sector "Class of worker"
-label define sector_lbl 1 "Private sector" 2 "Public sector"
-label values sector sector_lbl
+gen byte gsector = .
+replace gsector = 1 if inrange(classwkr1, 4, 5)
+replace gsector = 2 if inrange(classwkr1, 1, 3)
+label variable gsector "Class of worker"
+label define gsector_lbl 1 "Private sector" 2 "Public sector"
+label values gsector gsector_lbl
 
 gen byte dprivatewkr = 1 if (classwkr1 == 4)
 replace dprivatewkr = 2 if (classwkr1 == 5)
