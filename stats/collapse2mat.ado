@@ -2,6 +2,7 @@ program collapse2mat, rclass
 	#delimit ;
 	syntax anything(name=collapse_commands)
 		[fweight pweight iweight]
+		[if]
 		[, BY(varlist)]
 		[, KEEPLABELS];
 	#delimit cr
@@ -9,7 +10,8 @@ program collapse2mat, rclass
 	preserve
 
 	quietly drop if missing(`by')
-	collapse `collapse_commands' [`weight'`exp'], by(`by') fast
+	marksample touse
+	collapse `collapse_commands' [`weight'`exp'] if `touse', by(`by') fast
 
 	decode `by', gen(row_lbls)
 	drop `by'
