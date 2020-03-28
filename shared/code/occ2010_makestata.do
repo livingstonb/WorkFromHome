@@ -1,12 +1,10 @@
 clear
 
-local occ2010dir "$maindir/occ_ind_codes/occ2010"
+local occ2010dir "$WFHshared/occ2010"
 cd "`occ2010dir'"
 
 // GET LABELS FROM SOC
 import delimited "temp/soc_labels.csv", bindquote(strict)
-
-drop v1
 
 labmask catid, values(category) lblname(category_lbl)
 rename fcode soccode

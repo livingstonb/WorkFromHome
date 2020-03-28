@@ -260,6 +260,8 @@ merge m:1 occn occyear using "$WFHshared/occ2018/output/occindex2018.dta",
 	keepusing(occ3digit) keep(1 3 4) nogen update;
 #delimit cr
 
+* Create unified 3-digit occupation variable
+
 drop occyear
 
 * 2017 industry codes
