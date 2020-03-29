@@ -3,6 +3,8 @@ clear
 cd "$SIPPbuild"
 set maxvar 10000
 
+label define bin_lbl 0 "No" 1 "Yes"
+
 // forvalues chunk = 1/10 {
 // 	local start = (`chunk' - 1) * 50000 + 1
 // 	local stop = min(492776, `start' + 50000 - 1)
@@ -32,14 +34,16 @@ foreach var of local assetvars {
 #delimit ;
 local keepvars
 	tage eeduc eorigin ems epnspouse erace esex efindjob
-	rged pnum spanel ssuid
-	eown_anntr ejb1_wshm* ejb1_clwrk ghlfsam
-	rfamnum rfamkind monthcode
+	rged pnum spanel ssuid wpfinwgt
+	eown_anntr ejb*_wshmwrk ejb1_clwrk ghlfsam
+	rfamnum rfamkind monthcode rfamref
 	
 	
 /* Employment and income variables */
-	tjb1_occ tjb2_occ tpearn
+	tjb*_occ tpearn
+	ejb*_scrnr
 	tptotinc thtotinc
+	enjflag
 
 /* Asset variables, person-level */
 	tirakeoval eown_irakeo
@@ -74,15 +78,65 @@ use `keepvars' using "input/wave4pt1.dta", clear
 forvalues chunk = 2/10 {
 	append using "input/wave4pt`chunk'.dta", keep(`keepvars')
 }
-keep if (tage >= 15)
-
+drop if (tage < 15) | missing(tage)
 
 * NOTE: families uniquely identified by ssuid & rfamnum
 * HHs uniquely identified by ssuid & eresidenceid, in a given month
 * HH/family composition can change month to month-to-month
 
-* Rename important variables
-// rename rfamnum familyid
+
+destring ssuid, replace
+
+* // IDENTIFIERS
+egen personid = group(ssuid pnum)
+egen monthly_hhid = group(monthcode ssuid eresidenceid)
+egen monthly_familyid = group(monthcode monthly_hhid rfamnum)
+egen famindex = group(ssuid eresidenceid rfamnum)
+
+* Assign everyone a static family id equal to their family id in Jan
+bysort personid (monthcode): gen familyid = monthly_familyid[1]
+
+//
+// // FIND STABLE FAMILIES
+// gen byte famstability = 1
+// label variable famstability "Stability of family through wave 4"
+// label define famstability_lbl 1 "Stable through all months"
+// label define famstability_lbl -1 "At least one member with a missing month", add
+// label define famstability_lbl -2 "Other change in family composition", add
+// label values famstability famstability_lbl
+//
+* Identify anyone who doesn't appear in all months
+bysort personid (monthcode): gen byte personmissingmonths = (monthcode[1] > 1) | (monthcode[_N] < 12)
+drop if personmissingmonths == 1
+// bysort familyid: egen byte fammissingmonths = max(personmissingmonths)
+// replace famstability = -1 if (fammissingmonths == 1)
+// drop fammissingmonths
+// //
+// drop if famstability < 0
+//
+// * Identify families with nonconstant size
+// bysort familyid monthcode: gen famsize = _N
+// bysort familyid (famsize): gen constsize = (famsize[_n] == famsize[1])
+// replace famstability = -3 if (constsize == 0)
+// drop famsize
+//
+// drop if famstability < 0
+//
+// * Identify other
+// bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_n] != monthly_familyid[1])
+// bysort familyid: egen famchange = max(tmp_famchange)
+// replace famstability = -2 if (famchange == 1)
+// drop *famchange
+//
+// // DROP UNSTABLE FAMILIES
+// drop if famstability < 0
+//
+// * Assign every family member a unique within-family id
+// bysort monthcode familyid: gen infamid = _n
+//
+// * Family size
+// bysort monthcode familyid: gen famsize = _N
+// bysort monthly_familyid: gen famN = _N
 
 // ASSET VARIABLES, PERSON-LEVEL
 
@@ -158,6 +212,7 @@ local variable val_re "Value of other real estate"
 rename thval_esav hhval_esa
 replace hhval_esa = 0 if missing(hhval_esa) & (eown_esav == 2)
 label variable hhval_esa "Value of educ sav acct"
+drop eown_esav
 
 * Primary residence
 egen hhval_primaryres = rowtotal(tprval tmhval)
@@ -199,6 +254,50 @@ label variable grossinc "Total gross income"
 rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
+// OCCUPATION
+gen nmonthsmax = 0
+gen employed_thismonth = 0
+gen jmainocc = .
+forvalues j = 7(-1)1 {
+	local varname tjb`j'_occ
+	destring `varname', replace
+	bysort personid: egen byte tmp_nmonths = count(`varname')
+	
+	* Update greatest number of months worked in same occupation
+	gen update_mainocc = (tmp_nmonths >= nmonthsmax) & (tmp_nmonths > 0)
+	replace nmonthsmax = tmp_nmonths if (update_mainocc == 1)
+	replace jmainocc = `j' if (update_mainocc == 1)
+	replace employed_thismonth = 1 if (`varname' != 9920) & !missing(`varname')
+	drop tmp_nmonths update_mainocc
+}
+bysort personid: egen monthsemployed = total(employed_thismonth)
+label variable monthsemployed "Number of months in which an occupationw as reported"
+
+rename jmainocc tmp_jmainocc
+bysort personid: egen jmainocc = min(tmp_jmainocc)
+label variable jmainocc "Job number of main occupation"
+drop tmp_jmainocc
+
+drop employed_thismonth
+drop nmonthsmax
+
+gen occcensus = .
+forvalues j = 1/7 {
+	bysort personid: egen tmp_occmain = min(tjb`j'_occ)
+	replace occcensus = tmp_occmain if (jmainocc == `j')
+	drop tmp_occmain
+}
+#delimit ;
+merge m:1 occcensus using "$WFHshared/occsipp/output/occindexsipp.dta",
+	keepusing(occ3d2010) keep(match) nogen;
+#delimit cr
+drop tjb*_occ enjflag ejb*_scrnr
+
+// WORK FROM HOME
+egen workfromhome = anymatch(ejb*_wshmwrk), values(1)
+label variable workfromhome "Any days the respondent only worked from home"
+label values workfromhome bin_lbl
+
 // PROVIDED RECODES
 rename thnetworth recode_hhnetworth
 rename thval_bank recode_hhbank
@@ -216,7 +315,5 @@ foreach var of varlist recode_* {
 	rename `var' `nameedit'
 }
 
-// KEEP ONLY THE LAST MONTH
-keep if (monthcode == 12)
-drop monthcode
-
+compress
+save "$SIPPtemp/sipp_temp.dta", replace

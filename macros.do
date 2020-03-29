@@ -38,5 +38,5 @@ capture mkdir "$SIPPtemp"
 
 * Other
 global WFHshared "$maindir/shared"
-adopath + "$maindir/ado"
+adopath + "$WFHshared/ado"
 cd "$maindir"

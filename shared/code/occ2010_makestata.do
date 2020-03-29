@@ -16,7 +16,7 @@ label variable soc2010 "SOC 2010 code"
 label variable occ3d2010 "Occupation, 3-digit based on SOC 2010"
 
 compress
-capture mkdir "`occ2010dir'/output"
+capture mkdir "`occ2010dir'/temp"
 save "`occ2010dir'/temp/soc2010.dta", replace
 
 // GET CENSUS-SOC MAP
