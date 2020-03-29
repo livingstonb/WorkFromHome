@@ -98,45 +98,45 @@ bysort personid (monthcode): gen familyid = monthly_familyid[1]
 
 //
 // // FIND STABLE FAMILIES
-// gen byte famstability = 1
-// label variable famstability "Stability of family through wave 4"
-// label define famstability_lbl 1 "Stable through all months"
-// label define famstability_lbl -1 "At least one member with a missing month", add
-// label define famstability_lbl -2 "Other change in family composition", add
-// label values famstability famstability_lbl
-//
+gen byte famstability = 1
+label variable famstability "Stability of family through wave 4"
+label define famstability_lbl 1 "Stable through all months"
+label define famstability_lbl -1 "At least one member with a missing month", add
+label define famstability_lbl -2 "Other change in family composition", add
+label values famstability famstability_lbl
+
 * Identify anyone who doesn't appear in all months
-bysort personid (monthcode): gen byte personmissingmonths = (monthcode[1] > 1) | (monthcode[_N] < 12)
-drop if personmissingmonths == 1
-// bysort familyid: egen byte fammissingmonths = max(personmissingmonths)
-// replace famstability = -1 if (fammissingmonths == 1)
-// drop fammissingmonths
-// //
-// drop if famstability < 0
-//
-// * Identify families with nonconstant size
-// bysort familyid monthcode: gen famsize = _N
-// bysort familyid (famsize): gen constsize = (famsize[_n] == famsize[1])
-// replace famstability = -3 if (constsize == 0)
-// drop famsize
-//
-// drop if famstability < 0
-//
-// * Identify other
-// bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_n] != monthly_familyid[1])
-// bysort familyid: egen famchange = max(tmp_famchange)
-// replace famstability = -2 if (famchange == 1)
-// drop *famchange
-//
-// // DROP UNSTABLE FAMILIES
-// drop if famstability < 0
-//
-// * Assign every family member a unique within-family id
-// bysort monthcode familyid: gen infamid = _n
-//
-// * Family size
-// bysort monthcode familyid: gen famsize = _N
-// bysort monthly_familyid: gen famN = _N
+bysort personid: egen byte nmonths = count(monthcode)
+
+bysort familyid: egen byte famlowestmonths = min(nmonths)
+replace famstability = -1 if (famlowestmonths < 12)
+drop famlowestmonths nmonths
+
+drop if famstability < 0
+
+* Identify families with nonconstant size
+bysort familyid monthcode: gen famsize = _N
+bysort familyid (famsize): gen constsize = (famsize[_N] == famsize[1])
+replace famstability = -3 if (constsize == 0)
+drop famsize
+
+drop if famstability < 0
+
+* Identify other
+bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_n] != monthly_familyid[1])
+bysort familyid: egen famchange = max(tmp_famchange)
+replace famstability = -2 if (famchange == 1)
+drop *famchange
+
+// DROP UNSTABLE FAMILIES
+drop if famstability < 0
+
+* Assign every family member a unique within-family id
+bysort monthcode familyid: gen infamid = _n
+
+* Family size
+bysort monthcode familyid: gen famsize = _N
+bysort monthly_familyid: gen famN = _N
 
 // ASSET VARIABLES, PERSON-LEVEL
 
@@ -297,6 +297,7 @@ drop tjb*_occ enjflag ejb*_scrnr
 egen workfromhome = anymatch(ejb*_wshmwrk), values(1)
 label variable workfromhome "Any days the respondent only worked from home"
 label values workfromhome bin_lbl
+drop ejb*_wshmwrk
 
 // PROVIDED RECODES
 rename thnetworth recode_hhnetworth
