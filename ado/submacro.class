@@ -1,0 +1,13 @@
+class submacro {
+	string expression
+}
+program .set
+	args x
+	
+	.expression = "`x'"
+end
+program .sub
+	args x
+	local result = subinstr("`.expression'", "_", "`x'", .)
+	class exit "`result'"
+end

@@ -1,0 +1,13 @@
+class statasheet {
+	string lbl
+	double current_row = 1
+}
+program .set
+	args x
+	
+	.lbl = "`x'"
+end
+program .down
+	args i
+	.current_row = `.current_row' + i
+end

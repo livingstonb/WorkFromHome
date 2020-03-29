@@ -1,0 +1,44 @@
+class statalist {
+	array list
+	double i = 0
+	double n = 0
+}
+program .append
+	args x
+
+	.list.Arrpush "`x'"
+	.n = `.n' + 1
+end
+program .clear
+	.list.Arrdropall
+end
+program .get
+	args j
+	
+	class exit "`.list[`j']'"
+end
+program .di
+	args j
+	
+	di "`.list[`j']'"
+end
+program .loop_reset
+	.i = 0
+end
+program .loop_next
+	.i = `.i' + 1
+	
+	if (`.i' <= `.n') {
+		class exit 1
+	}
+	else {
+		.i = 0
+		class exit 0
+	}
+end
+program .loop_di
+	di "`.list[`.i']'"
+end
+program .loop_get
+	class exit "`.list[`.i']'"
+end

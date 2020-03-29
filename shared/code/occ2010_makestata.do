@@ -4,19 +4,20 @@ local occ2010dir "$WFHshared/occ2010"
 cd "`occ2010dir'"
 
 // GET LABELS FROM SOC
-import delimited "temp/soc_labels.csv", bindquote(strict)
+import delimited "temp/soc2010.csv", bindquote(strict)
+drop v1
 
-labmask catid, values(category) lblname(category_lbl)
-rename fcode soccode
-rename catid occ3digit
+labmask occ3id, values(occ3labels) lblname(occ3d2010lbl)
+keep soc occ3id
+rename soc soc2010
+rename occ3id occ3d2010
 
-replace soccode = strtrim(soccode)
-order soccode occ3digit
-keep soccode occ3digit
+label variable soc2010 "SOC 2010 code"
+label variable occ3d2010 "Occupation, 3-digit based on SOC 2010"
 
 compress
 capture mkdir "`occ2010dir'/output"
-save "`occ2010dir'/temp/soc_labels.dta", replace
+save "`occ2010dir'/temp/soc2010.dta", replace
 
 // GET CENSUS-SOC MAP
 clear
@@ -33,6 +34,8 @@ replace occcensus = strtrim(occcensus)
 drop if strlen(occcensus) > 4
 destring occcensus, replace
 
+rename soccode soc2010
+
 compress
 save "`occ2010dir'/temp/soc_3digit_map.dta", replace
 
@@ -40,9 +43,13 @@ save "`occ2010dir'/temp/soc_3digit_map.dta", replace
 use "`occ2010dir'/temp/soc_3digit_map.dta", clear
 
 #delimit ;
-merge 1:1 soccode using "`occ2010dir'/temp/soc_labels.dta",
-	keep(match master) keepusing(occ3digit) nogen;
+merge 1:1 soc2010 using "`occ2010dir'/temp/soc2010.dta",
+	keep(match) keepusing(occ3d2010) nogen;
 #delimit cr
+
+label variable soc2010 "SOC 2010 code"
+label variable occcensus "Census occupation variable, occ"
+gen occyear = 2010
 
 compress
 capture mkdir "`occ2010dir'/output"

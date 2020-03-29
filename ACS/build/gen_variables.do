@@ -38,8 +38,8 @@ compress
 * Recode certain binary variables
 #delimit ;
 foreach var of varlist
-	amindian asian black pacislander
-	white otherrace diff* farm
+	amindian asian black pacislander hashealthins
+	white otherrace diff* farm veteran inschool
 {;
 	recode `var' (1 = 0) (2 = 1);
 	label values `var' bin_lbl;
@@ -157,15 +157,6 @@ label variable race "Race, aggregated"
 label define race_lbl 1 "White" 2 "Black" 3 "Asian" 4 "Other"
 label values race race_lbl
 
-recode inschool (1 = 0) (2 = 1)
-label values inschool inschool bin_lbl
-
-recode veteran (1 = 0) (2 = 1)
-label values veteran bin_lbl
-
-recode hashealthins (1 = 0) (2 = 1)
-label values hashealthins bin_lbl
-
 gen byte married = inlist(marst, 1, 2) if !missing(marst)
 label variable married "Currently married"
 label values married bin_lbl
@@ -217,7 +208,7 @@ drop if (armedforces == 1) | missing(armedforces)
 drop if (incwage < 1000) | missing(incwage)
 drop if (wkswork2 < 3) | missing(wkswork2)
 drop if (uhrswork == 0) | missing(uhrswork)
-drop if missing(workfromhome)
+// drop if missing(workfromhome)
 
 gen fulltime = (uhrswork >= 34)
 label variable fulltime "Worked at least 34 hrs per week"
@@ -250,19 +241,16 @@ replace occyear = 2018 if (year == 2018)
 rename occn occcensus
 #delimit ;
 merge m:1 occcensus occyear using "$WFHshared/occ2010/output/occindex2010.dta",
-	keepusing(occ3digit) keep(1 3) nogen;
+	keepusing(occ3d2010) keep(1 3) nogen;
 #delimit cr
-rename occcensus occn
 
 * 2018
 #delimit ;
-merge m:1 occn occyear using "$WFHshared/occ2018/output/occindex2018.dta",
-	keepusing(occ3digit) keep(1 3 4) nogen update;
+merge m:1 occcensus occyear using "$WFHshared/occ2018/output/occindex2018.dta",
+	keepusing(occ3d2018) keep(1 3 4) nogen update;
 #delimit cr
-
-* Create unified 3-digit occupation variable
-
 drop occyear
+rename occcensus occn
 
 * 2017 industry codes
 gen ind2017 = industry if inrange(year, 2012, 2017)

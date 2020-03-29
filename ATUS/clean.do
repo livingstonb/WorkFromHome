@@ -44,7 +44,7 @@ rename tehrusl2 uhrsworked2
 rename tehruslt uhrsworkedt
 rename teio1cow classwkr1
 rename trmjocc1 occupation
-rename teio1ocd occdetailed
+rename teio1ocd occcensus
 rename teio1icd inddetailed
 rename trmjind1 industry
 rename trernhly earnhr
@@ -55,18 +55,11 @@ rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
-preserve
-tempfile occtmp
-
-use "$maindir/occ_ind_codes/occ2010/output/occindex2010.dta", replace
-rename occcensus occdetailed
-save `occtmp'
-
-restore
 #delimit ;
-merge m:1 occdetailed using `occtmp',
-	nogen keep(match master) keepusing(occ3digit);
+merge m:1 occcensus using "$WFHshared/occ2010/output/occindex2010",
+	nogen keep(match master) keepusing(occ3d2010);
 #delimit cr
+rename occ3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
 * Use 2017 Census industry codes
@@ -79,15 +72,19 @@ recode ind2017 (8880 8890 = 8891)
 label variable ind2017 "Industry, 2017 Census coding"
 
 * Sector
-preserve
-tempfile indtmp
-
-use "$WFHshared/ind2018/industryindex2018.dta", replace
-rename industry ind2017
-save `indtmp'
-
-restore
-merge m:1 ind2017 using `indtmp', nogen keep(match master) keepusing(sector)
+// preserve
+// tempfile indtmp
+//
+// use "$WFHshared/ind2017/industryindex2017.dta", replace
+// rename industry ind2017
+// save `indtmp'
+//
+// restore
+// merge m:1 ind2017 using `indtmp', nogen keep(match master) keepusing(sector)
+#delimit ;
+merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
+	nogen keep(match master) keepusing(sector);
+#delimit cr
 
 * Age groups
 gen int agecat = .

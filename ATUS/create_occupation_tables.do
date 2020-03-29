@@ -18,7 +18,13 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add empty observations so each occupation is represented
-append using "$WFHshared/occblanks.dta"
+forvalues sval = 0/1 {
+	append using "$WFHshared/occblanks.dta", gen(indicator`sval')
+	replace sector = `sval' (if indicator`sval' == 1)
+	replace occ3digit = occ3d2010 if (blankobs == 1)
+}
+drop indicator*
+
 foreach var of varlist nworkers_unw nworkers_wt {
 	replace `var' = 0 if (blankobs == 1)
 }

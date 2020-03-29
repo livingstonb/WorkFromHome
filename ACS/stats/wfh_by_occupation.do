@@ -5,7 +5,8 @@ log using "$ACSstatstemp/wfh_by_occupation.log", replace
 // WFH BY OCCUPATION, THREE DIGIT
 cd "$ACSdir"
 use "$ACScleaned/acs_cleaned.dta" if inrange(year, 2012, 2018), clear
-drop if missing(sector, occ3digit)
+drop if missing(sector)
+drop if missing(occ3d2018) & missing(occ3d2010)
 
 label define bin_lbl 0 "No" 1 "Yes", replace
 label define bin_pct_lbl 0 "No" 100 "Yes", replace
@@ -34,45 +35,63 @@ label variable nworkers_wt "Total workers in group"
 gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
-label variable occ3digit "Occupation, 3-digit"
-
 * Add blanks
 tempfile yrtmp
-forvalues yr = 2012/2018 {
+forvalues yr = 2018/2018 {
+forvalues sval = 0/1 {
 	preserve
-	use "$WFHshared/occblanks.dta", clear
+	
+	if (`yr' == 2018) {
+		local occyear 2018
+	}
+	else {
+		local occyear 2010
+	}
+	use if occyear == `occyear' using "$WFHshared/occblanks.dta", clear
 	gen year = `yr'
+	gen sector = `sval'
+
+	drop occyear
+	drop normwt
 	
 	save `yrtmp', replace
 	restore
 	
-	append using `yrtmp''
+	append using `yrtmp'
 }
-append using "$WFHshared/occblanks.dta"
+}
 replace blankobs = 0 if missing(blankobs)
 replace nworkers_wt = 0 if (blankobs == 1)
 replace nworkers_unw = 0 if (blankobs == 1)
-label variable blankobs "Empty category"
 
 discard
+// .title = .statavec
 local title `"Dataset: ACS"'
 local title `"`title'"' `"WFH statistics by 3-digit occupation"'
 local xlxname "$ACSstatsout/ACS_wfh_by_occ3digit_sector.xlsx"
 
-local sheets `"2012, Sector C"' `"2012, Sector S"'
-forvalues yr = 2013/2018 {
-	local sheets `"`sheets'"' `"`yr', Sector C"' `"`yr', Sector S"'
+.descriptions = .statalist.new
+forvalues yr = 2018/2018 {
+	.descriptions.append "`yr', Sector C"
+	.descriptions.append "`yr', Sector S"
 }
-local descriptions `"`sheets'"'
-createxlsx using "`xlxname'", descriptions(`descriptions') sheetnames(`sheets') title(`title')
+.sheets = .descriptions.copy
+sl_createxlsx .descriptions .sheets using "`xlxname'", title(`title')
 
-local snum = 1
-forvalues yr = 2012/2018 {
+.sheets.loop_reset
+local i = 1
+forvalues yr = 2018/2018 {
+	if (`yr' == 2018) {
+		local occvar occ3d2018
+	}
+	else {
+		local occvar occ3d2010
+	}
+
+
 forvalues sval = 0/1 {
+	.sheets.loop_next
 	#delimit ;
-	
-	local sheetname: word `snum' of `"`sheets'"';
-
 	collapse2excel
 		(sum) nworkers_wt
 		(rawsum) nworkers_unw
@@ -80,10 +99,8 @@ forvalues sval = 0/1 {
 		(mean) meanwage
 		(min) blankobs
 		[iw=perwt] if (sector == `sval') & (year == `yr')
-		using "`xlxname'", by(occ3digit) modify sheet("`sheetname'");
+		using "`xlxname'", by(`occvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr
-	
-	local ++snum
 }
 }
 drop nworkers_unw nworkers_wt meanwage

@@ -20,12 +20,21 @@ global ACSstats "$ACSdir/stats"
 global ACSstatsout "$ACSstats/output"
 global ACSstatstemp "$ACSstats/temp"
 
-global ACSallyears 1
+global ACSallyears 0
 
 capture mkdir "$ACSbuildtemp"
 capture mkdir "$ACScleaned"
 capture mkdir "$ACSstatsout"
 capture mkdir "$ACSstatstemp"
+
+* SIPP
+global SIPPdir "$maindir/SIPP"
+global SIPPbuild "$SIPPdir/build"
+global SIPPout "$SIPPdir/output"
+global SIPPtemp "$SIPPdir/temp"
+
+capture mkdir "$SIPPout"
+capture mkdir "$SIPPtemp"
 
 * Other
 global WFHshared "$maindir/shared"
