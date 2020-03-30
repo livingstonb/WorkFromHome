@@ -34,9 +34,10 @@ foreach var of local assetvars {
 #delimit ;
 local keepvars
 	tage eeduc eorigin ems epnspouse erace esex efindjob
-	rged pnum spanel ssuid wpfinwgt
+	rged pnum spanel ssuid wpfinwgt tage_ehc
 	eown_anntr ejb*_wshmwrk ejb1_clwrk ghlfsam
-	rfamnum rfamkind monthcode rfamref
+	rfamnum rfamkind monthcode rfamref shhadid
+	thhldstatus
 	
 	
 /* Employment and income variables */
@@ -44,6 +45,7 @@ local keepvars
 	ejb*_scrnr
 	tptotinc thtotinc
 	enjflag
+	rmesr
 
 /* Asset variables, person-level */
 	tirakeoval eown_irakeo
@@ -89,54 +91,62 @@ destring ssuid, replace
 
 * // IDENTIFIERS
 egen personid = group(ssuid pnum)
-egen monthly_hhid = group(monthcode ssuid eresidenceid)
-egen monthly_familyid = group(monthcode monthly_hhid rfamnum)
-egen famindex = group(ssuid eresidenceid rfamnum)
-
-* Assign everyone a static family id equal to their family id in Jan
-bysort personid (monthcode): gen familyid = monthly_familyid[1]
-
+egen monthly_hhid = group(ssuid eresidenceid)
+egen monthly_familyid = group(monthly_hhid rfamnum)
+// egen famindex = group(ssuid eresidenceid rfamnum)
+//
+//
+// * Assign everyone a static family id equal to their family id in Jan
+// bysort personid (monthcode): gen familyid = monthly_familyid[1]
+egen familyid = group(ssuid eresidenceid rfamnum) if monthcode == 1
+// keep ssuid pnum personid monthly_hhid rfamnum familyid monthcode eresidenceid
+//
 //
 // // FIND STABLE FAMILIES
-gen byte famstability = 1
-label variable famstability "Stability of family through wave 4"
-label define famstability_lbl 1 "Stable through all months"
-label define famstability_lbl -1 "At least one member with a missing month", add
-label define famstability_lbl -2 "Other change in family composition", add
-label values famstability famstability_lbl
-
-* Identify anyone who doesn't appear in all months
-bysort personid: egen byte nmonths = count(monthcode)
-
-bysort familyid: egen byte famlowestmonths = min(nmonths)
-replace famstability = -1 if (famlowestmonths < 12)
-drop famlowestmonths nmonths
-
-drop if famstability < 0
-
-* Identify families with nonconstant size
-bysort familyid monthcode: gen famsize = _N
-bysort familyid (famsize): gen constsize = (famsize[_N] == famsize[1])
-replace famstability = -3 if (constsize == 0)
-drop famsize
-
-drop if famstability < 0
-
-* Identify other
-bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_n] != monthly_familyid[1])
-bysort familyid: egen famchange = max(tmp_famchange)
-replace famstability = -2 if (famchange == 1)
-drop *famchange
-
-// DROP UNSTABLE FAMILIES
-drop if famstability < 0
-
-* Assign every family member a unique within-family id
-bysort monthcode familyid: gen infamid = _n
-
-* Family size
-bysort monthcode familyid: gen famsize = _N
-bysort monthly_familyid: gen famN = _N
+// gen byte famstability = 1
+// label variable famstability "Stability of family through wave 4"
+// label define famstability_lbl 1 "Stable through all months"
+// label define famstability_lbl -1 "At least one member with a missing month", add
+// label define famstability_lbl -2 "Other change in family composition", add
+// label values famstability famstability_lbl
+//
+// * Identify anyone who doesn't appear in all months
+// bysort personid: egen byte nmonths = count(monthcode)
+//
+// bysort familyid: egen byte famlowestmonths = min(nmonths)
+// replace famstability = -1 if (famlowestmonths < 12)
+// drop famlowestmonths nmonths
+//
+// drop if famstability < 0
+//
+// * Identify families with nonconstant size
+// bysort familyid monthcode: gen famsize = _N
+// bysort familyid: egen lowsize = min(famsize)
+// bysort familyid: egen hsize = max(famsize)
+// replace famstability = -3 if (lowsize != hsize)
+// drop famsize
+//
+// drop if famstability < 0
+//
+// * Identify other
+// bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_N] != monthly_familyid[1])
+// bysort familyid: egen famchange = max(tmp_famchange)
+// replace famstability = -2 if (famchange == 1)
+// drop *famchange
+//
+// bysort familyid monthcode: gen notmember = inlist(thhldstatus, 6, 3)
+// bysort familyid: egen hasnonmember = max(notmember)
+// replace famstability = -4 if (hasnonmember == 1)
+//
+// // DROP UNSTABLE FAMILIES
+// drop if famstability < 0
+//
+// * Assign every family member a unique within-family id
+// bysort monthcode familyid: gen infamid = _n
+//
+// * Family size
+// bysort monthcode familyid: gen famsize = _N
+// bysort monthcode monthly_familyid: gen famN = _N
 
 // ASSET VARIABLES, PERSON-LEVEL
 
@@ -271,7 +281,7 @@ forvalues j = 7(-1)1 {
 	drop tmp_nmonths update_mainocc
 }
 bysort personid: egen monthsemployed = total(employed_thismonth)
-label variable monthsemployed "Number of months in which an occupationw as reported"
+label variable monthsemployed "Number of months in which an occupation was reported"
 
 rename jmainocc tmp_jmainocc
 bysort personid: egen jmainocc = min(tmp_jmainocc)
@@ -289,9 +299,32 @@ forvalues j = 1/7 {
 }
 #delimit ;
 merge m:1 occcensus using "$WFHshared/occsipp/output/occindexsipp.dta",
-	keepusing(occ3d2010) keep(match) nogen;
+	keepusing(occ3d2010) keep(match master) nogen;
 #delimit cr
 drop tjb*_occ enjflag ejb*_scrnr
+
+// EMPLOYMENT STATUS
+rename rmesr empstatus
+gen emptmp = 1 if inrange(empstatus, 1, 5)
+replace emptmp = 2 if inrange(empstatus, 6, 7)
+replace emptmp = 3 if (empstatus == 8)
+
+bysort personid: egen employment = min(emptmp)
+drop emptmp empstatus
+label define emplbl 1 "Employed at least one week of the year"
+label define emplbl 2 "Unemployed, spent at least one week on layoff or looking for work", add
+label define emplbl 3 "Not employed, was not on layoff or looking for work at any time", add
+label variable employment "Employment status"
+label values employment emplbl
+
+replace occ3d2010 = -1 if missing(occ3d2010) & (employment == 2)
+replace occ3d2010 = -2 if missing(occ3d2010) & (employment == 3)
+#delimit ;
+label define occ3d2010lbl -1
+	"Unemployed all year, spent time on layoff or looking for work", add;
+label define occ3d2010lbl -2
+	"Not employed all year, spent no time on layoff or looking for work", add;
+#delimit cr
 
 // WORK FROM HOME
 egen workfromhome = anymatch(ejb*_wshmwrk), values(1)
