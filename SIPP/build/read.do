@@ -73,7 +73,7 @@ local keepvars
 	tprloanamt tmhloanamt
 	
 /* Household-related variables */
-	eresidenceid;
+	eresidenceid rfamref epnspouse;
 #delimit cr
 
 use `keepvars' using "input/wave4pt1.dta", clear
@@ -91,62 +91,72 @@ destring ssuid, replace
 
 * // IDENTIFIERS
 egen personid = group(ssuid pnum)
-egen monthly_hhid = group(ssuid eresidenceid)
-egen monthly_familyid = group(monthly_hhid rfamnum)
+// egen monthly_hhid = group(ssuid eresidenceid)
+// egen monthly_familyid = group(monthly_hhid rfamnum)
 // egen famindex = group(ssuid eresidenceid rfamnum)
 //
 //
 // * Assign everyone a static family id equal to their family id in Jan
 // bysort personid (monthcode): gen familyid = monthly_familyid[1]
-egen familyid = group(ssuid eresidenceid rfamnum) if monthcode == 1
-// keep ssuid pnum personid monthly_hhid rfamnum familyid monthcode eresidenceid
+// egen familyid = group(ssuid eresidenceid rfamnum) if monthcode == 1
+
+// // HOUSEHOLD
+egen household = group(ssuid eresidenceid)
+// bysort personid (monthcode): gen household = mhh[1]
 //
-//
-// // FIND STABLE FAMILIES
-// gen byte famstability = 1
-// label variable famstability "Stability of family through wave 4"
-// label define famstability_lbl 1 "Stable through all months"
-// label define famstability_lbl -1 "At least one member with a missing month", add
-// label define famstability_lbl -2 "Other change in family composition", add
-// label values famstability famstability_lbl
-//
-// * Identify anyone who doesn't appear in all months
-// bysort personid: egen byte nmonths = count(monthcode)
-//
-// bysort familyid: egen byte famlowestmonths = min(nmonths)
-// replace famstability = -1 if (famlowestmonths < 12)
-// drop famlowestmonths nmonths
-//
-// drop if famstability < 0
-//
-// * Identify families with nonconstant size
-// bysort familyid monthcode: gen famsize = _N
-// bysort familyid: egen lowsize = min(famsize)
-// bysort familyid: egen hsize = max(famsize)
-// replace famstability = -3 if (lowsize != hsize)
-// drop famsize
-//
-// drop if famstability < 0
-//
-// * Identify other
-// bysort familyid monthcode (monthly_familyid): gen tmp_famchange = (monthly_familyid[_N] != monthly_familyid[1])
-// bysort familyid: egen famchange = max(tmp_famchange)
-// replace famstability = -2 if (famchange == 1)
-// drop *famchange
-//
-// bysort familyid monthcode: gen notmember = inlist(thhldstatus, 6, 3)
-// bysort familyid: egen hasnonmember = max(notmember)
-// replace famstability = -4 if (hasnonmember == 1)
-//
-// // DROP UNSTABLE FAMILIES
-// drop if famstability < 0
-//
-// * Assign every family member a unique within-family id
-// bysort monthcode familyid: gen infamid = _n
-//
-// * Family size
-// bysort monthcode familyid: gen famsize = _N
-// bysort monthcode monthly_familyid: gen famN = _N
+// egen tmp = group(ssuid eresidenceid) if (monthcode == 1)
+// bysort ssuid eresidenceid: gen household = tmp[1]
+// drop tmp
+
+
+
+// FAMILIES
+
+* Unique family id
+egen ftmp = group(ssuid eresidenceid rfamnum) if monthcode == 1
+bysort personid (monthcode): gen family = ftmp[1]
+drop ftmp
+
+* Unique person id of HH reference
+gen famhead = personid if (rfamref == pnum)
+bysort family monthcode: egen numheads = count(famhead)
+
+* If numheads == 0, original head of a family left
+* If numheads > 1, someone in original family started new family
+bysort family: egen nlow = min(numheads)
+bysort family: egen nhigh = max(numheads)
+replace family = . if (nlow < 1) | (nhigh > 1)
+replace famhead = . if (nlow < 1) | (nhigh > 1)
+drop numheads
+
+* Update famhead
+bysort family monthcode: egen tmp_famhead = max(famhead)
+drop famhead
+rename tmp_famhead famhead
+
+* Check for constant head
+bysort family (famhead): gen consthead = (famhead[_N] == famhead[1])
+replace family = . if (consthead == 0)
+replace famhead = . if (consthead == 0)
+drop consthead
+
+* Check for stable marriage
+gen tmp_famspouse = epnspouse if (rfamref == pnum)
+bysort family monthcode: egen famspouse = max(tmp_famspouse)
+bysort family (famspouse): gen constspouse = (famspouse[_N] == famspouse[1])
+replace family = . if (constspouse == 0)
+replace famhead = . if (constspouse == 0)
+replace famspouse = . if (constspouse == 0)
+drop tmp_famspouse  constspouse
+
+// FAMILY HEADS: SINGLES AND COUPLES
+gen coupleid = family if (personid == famhead) | (pnum == famspouse)
+
+// FAMILY HEADS, COMBINING COUPLES IN ONE HOUSEHOLDS
+bysort household monthcode: egen hhcoupleid = max(coupleid)if !missing(coupleid)
+
+
+
 
 // ASSET VARIABLES, PERSON-LEVEL
 
