@@ -1,130 +1,79 @@
 use "$SIPPtemp/sipp_raw.dta", clear
 
-* // IDENTIFIERS
+// IDENTIFIERS
 egen personid = group(ssuid pnum)
 egen household = group(ssuid eresidenceid)
-egen hhmonthly = group(ssuid monthcode eresidenceid)
-egen fammonthly = group(ssuid monthcode eresidenceid rfamnum)
+egen monthlyhousehold = group(monthcode household)
 
-*** EACH FAMILY MEMBER CAN BE TIED TO REF BY RELATIONSHIP TO... VARIABLE
+// CHOOSE SAMPLING UNIT
+* Level, "hh" or "fam"
+local sulevel "hh"
 
-// BY HOUSEHOLD
-gen hhhead = (rfamnum == 1) & (rfamref == pnum)
+* 0 -> head only, 1 -> head & spouse, 2 -> head & spouse/partner
+local nmain = 1
 
-bysort hhmonthly (hhhead): gen pnum_spouse = epnspouse[_N]
-gen hhspouse = (pnum == pnum_spouse)
+* Number of families from each HH to use, if sulevel = "fam"
+local nfamilies = 1
 
+// SETUP
 discard
 .su = .samplingunit.new
-.su.set_groupid hhmonthly
+
+* Household vs. family level
+if "`sulevel'" == "hh" {
+	gen groupid = monthlyhousehold
+	local nfamilies 1
+}
+else if "`sulevel'" == "fam" {
+	egen groupid = group(monthlyhousehold rfamnum)
+}
+
+* Other declarations
+.su.set_groupid groupid
 .su.set_individualid personid
 .su.set_panelid monthcode 1 12
-.su.set_grouphead hhhead
-.su.assign_members hhspouse
-.su.check_panel
 
-capture drop sampleN
-bysort sampleunit: gen sampleN = _N
-tab sampleN if !missing(sampleunit)
+* Idenfify group head
+if "`sulevel'" == "hh" {
+	gen grouphead = (rfamnum == 1) & (rfamref == pnum)
+}
+else if "`sulevel'" == "fam" {
+	gen grouphead = inrange(rfamnum, 1, `nfamilies') & (rfamref == pnum)
+}
+.su.set_grouphead grouphead
 
-// BY FAMILY
-gen famhead = (rfamref == pnum) & inrange(rfamnum, 1, 4)
+* Other main members to include
+forvalues i = 1/`nfamilies' {
+	gen fam`i'head = (rfamref == pnum) & (rfamnum == `i')
 
-bysort fammonthly (famhead): gen pnum_spouse = epnspouse[_N]
-gen famspouse = (pnum == pnum_spouse)
+	bysort fammonthly (fam`i'head): gen pnum_spouse = epnspouse[_N]
+	gen fam`i'spouse = (pnum == pnum_spouse) & (rfamnum == `i')
+	drop pnum_spouse
 
-discard
-.su = .samplingunit.new
-.su.set_groupid fammonthly
-.su.set_individualid personid
-.su.set_panelid monthcode 1 12
-.su.set_grouphead famhead
-.su.assign_members famspouse
-.su.check_panel
+	bysort fammonthly (fam`i'head): gen pnum_partner = epncohab[_N]
+	gen fam`i'partner = (pnum == pnum_partner) & (rfamnum == `i')
+	drop pnum_partner
 
-capture drop sampleN
-bysort sampleunit: gen sampleN = _N
-tab sampleN if !missing(sampleunit)
+	drop fam`i'head pnum_spouse pnum_partner
+}
+egen famspouse = anymatch(fam*spouse), values(1)
+egen fampartner = anymatch(fam*partner), values(1)
 
+if `nmain' > 0 {
+	.su.assign_members famspouse 1
+}
 
+if `nmain' > 1 {
+	.su.assign_members fampartner 1
+}
+.su.clean_panel
 
-// ADO FILE
-egen famid = group(ssuid eresidenceid rfamnum)
-bysort famid monthcode: gen tmprefid = personid if (rfamref == pnum)
-bysort famid monthcode: egen refid = max(tmprefid)
+* Check group sizes
+.su.tab_groups
 
-* Monthly family identifier must be equal across members
-* Family must have the same reference member throughout time
-.su = .sampleunit.new
-.su.set_groupid famid
-.su.set_panelid monthcode
-
-.su.create_su
-.su.imposeconstant rfamref
-
-bysort_distribute spouseid = epnspouse if (pnum == rfamref), over(`.su.sampleunit')
-
-.su.generate epnspouse 
-
-sampleunit create, su(family) panelid(monthcode) groupid(famid)
-sampleunit head, su(family) panelid(monthcode) head(rfamref)
-
-generate_within family monthcode head, value(epnspouse) gen(spouse)
-
-
-
-sampleunit gen, su(family) panelid(monthcode) headvar(rfamref) headvar(epnspouse)
-
-
-
-// FAMILIES
-
-* Unique family id
-egen ftmp = group(ssuid eresidenceid rfamnum) if monthcode == 1
-bysort personid (monthcode): gen family = ftmp[1]
-drop ftmp
-
-* Unique person id of HH reference
-gen famhead = personid if (rfamref == pnum)
-bysort family monthcode: egen numheads = count(famhead)
-
-* If numheads == 0, original head of a family left
-* If numheads > 1, someone in original family started new family
-bysort family: egen nlow = min(numheads)
-bysort family: egen nhigh = max(numheads)
-replace family = . if (nlow < 1) | (nhigh > 1)
-replace famhead = . if (nlow < 1) | (nhigh > 1)
-drop numheads
-
-* Update famhead
-bysort family monthcode: egen tmp_famhead = max(famhead)
-drop famhead
-rename tmp_famhead famhead
-
-* Check for constant head
-bysort family (famhead): gen consthead = (famhead[_N] == famhead[1])
-replace family = . if (consthead == 0)
-replace famhead = . if (consthead == 0)
-drop consthead
-
-* Check for stable marriage
-gen tmp_famspouse = epnspouse if (rfamref == pnum)
-bysort family monthcode: egen famspouse = max(tmp_famspouse)
-bysort family (famspouse): gen constspouse = (famspouse[_N] == famspouse[1])
-replace family = . if (constspouse == 0)
-replace famhead = . if (constspouse == 0)
-replace famspouse = . if (constspouse == 0)
-drop tmp_famspouse  constspouse
-
-// FAMILY HEADS: SINGLES AND COUPLES
-gen coupleid = family if (personid == famhead) | (pnum == famspouse)
-
-// FAMILY HEADS, COMBINING COUPLES IN ONE HOUSEHOLDS
-bysort household monthcode: egen hhcoupleid = max(coupleid)if !missing(coupleid)
-
-
-
-
+* ASSET SPLIT - GIVE TO FIRST FAMILY IN HOUSEHOLD
+bysort sampleunit monthcode: egen nprimary = count(_marked) if (rfamref == 1)
+gen su_share = 1 / nprimary if (_marked == 1) & (rfamref == 1)
 
 
 compress

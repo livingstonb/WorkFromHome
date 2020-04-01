@@ -1,5 +1,6 @@
 class samplingunit {
 	string groupid = "sampleunit"
+	string markedobs = "_marked"
 	string indid
 	string dyngroupid
 	string panelid
@@ -25,9 +26,7 @@ program .set_grouphead
 	args x
 	.grouphead = "`x'"
 end
-program .assign_members
-	args x y z
-
+program .create
 	tempfile sutmp1
 	save `sutmp1'
 	
@@ -48,19 +47,30 @@ program .assign_members
 	tempvar alwayshead
 	bysort `.indid': egen `alwayshead' = min(`.grouphead')
 	gen `.groupid' = `.indid' if (`alwayshead' == 1)
-	
-	* Assign members
-	tempvar grp1 grp2 grp3
-	* Group id extended to non-head
-	bysort `.dyngroupid': egen `grp1' = max(`.groupid')
-	
-	if "`x'" != "" {
-		* Filter by membership variables
-		egen `grp2' = anymatch(`x' `y' `z'), values(1)
-		replace `.groupid' = `grp1' if (`grp2' == 1)
-	}
+
+	* Designate as a main group member
+	gen `.markedobs' = 1 if (`alwayshead' == 1)
+	label variable `.markedobs' "Sampling unit, observation marker"
+	label define markedobs_lbl 1 "Primary sample unit member"
+	label variable `.markedobs' markedobs_lbl
 end
-program .check_panel
+program.assign_member
+	args x y
+	tempvar grp
+
+	* Group id extended to non-head
+	bysort `.dyngroupid': egen `grp' = max(`.groupid')
+	
+	* Filter by membership variables
+	replace `.groupid' = `grp' if (`x' == 1)
+	
+	* Add mark if specified
+	if "`y'" != "" {
+		replace `.markedobs' = `y' if (`x' == 1)
+	}
+
+end
+program .clean_panel
 	tempname nperiods
 	scalar nperiods = `.panelT' - `.panel0' + 1
 
@@ -75,22 +85,13 @@ program .check_panel
 	bysort `.indid' (`.groupid'): gen `gtmp3' = (`.groupid'[_N] == `.groupid'[1])
 	bysort `.groupid': egen `gtmp4' = min(`gtmp3')
 	replace `.groupid' = . if `gtmp4' == 0
-	
-	
-// 	* Loop through all periods
-// 	forvalues i = `panel0'/`panelT' {
-// 		bysort `.dyngroupid': 
-// 	}
-//	
 
-// 	* Require no net change in group size
-//	
-// 	tempvar sizetmp
-// 	bysort `.groupid' `.panelid': gen `sizetmp' = _N
-// 	bysort 
-//
-// 	local start = `.panel0' + 1
-// 	forvalues p = `start'(1)`.panelT' {
-// 		di "`p'"
-// 	}
+	* Update marked observations
+	replace `.markedobs' = . if missing(`.groupid')
+end
+program .tab_groups
+	tempvar nsample
+
+	bysort `.groupid': gen `nsample' = _N
+	tab `nsample'
 end
