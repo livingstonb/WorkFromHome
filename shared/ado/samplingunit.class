@@ -1,0 +1,96 @@
+class samplingunit {
+	string groupid = "sampleunit"
+	string indid
+	string dyngroupid
+	string panelid
+	string grouphead
+	double panel0
+	double panelT
+}
+program .set_groupid
+	args x
+	.dyngroupid = "`x'"
+end
+program .set_individualid
+	args x
+	.indid = "`x'"
+end
+program .set_panelid
+	args x y z
+	.panelid = "`x'"
+	.panel0 = `y'
+	.panelT = `z'
+end
+program .set_grouphead
+	args x
+	.grouphead = "`x'"
+end
+program .assign_members
+	args x y z
+
+	tempfile sutmp1
+	save `sutmp1'
+	
+	* Chech that head uniquely identifies group
+	keep if `.panelid' == `.panel0'
+	tempvar tmpv1
+	bysort `.dyngroupid': egen `tmpv1' = total(`.grouphead')
+	quietly sum `tmpv1'
+	if `r(max)' > 1 {
+		di "More than one group head identified in first time period"
+		use `sutmp1', clear
+		class exit -1
+	}
+	use `sutmp1', clear
+	
+	* Create unique group identifier for first period in panel
+	capture drop `.groupid'
+	tempvar alwayshead
+	bysort `.indid': egen `alwayshead' = min(`.grouphead')
+	gen `.groupid' = `.indid' if (`alwayshead' == 1)
+	
+	* Assign members
+	tempvar grp1 grp2 grp3
+	* Group id extended to non-head
+	bysort `.dyngroupid': egen `grp1' = max(`.groupid')
+	
+	if "`x'" != "" {
+		* Filter by membership variables
+		egen `grp2' = anymatch(`x' `y' `z'), values(1)
+		replace `.groupid' = `grp1' if (`grp2' == 1)
+	}
+end
+program .check_panel
+	tempname nperiods
+	scalar nperiods = `.panelT' - `.panel0' + 1
+
+	* Check if all group members are available for entire sample
+	tempname gtmp1 gtmp2
+	bysort `.indid': gen `gtmp1' = _N
+	bysort `.groupid': egen `gtmp2' = min(`gtmp1')
+	replace `.groupid' = . if `gtmp2' < nperiods
+	
+	* Check if all group members are in group for entire sample
+	tempname gtmp3 gtmp4
+	bysort `.indid' (`.groupid'): gen `gtmp3' = (`.groupid'[_N] == `.groupid'[1])
+	bysort `.groupid': egen `gtmp4' = min(`gtmp3')
+	replace `.groupid' = . if `gtmp4' == 0
+	
+	
+// 	* Loop through all periods
+// 	forvalues i = `panel0'/`panelT' {
+// 		bysort `.dyngroupid': 
+// 	}
+//	
+
+// 	* Require no net change in group size
+//	
+// 	tempvar sizetmp
+// 	bysort `.groupid' `.panelid': gen `sizetmp' = _N
+// 	bysort 
+//
+// 	local start = `.panel0' + 1
+// 	forvalues p = `start'(1)`.panelT' {
+// 		di "`p'"
+// 	}
+end

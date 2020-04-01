@@ -6,7 +6,7 @@ log using "$ACSbuildtemp/read.log", replace
 global raw_dat_path "$ACSbuild/raw/acs_raw.dat"
 do "$ACSbuild/raw/acs_raw.do"
 
-rename occ occn;
+rename occ occn
 #delimit ;
 keep
 	year sex famsize nchild age marst occn
