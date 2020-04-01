@@ -6,27 +6,46 @@ program sl_createxlsx
 	
 	local descriptions: word 1 of `args'
 	local sheets: word 2 of `args'
+	local xlxnotes: word 3 of `args'
 	
 	putexcel set "`using'", replace sheet("Contents")
 	
+// 	local i = 1
+// 	local tword: word 1 of `"`title'"'
+// 	while ("`tword'" != "") {
+// 		putexcel A`i' = ("`tword'")
+//		
+// 		local ++i
+// 		local tword: word `i' of `"`title'"'
+// 	}
+
 	local i = 1
-	local tword: word 1 of `"`title'"'
-	while ("`tword'" != "") {
-		putexcel A`i' = ("`tword'")
-		
+	`xlxnotes'.loop_reset
+	while( ``xlxnotes'.loop_next' ) {
+		local inote = "``xlxnotes'.loop_get'"
+		putexcel A`i' = ("``xlxnotes'.loop_get'")
 		local ++i
-		local tword: word `i' of `"`title'"'
 	}
+
+	putexcel A`i' = ("Date: $S_DATE")
+	local ++i
 	
-	local ccell = `i' + 1
-	putexcel A`ccell' = "SHEET" B`ccell' = "DESCRIPTION"
+	putexcel A`i' = ("Time: $S_TIME")
+	local ++i
+	local ++i
+
+	putexcel A`i' = "SHEET" B`i' = "DESCRIPTION"
+	local ++i
+	
+	putexcel A`i' = ("0") B`i' = "Contents"
+	local ++i
 	
 	`descriptions'.loop_reset
 	while ( ``descriptions'.loop_next' ) {
-		local ++ccell
-		local i = ``descriptions'.i'
+		local isheet = ``descriptions'.i'
 		local descr = "``descriptions'.loop_get'"
-		putexcel A`ccell' = ("`i'") B`ccell' = ("`descr'")
+		putexcel A`i' = ("`isheet'") B`i' = ("`descr'")
+		local ++i
 	}
 
 	`descriptions'.loop_reset

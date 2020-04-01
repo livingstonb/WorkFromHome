@@ -8,12 +8,17 @@ import delimited "temp/soc2010.csv", bindquote(strict)
 drop v1
 
 labmask occ3id, values(occ3labels) lblname(occ3d2010lbl)
-keep soc occ3id
-rename soc soc2010
+keep soc* occ3id
+rename soc3d soc3d2010
+rename socfull soc2010
 rename occ3id occ3d2010
 
+label variable soc3d2010 "SOC 2010, 3-digit level"
 label variable soc2010 "SOC 2010 code"
 label variable occ3d2010 "Occupation, 3-digit based on SOC 2010"
+
+replace soc3d2010 = "51-5100" if (soc3d2010 == "51-5000")
+replace soc3d2010 = "15-1100" if (soc3d2010 == "15-1000")
 
 compress
 capture mkdir "`occ2010dir'/temp"
@@ -44,7 +49,7 @@ use "`occ2010dir'/temp/soc_3digit_map.dta", clear
 
 #delimit ;
 merge 1:1 soc2010 using "`occ2010dir'/temp/soc2010.dta",
-	keep(match) keepusing(occ3d2010) nogen;
+	keep(match) keepusing(occ3d2010 soc3d2010) nogen;
 #delimit cr
 
 label variable soc2010 "SOC 2010 code"

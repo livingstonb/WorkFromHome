@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import pdb
 
-def read_codes(fpath):
+def read_codes(fpath, year):
 	groups = dict()
 	codes = []
 
@@ -10,6 +10,13 @@ def read_codes(fpath):
 	ithreedigit = 0
 	twodigit_last = -1
 	threedigit_last = -1
+
+	if year == "2010":
+		i0 = 8
+	elif year == "2018":
+		i0 = 9
+	else:
+		raise Exception("Invalid year")
 
 	with open(fpath, 'r') as fobj:
 		
@@ -22,18 +29,20 @@ def read_codes(fpath):
 			makeNewEntry = True
 			if (twodigit > twodigit_last):
 				# New 2-digit category
-				label2digit = line[9:-1]
+				label2digit = line[i0:-1]
 				itwodigit += 1
 				makeNewEntry = False
 			elif (threedigit > threedigit_last):
 				# New 3-digit category
 				label3digit = line[9:-1]
 				ithreedigit += 1
+				soc3digit = soccode
 
 			if makeNewEntry:
 				# Continue in current 3-digit category
 				entry = {
-					'soc': soccode,
+					'soc3d': soc3digit,
+					'socfull': soccode,
 					'occ2labels': label2digit,
 					'occ2id': itwodigit,
 					'occ3labels': label3digit,
@@ -82,6 +91,6 @@ def create_paths(maindir, year):
 maindir = "/media/hdd/GitHub/WorkFromHome/shared"
 year = "2018"
 paths = create_paths(maindir, year)
-codes = read_codes(paths['txt'])
+codes = read_codes(paths['txt'], year)
 codes.to_csv(paths['csv'])
 print(codes)

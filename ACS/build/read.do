@@ -21,13 +21,6 @@ keep
 	diffhear pwmet13 pwtype;
 #delimit cr
 
-if "$ACSallyears" == "1" {
-	keep if (year >= 2012)
-}
-else {
-	keep if (year == 2018)
-}
-
 * Rename variables
 rename ind industry
 rename educ educ_orig

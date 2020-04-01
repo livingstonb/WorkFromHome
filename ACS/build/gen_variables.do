@@ -6,10 +6,10 @@ capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
 if "$ACSallyears" == "1" {
-	use "$ACSbuildtemp/acs_temp.dta" if (year >= 2012), clear
+	use if (year >= 2010) using "$ACSbuildtemp/acs_temp.dta" , clear
 }
 else {
-	use "$ACSbuildtemp/acs_temp.dta" if (year == 2018), clear
+	use if (year == 2018) using "$ACSbuildtemp/acs_temp.dta", clear
 }
 
 * Nominal wage income
@@ -234,13 +234,13 @@ gen hrwage = incwage / uhrswork
 label variable hrwage "Hourly wage, incwage/uhrswork"
 
 * 3-digit occupation coding
-gen occyear = 2010 if inrange(year, 2012, 2017)
+gen occyear = 2010 if inrange(year, 2010, 2017)
 replace occyear = 2018 if (year == 2018)
 
 * 2012 - 2017
 rename occn occcensus
 #delimit ;
-merge m:1 occcensus occyear using "$WFHshared/occ2010/output/occindex2010.dta",
+merge m:1 occcensus occyear using "$WFHshared/occ2010/output/occindex2010new.dta",
 	keepusing(occ3d2010) keep(1 3) nogen;
 #delimit cr
 
@@ -253,7 +253,7 @@ drop occyear
 rename occcensus occn
 
 * 2017 industry codes
-gen ind2017 = industry if inrange(year, 2012, 2017)
+gen ind2017 = industry if inrange(year, 2010, 2017)
 recode ind2017 (1680 1690 = 1691) (3190 3290 = 3291) (4970 = 4971)
 recode ind2017 (5380 = 5381) (5390 = 5391) (5590/5592 = 5593)
 recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)

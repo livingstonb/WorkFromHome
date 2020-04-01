@@ -109,6 +109,34 @@ egen household = group(ssuid eresidenceid)
 // drop tmp
 
 
+// ADO FILE
+egen famid = group(ssuid eresidenceid rfamnum)
+bysort famid monthcode: gen tmprefid = personid if (rfamref == pnum)
+bysort famid monthcode: egen refid = max(tmprefid)
+
+* Monthly family identifier must be equal across members
+* Family must have the same reference member throughout time
+.su = .sampleunit.new
+.su.set_groupid famid
+.su.set_panelid monthcode
+
+.su.create_su
+.su.imposeconstant rfamref
+
+bysort_distribute spouseid = epnspouse if (pnum == rfamref), over(`.su.sampleunit')
+
+.su.generate epnspouse 
+
+sampleunit create, su(family) panelid(monthcode) groupid(famid)
+sampleunit head, su(family) panelid(monthcode) head(rfamref)
+
+generate_within family monthcode head, value(epnspouse) gen(spouse)
+
+
+
+sampleunit gen, su(family) panelid(monthcode) headvar(rfamref) headvar(epnspouse)
+
+
 
 // FAMILIES
 

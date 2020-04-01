@@ -8,12 +8,16 @@ import delimited "temp/soc2018.csv", bindquote(strict)
 drop v1
 
 labmask occ3id, values(occ3labels) lblname(occ3d2018lbl)
-keep soc occ3id
-rename soc soc2018
+keep soc* occ3id
+rename soc3d soc3d2018
+rename socfull soc2018
 rename occ3id occ3d2018
 
 label variable soc2018 "SOC 2018 code"
 label variable occ3d2018 "Occupation, 3-digit based on SOC 2018"
+replace soc3d2018 = "51-5100" if (soc3d2018 == "51-5000")
+replace soc3d2018 = "15-1200" if (soc3d2018 == "15-1000")
+replace soc3d2018 = "31-1100" if (soc3d2018 == "31-1000")
 
 compress
 capture mkdir "`occ2018dir'/output"
