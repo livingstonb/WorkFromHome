@@ -42,6 +42,7 @@ local keepvars
 	
 /* Employment and income variables */
 	tjb*_occ tpearn
+	tjb*_ind
 	ejb*_scrnr
 	tptotinc thtotinc
 	enjflag

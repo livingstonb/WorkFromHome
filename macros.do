@@ -45,6 +45,13 @@ global OESout "$OESbuild/output"
 capture mkdir "$OESbuildtemp"
 capture mkdir "$OESout"
 
+* Dingel-Neiman
+global DNdir "$maindir/DingelNeiman"
+global DNbuild "$DNdir/build"
+global DNout "$DNbuild/output"
+
+capture mkdir "$DNout"
+
 * Other
 global WFHshared "$maindir/shared"
 adopath + "$WFHshared/ado"

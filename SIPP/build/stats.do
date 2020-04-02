@@ -44,6 +44,27 @@ foreach var of varlist nla_lt* whtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 
+* Add blanks
+tempfile yrtmp
+preserve
+clear
+save `yrtmp', emptyok
+forvalues sval = 0/1 {
+	use occ3d2010 using "$WFHshared/occsipp/output/occindexsipp.dta", clear
+	gen sector = `sval'
+	gen wpfinwgt = 1
+	gen blankobs = 1
+	
+	append using `yrtmp'
+	save `yrtmp', replace
+}
+restore
+append using `yrtmp'
+// drop if (occ3d2010 >= 550) & !missing(occ3d2010)
+
+replace blankobs = 0 if missing(blankobs)
+label variable blankobs "Empty category"
+
 // COLLAPSE
 
 gen nworkers_unw = 1
@@ -51,6 +72,9 @@ label variable nworkers_unw "n, unwtd"
 
 gen nworkers_wt = 1
 label variable nworkers_wt "Total"
+
+replace nworkers_wt = 0 if (blankobs == 1)
+replace nworkers_unw = 0 if (blankobs == 1)
 
 discard
 local xlxname "$SIPPout/SIPP_wfh_by_occ3digit.xlsx"
@@ -66,8 +90,10 @@ local xlxname "$SIPPout/SIPP_wfh_by_occ3digit.xlsx"
 .xlxnotes.append ""
 
 .descriptions = .statalist.new
-.descriptions.append "By occupation"
-.descriptions.append "By employment status"
+.descriptions.append "Sector C, by occ"
+.descriptions.append "Sector S, by occ"
+.descriptions.append "Both sectors, by occ"
+.descriptions.append "Both sectors, by empl"
 
 .sheets = .descriptions.copy
 .sheets = .descriptions.copy
@@ -76,6 +102,18 @@ sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 .sheets.loop_reset
 local byvars occ3d2010 employment
 foreach byvar of local byvars {
+forvalues sval = 0/2 {
+	if ("`byvar'" == "employment") & (`sval' < 2) {
+		continue
+	}
+
+	if `sval' < 2 {
+		local restrictions "if (sector == `sval')"
+	}
+	else {
+		local restrictions
+	}
+
 	.sheets.loop_next
 	#delimit ;
 	collapse2excel
@@ -84,7 +122,10 @@ foreach byvar of local byvars {
 		(mean) workfromhome
 		`meanstats'
 		`medianstats'
-		[iw=wpfinwgt]
-		using "`xlxname'", by(`byvar') modify sheet("`.sheets.loop_get'");
+		(min) blankobs
+		`restrictions' [iw=wpfinwgt]
+		using "`xlxname'",
+		by(`byvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr
+}
 }

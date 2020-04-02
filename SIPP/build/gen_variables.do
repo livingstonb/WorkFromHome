@@ -130,7 +130,7 @@ label variable grossinc "Total gross income"
 rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
-// OCCUPATION
+// OCCUPATION AND INDUSTRY
 gen nmonthsmax = 0
 gen employed_thismonth = 0
 gen jmainocc = .
@@ -158,16 +158,39 @@ drop employed_thismonth
 drop nmonthsmax
 
 gen occcensus = .
+gen indcensus = .
 forvalues j = 1/7 {
+	destring tjb`j'_ind, replace
+
 	bysort personid: egen tmp_occmain = min(tjb`j'_occ)
 	replace occcensus = tmp_occmain if (jmainocc == `j')
-	drop tmp_occmain
+	
+	bysort personid: egen tmp_indmain = min(tjb`j'_ind)
+	replace indcensus = tmp_indmain if (jmainocc == `j')
+
+	drop tmp_occmain tmp_indmain
 }
+
+* Merge with 3-digit occupation
 #delimit ;
 merge m:1 occcensus using "$WFHshared/occsipp/output/occindexsipp.dta",
 	keepusing(occ3d2010) keep(match master) nogen;
 #delimit cr
 drop tjb*_occ enjflag ejb*_scrnr
+
+* Create 2017 industry coding
+gen ind2017 = indcensus
+recode ind2017 (1680 1690 = 1691) (3190 3290 = 3291) (4970 = 4971)
+recode ind2017 (5380 = 5381) (5390 = 5391) (5590/5592 = 5593)
+recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
+recode ind2017 (8190 = 8191) (8560 = 8563)
+recode ind2017 (8880 8890 = 8891)
+label variable ind2017 "Industry, 2017 Census coding"
+
+#delimit ;
+merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
+	nogen keep(match master) keepusing(sector);
+#delimit cr
 
 // EMPLOYMENT STATUS
 rename rmesr empstatus
