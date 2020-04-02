@@ -6,10 +6,13 @@ global maindir "/media/hdd/GitHub/WorkFromHome"
 
 * ATUS
 global ATUSdir "$maindir/ATUS"
-global ATUSdata "$ATUSdir/data"
-global ATUSout "$ATUSdir/output"
+global ATUSbuild "$ATUSdir/build"
+global ATUSbuildtemp "$ATUSbuild/temp"
+global ATUSstats "$ATUSdir/stats"
+global ATUSstatsout "$ATUSstats/output"
 
-capture mkdir "$ATUSout"
+capture mkdir "$ATUSbuildtemp"
+capture mkdir "$ATUSstatsout"
 
 * ACS
 global ACSdir "$maindir/ACS"

@@ -1,3 +1,10 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+
+/* Dataset: ACS */
+/* This script computes WFH and other statistics for the ACS.
+Statistics are computed separately for different occupations
+and sectors */
+
 clear
 capture log close
 log using "$ACSstatstemp/wfh_by_occupation.log", replace
@@ -53,8 +60,6 @@ replace nworkers_unw = 0 if (blankobs == 1)
 label variable blankobs "Empty category"
 
 // POOLED YEARS
-discard
-
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ACS"
 .xlxnotes.append "Sample: 2010-2017 pooled"
@@ -95,7 +100,6 @@ forvalues sval = 0/2 {
 }
 
 // YEARLY
-discard
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ACS"
 .xlxnotes.append "Sample: 2010-2018, separated by year"
@@ -110,7 +114,7 @@ forvalues yr = 2010/2018 {
 	.descriptions.append "`yr', Both sectors"
 }
 .sheets = .descriptions.copy
-sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'", title(`title')
+createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
 .sheets.loop_reset
 forvalues yr = 2010/2018 {
@@ -143,7 +147,6 @@ forvalues sval = 0/2 {
 	#delimit cr
 }
 }
-
 
 drop nworkers_unw nworkers_wt meanwage
 log close

@@ -18,4 +18,4 @@ restore
 merge m:1 soc3d using `occtmp', keepusing(occ3d2010) nogen keep(match)
 drop soc2010 soc3d
 
-export excel "$DNout/DingelNeiman_merged.xlsx", firstrow(varlabels)
+export excel "$DNout/DingelNeiman_merged.xlsx", firstrow(varlabels) replace

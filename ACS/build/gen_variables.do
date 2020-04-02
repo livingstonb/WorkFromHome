@@ -1,3 +1,9 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+
+/* Dataset: ACS */
+/* This script performs cleaning and generates new variables for
+the ACS. */
+
 clear
 capture log close
 log using "$ACSbuildtemp/gen_variables.log", replace
@@ -5,12 +11,7 @@ log using "$ACSbuildtemp/gen_variables.log", replace
 capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
-if "$ACSallyears" == "1" {
-	use if (year >= 2010) using "$ACSbuildtemp/acs_temp.dta" , clear
-}
-else {
-	use if (year == 2018) using "$ACSbuildtemp/acs_temp.dta", clear
-}
+use if (year >= 2010) using "$ACSbuildtemp/acs_temp.dta" , clear
 
 * Nominal wage income
 gen nincwage = incwage
@@ -52,62 +53,6 @@ label variable farm "Farm worker"
 recode metropolitan (2/5 = 1) (6/8 = 0)
 label variable metropolitan "Lived in metropolitan area"
 label values metropolitan bin_lbl
-
-* Generate 2010 occupation categories
-// if "$ACSallyears" == "1" {
-// 	#delimit ;
-// 	local occ2010_categories
-// 		10/430 500/730 800/950 1000/1240
-// 		1300/1540 1550/1560 1600/1980
-// 		2000/2060 2100/2150 2200/2550
-// 		2600/2920 3000/3540 3600/3650
-// 		3700/3950 4000/4150 4200/4250
-// 		4300/4650 4700/4965 5000/5940
-// 		6005/6130 6200/6765 6800/6940
-// 		7000/7630 7700/8965 9000/9750
-// 		9800/9830;
-// 	#delimit cr
-//
-// 	gen occupation = occ2010 if (year < 2018)
-// 	local occrecode
-// 	forvalues i = 1/26 {
-// 		local occrange `: word `i' of `occ2010_categories''
-// 		local occrecode `occrecode' (`occrange' = `i')
-// 	}
-// 	recode occupation `occrecode' if (year < 2018)
-//
-// 	label variable occupation "Occupation, 26 categories aggregated from OCC2010"
-// 	label define occupation_lbl 1 "Management, Business, Science, and Arts"
-// 	label define occupation_lbl 2 "Business Operations Specialists", add
-// 	label define occupation_lbl 3 "Financial Specialists", add
-// 	label define occupation_lbl 4 "Computer and Mathematical", add
-// 	label define occupation_lbl 5 "Architecture and Engineering", add
-// 	label define occupation_lbl 6 "Technicians", add
-// 	label define occupation_lbl 7 "Life, Physical, and Social Science", add
-// 	label define occupation_lbl 8 "Community and Social Services", add
-// 	label define occupation_lbl 9 "Legal", add
-// 	label define occupation_lbl 10 "Education, Training, and Library", add
-// 	label define occupation_lbl 11 "Arts, Design, Entertainment, Sports, and Media", add
-// 	label define occupation_lbl 12 "Healthcare Practitioners and Technicians", add
-// 	label define occupation_lbl 13 "Healthcare Support", add
-// 	label define occupation_lbl 14 "Protective Service", add
-// 	label define occupation_lbl 15 "Food Preparation and Serving", add
-// 	label define occupation_lbl 16 "Building and Grounds Cleaning and Maintenance", add
-// 	label define occupation_lbl 17 "Personal Care and Service", add
-// 	label define occupation_lbl 18 "Sales and Related", add
-// 	label define occupation_lbl 19 "Office and Administrative Support", add
-// 	label define occupation_lbl 20 "Farming, Fishing, and Forestry", add
-// 	label define occupation_lbl 21 "Construction", add
-// 	label define occupation_lbl 22 "Extraction", add
-// 	label define occupation_lbl 23 "Installation, Maintenance, and Repair", add
-// 	label define occupation_lbl 24 "Production", add
-// 	label define occupation_lbl 25 "Transportation and Material Moving", add
-// 	label define occupation_lbl 26 "Military Specific", add
-// 	label values occupation occupation_lbl
-// }
-// else {
-// 	gen occupation = .
-// }
 
 * Generate education categories
 gen byte education = .
@@ -267,45 +212,6 @@ merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
 	keepusing(sector) keep(1 3 4) nogen;
 #delimit cr
 compress
-
-// // COMPUTE MEDIAN, MEAN WAGES FOR EACH OCCUPATION, BROADER OCC
-// if "$allyears" == "1" {
-// 	compress
-// 	save "$ACScleaned/acs_cleaned.dta", replace
-//
-// 	#delimit ;
-// 	collapse (median) medwage2digit=incwage (mean) meanwage2digit=incwage
-// 		[iw=perwt], by(year occupation) fast;
-// 	#delimit cr
-//
-// 	tempfile wagetmp
-// 	save `wagetmp'
-// 	use "$ACScleaned/acs_cleaned.dta", clear
-//
-// 	#delimit ;
-// 	merge m:1 year occupation using `wagetmp',
-// 		keepusing(medwage2digit meanwage2digit) nogen;
-// 	#delimit cr
-// }
-
-// * Median wage for each metro area
-// bysort year workplace_metro: egen area_medwage = median(incwage)
-// label variable area_medwage "Median wage, unweighted, for metro-yr"
-
-// * Merge metropolitan area rent figures
-// #delimit ;
-// merge m:1 year workplace_metro using "$build/cleaned/acs_rents.dta",
-// 	keepusing(rent25 rent50 rent75) nogen;
-// rename rent25 work_rent25;
-// rename rent50 work_rent50;
-// rename rent75 work_rent75;
-//
-// merge m:1 year residence_metro using "$build/cleaned/acs_rents.dta",
-// 	keepusing(rent25 rent50 rent75) nogen;
-// rename rent25 home_rent25;
-// rename rent50 home_rent50;
-// rename rent75 home_rent75;
-// #delimit cr
 
 compress
 save "$ACScleaned/acs_cleaned.dta", replace

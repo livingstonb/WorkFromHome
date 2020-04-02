@@ -97,7 +97,7 @@ local xlxname "$SIPPout/SIPP_wfh_by_occ3digit.xlsx"
 
 .sheets = .descriptions.copy
 .sheets = .descriptions.copy
-sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
+createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
 .sheets.loop_reset
 local byvars occ3d2010 employment

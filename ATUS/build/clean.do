@@ -1,8 +1,9 @@
-// CLEAN MERGED DATASET
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
 
-cd "$ATUSdata"
-capture mkdir "cleaned"
-use "temp/merged.dta", clear
+/* Dataset: ATUS */
+/* This script performs cleaning for the ATUS dataset. */
+
+use "$ATUSbuildtemp/merged.dta", clear
 
 drop if missing(leavemod)
 drop leavemod
@@ -56,7 +57,7 @@ rename tuyear year
 
 * 3-digit occupation
 #delimit ;
-merge m:1 occcensus using "$WFHshared/occ2010/output/occindex2010",
+merge m:1 occcensus using "$WFHshared/occ2010/output/occindex2010new.dta",
 	nogen keep(match master) keepusing(occ3d2010);
 #delimit cr
 rename occ3d2010 occ3digit
@@ -72,15 +73,6 @@ recode ind2017 (8880 8890 = 8891)
 label variable ind2017 "Industry, 2017 Census coding"
 
 * Sector
-// preserve
-// tempfile indtmp
-//
-// use "$WFHshared/ind2017/industryindex2017.dta", replace
-// rename industry ind2017
-// save `indtmp'
-//
-// restore
-// merge m:1 ind2017 using `indtmp', nogen keep(match master) keepusing(sector)
 #delimit ;
 merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
 	nogen keep(match master) keepusing(sector);
@@ -217,5 +209,5 @@ label define hasyoungchild_lbl 2 "Parent of a child 13 to 17 years (none younger
 label values hasyoungchild hasyoungchild_lbl
 
 compress
-save "cleaned/ATUS_cleaned.dta", replace
+save "$ATUSbuild/output/ATUS_cleaned.dta", replace
 

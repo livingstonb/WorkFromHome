@@ -1,3 +1,5 @@
+// NOTE: THIS SCRIPT IS OUTDATED AND LIKELY WILL NOT RUN
+
 use "$ACScleaned/acs_cleaned.dta", clear
 label define bin_lbl 0 "No" 1 "Yes", replace
 label define bin_pct_lbl 0 "No" 100 "Yes", replace

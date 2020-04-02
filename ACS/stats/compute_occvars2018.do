@@ -1,3 +1,12 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+
+/* Dataset: ACS */
+/* This script generates occupation-industry-specific variables
+and designates certain 3-digit occupations as WFH-flexible or
+WFH-rigid. */
+
+clear
+
 capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 

@@ -1,3 +1,9 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+
+/* Dataset: ACS */
+/* This script reads the raw data from the .dat file and
+performs some minor cleaning tasks */
+
 clear
 capture log close
 log using "$ACSbuildtemp/read.log", replace
@@ -79,4 +85,3 @@ keep if (incwage > 0) & !missing(incwage)
 compress
 save "$ACSbuildtemp/acs_temp.dta", replace
 log close
-
