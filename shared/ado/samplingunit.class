@@ -1,10 +1,14 @@
 class samplingunit {
-	string groupid = "sampleunit"
-	string markedobs = "_marked"
+	string groupid = "_sampleunit"
+	string memberid = "_memberid"
+	string aweight = "_aweight"
 	string indid
 	string dyngroupid
 	string panelid
 	string grouphead
+	string required = "_required"
+	
+	double nperiods
 	double panel0
 	double panelT
 }
@@ -17,10 +21,13 @@ program .set_individualid
 	.indid = "`x'"
 end
 program .set_panelid
-	args x y z
-	.panelid = "`x'"
-	.panel0 = `y'
-	.panelT = `z'
+	syntax varlist [, RANGE(numlist)]
+	.panelid = "`varlist'"
+	
+	tokenize `range'
+	.panel0 = `1'
+	.panelT = `2'
+	.nperiods = `2' - `1' + 1
 end
 program .set_grouphead
 	args x
@@ -30,7 +37,7 @@ program .create
 	tempfile sutmp1
 	save `sutmp1'
 	
-	* Chech that head uniquely identifies group
+	* Check that head uniquely identifies group
 	keep if `.panelid' == `.panel0'
 	tempvar tmpv1
 	bysort `.dyngroupid': egen `tmpv1' = total(`.grouphead')
@@ -42,56 +49,145 @@ program .create
 	}
 	use `sutmp1', clear
 	
-	* Create unique group identifier for first period in panel
+	* Create unique group identifier
 	capture drop `.groupid'
-	tempvar alwayshead
-	bysort `.indid': egen `alwayshead' = min(`.grouphead')
+	tempvar ah1 ah2 alwayshead
+	bysort `.indid': gen `ah1' = _N
+	bysort `.indid': egen `ah2' = min(`.grouphead')
+	gen `alwayshead' = (`ah1' == `.nperiods') & (`ah2' == 1)
 	gen `.groupid' = `.indid' if (`alwayshead' == 1)
 
 	* Designate as a main group member
-	gen `.markedobs' = 1 if (`alwayshead' == 1)
-	label variable `.markedobs' "Sampling unit, observation marker"
-	label define markedobs_lbl 1 "Primary sample unit member"
-	label variable `.markedobs' markedobs_lbl
+	capture drop `.memberid'
+	gen `.memberid' = 1 if (`alwayshead' == 1)
+	label variable `.memberid' "Member id within sampling unit"
+	label define memberid_lbl 1 "Primary sample unit member"
+	label variable `.memberid' memberid_lbl
+	
+	* Generate required members variable
+	capture drop `.required'
+	gen `.required' = 1 if (`alwayshead' == 1)
 end
-program.assign_member
-	args x y
-	tempvar grp
-
+program .assign_member
+	syntax varlist [, MEMBERID(int 0)] [, REQUIRED]
+	
 	* Group id extended to non-head
-	bysort `.dyngroupid': egen `grp' = max(`.groupid')
+	tempvar groupconst
+	bysort `.dyngroupid': egen `groupconst' = max(`.groupid')
+
+	* Set group id
+	tempvar candidate 
+	bysort `.indid': egen `candidate' = max(`varlist')
+	replace `.groupid' = `groupconst' if (`candidate' == 1)
+	replace `.memberid' = `memberid' if (`candidate' == 1)
+
+	* Check if candidate is available in all periods
+	tempvar isavail
+	bysort `.indid': gen `isavail' = (_N == `.nperiods')
+	replace `isavail' = . if (`candidate' == 0)
 	
-	* Filter by membership variables
-	replace `.groupid' = `grp' if (`x' == 1)
+	* Check if property holds for all years
+	tempvar holdsall
+	bysort `.indid': egen `holdsall' = min(`varlist')
+	replace `holdsall' = . if (`candidate' == 0)
 	
-	* Add mark if specified
-	if "`y'" != "" {
-		replace `.markedobs' = `y' if (`x' == 1)
+	* Drop households if member is required but not always present
+	if "`required'" == "required" {	
+		* If required member not available for all periods
+		tempvar reqnoavail
+		bysort `.groupid': egen `reqnoavail' = min(`isavail')
+		
+		
+		* If property doesn't hold for all years
+		tempvar reqnohold
+		bysort `.groupid': egen `reqnohold' = min(`holdsall')
+		
+		replace `.groupid' = . if (`reqnoavail' == 0)
+		replace `.groupid' = . if (`reqnohold' == 0)
+	}
+	else {
+		tempvar badind
+		replace `.groupid' = . if (`isavail' == 0)
+		replace `.groupid' = . if (`holdsall' == 0)
+	}
+	replace `.memberid' = . if missing(`.groupid')
+end
+program .new_groups
+	syntax namelist [, MEMBERID(int 0)]
+	
+	tempvar candidate holdsall
+	bysort `.indid': egen `candidate' = max(`namelist')
+		
+	* Check if property holds for all years
+	bysort `.indid': egen `holdsall' = min(`namelist')
+	replace `holdsall' = . if (`candidate' == 0)
+
+	* Check if candidate is available in all periods
+	tempvar isavail
+	bysort `.indid': gen `isavail' = (_N == `.nperiods')
+	replace `isavail' = . if (`candidate' == 0)
+	
+	* Assign new group variable
+	replace `.groupid' = `.indid' if (`isavail' == 1) & (`holdsall' == 1)
+	replace `.memberid' = `memberid' if (`isavail' == 1) & (`holdsall' == 1)
+end
+program .create_ownership_weights
+	syntax namelist [, MEMBERIDS(string)] [, REPLACE]
+	
+	if "`replace'" == "replace" {
+		capture drop `namelist'
 	}
 
-end
-program .clean_panel
-	tempname nperiods
-	scalar nperiods = `.panelT' - `.panel0' + 1
-
-	* Check if all group members are available for entire sample
-	tempname gtmp1 gtmp2
-	bysort `.indid': gen `gtmp1' = _N
-	bysort `.groupid': egen `gtmp2' = min(`gtmp1')
-	replace `.groupid' = . if `gtmp2' < nperiods
+	* Identify individuals to get asset share
+	tempvar nowners mainmems
+	gen `mainmems' = inlist(`.memberid', `memberids')
 	
-	* Check if all group members are in group for entire sample
-	tempname gtmp3 gtmp4
-	bysort `.indid' (`.groupid'): gen `gtmp3' = (`.groupid'[_N] == `.groupid'[1])
-	bysort `.groupid': egen `gtmp4' = min(`gtmp3')
-	replace `.groupid' = . if `gtmp4' == 0
-
-	* Update marked observations
-	replace `.markedobs' = . if missing(`.groupid')
+	* Number of these individuals per group
+	bysort `.groupid' `.panelid': egen `nowners' = count(`mainmems')
+	
+	* Set weights
+	gen `namelist' = 1 / `nowners' if inlist(`.memberid', `memberids')
+	replace `namelist' = 0 if !missing(`.groupid') & missing(`namelist')
 end
 program .tab_groups
-	tempvar nsample
+	syntax [anything] [, ALLPERIODS]
 
-	bysort `.groupid': gen `nsample' = _N
-	tab `nsample'
+	tempvar nsample
+	tempname nperiods
+	scalar nperiods = `.panelT' - `.panel0'
+
+	if "`allperiods'" == "allperiods" {
+		bysort `.groupid': gen `nsample' = _N
+	}
+	else {
+		local restriction & (`.panelid' == `.panel0')
+		bysort `.groupid' `.panelid': gen `nsample' = _N
+	}
+
+	tempvar allyrs
+	bysort `.indid' (`.panelid'): gen `allyrs' = (`.panelid'[_N] - `.panelid'[1] == nperiods)
+	quietly count if missing(`.groupid') & (`allyrs' == 1) & (`.panelid' == `.panel0')
+
+	tempname nmissing nused pctused
+	local nmissing = `r(N)'
+
+	tab `nsample' if !missing(`.groupid') `restriction'
+	local nused = `r(N)'
+	local pctused = `nused' / (`nmissing' + `nused') * 100
+	
+	di
+	di as text "# obs present in all yrs but not assigned a sampling unit: " as result "`nmissing'"
+	di as text "% of obs present in all yrs that were not assigned a sampling unit: " as result %4.1f `pctused'
+	
+end
+program .sort_groups
+	syntax [varlist] [, BR]
+	
+	tempname svars
+	local svars `.groupid' `.memberid' `.indid' `.panelid'
+	sort `svars'
+	
+	if "`br'" == "br" {
+		br `svars' `varlist'
+	}
 end

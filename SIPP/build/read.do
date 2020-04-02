@@ -56,7 +56,7 @@ local keepvars
 	tannval eown_anneq
 	ttrval eown_treq
 	tbsj*val tbsi*val
-	tlife_fval eown_life
+	tlife_cval eown_life
 	toinvval eown_oinv
 	tdebt_ast tval_ast
 	
@@ -73,7 +73,9 @@ local keepvars
 	tprloanamt tmhloanamt
 	
 /* Household-related variables */
-	eresidenceid rfamref epnspouse;
+	eresidenceid rfamref epnspouse
+	epnspous_ehc epncohab_ehc
+	rpnpar1_ehc rpnpar2_ehc;
 #delimit cr
 
 use `keepvars' using "input/wave4pt1.dta", clear

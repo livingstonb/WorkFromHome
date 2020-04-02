@@ -67,7 +67,7 @@ local xlxname "$ACSstatsout/ACS_wfh_pooled_`cdate'.xlsx"
 .descriptions.append "Sector C"
 .descriptions.append "Both sectors"
 .sheets = .descriptions.copy
-sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'", title(`title')
+sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
 local occvar occ3d2010
 

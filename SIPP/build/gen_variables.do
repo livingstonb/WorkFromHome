@@ -1,6 +1,20 @@
-use save "$SIPPtemp/sipp_temp.dta", clear
+use "$SIPPtemp/sipp_raw.dta", clear
+
+egen personid = group(ssuid pnum)
 
 // ASSET VARIABLES, PERSON-LEVEL
+#delimit ;
+local assetvars
+	govs ichk sav mm cd mcbd st chk mf rp
+	re;
+#delimit cr
+
+local asset_ownvars
+local asset_valvars
+foreach var of local assetvars {
+	local asset_ownvars `asset_ownvars' ejsown`var' ejoown`var' eoown`var'
+	local asset_valvars `asset_valvars' tjs`var'val tjo`var'val to`var'val
+}
 
 * IRA/KEOGH accounts
 rename tirakeoval val_ira_keoh
@@ -38,9 +52,9 @@ label variable val_bus "Value of personally owned businesses"
 drop tbsj*val tbsi*val
 
 * Life insurance
-rename tlife_fval val_life_face
-replace val_life_face = 0 if (eown_life == 2)
-label variable val_life_face "Value of life insurance, face value"
+rename tlife_cval val_life
+replace val_life_face = 0 if missing(val_life)
+label variable val_life_face "Value of life insurance, cash value"
 drop eown_life
 
 * Other financial investments
@@ -202,4 +216,4 @@ foreach var of varlist recode_* {
 }
 
 compress
-save "$SIPPout/sipp_cleaned.dta", replace
+save "$SIPPtemp/sipp_monthly.dta", replace
