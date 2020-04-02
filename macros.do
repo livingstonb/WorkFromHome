@@ -36,6 +36,15 @@ global SIPPtemp "$SIPPdir/temp"
 capture mkdir "$SIPPout"
 capture mkdir "$SIPPtemp"
 
+* OES
+global OESdir "$maindir/OES"
+global OESbuild "$OESdir/build"
+global OESbuildtemp "$OESbuild/temp"
+global OESout "$OESbuild/output"
+
+capture mkdir "$OESbuildtemp"
+capture mkdir "$OESout"
+
 * Other
 global WFHshared "$maindir/shared"
 adopath + "$WFHshared/ado"

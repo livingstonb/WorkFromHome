@@ -53,8 +53,8 @@ drop tbsj*val tbsi*val
 
 * Life insurance
 rename tlife_cval val_life
-replace val_life_face = 0 if missing(val_life)
-label variable val_life_face "Value of life insurance, cash value"
+replace val_life = 0 if missing(val_life)
+label variable val_life "Value of life insurance, cash value"
 drop eown_life
 
 * Other financial investments
