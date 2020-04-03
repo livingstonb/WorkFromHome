@@ -4,6 +4,7 @@ import delimited "$DNbuild/input/occupations_workathome.csv"
 gen soc2010 = substr(onetsoccode, 1, 7)
 gen soc3d = substr(soc2010, 1, 4)
 
+// Merge with 3-digit categories
 preserve
 
 tempfile occtmp
@@ -16,6 +17,11 @@ save `occtmp'
 restore
 
 merge m:1 soc3d using `occtmp', keepusing(occ3d2010) nogen keep(match)
-drop soc2010 soc3d
 
+* Save
+save "$DNbuildtemp/DN_temp.dta", replace
+
+// Output to excel
+drop soc2010 soc3d
 export excel "$DNout/DingelNeiman_merged.xlsx", firstrow(varlabels) replace
+

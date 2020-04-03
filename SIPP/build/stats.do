@@ -44,6 +44,12 @@ foreach var of varlist nla_lt* whtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 
+gen nworkers_unw = 1
+label variable nworkers_unw "n, unwtd"
+
+gen nworkers_wt = 1
+label variable nworkers_wt "Total"
+
 * Add blanks
 tempfile yrtmp
 preserve
@@ -65,13 +71,32 @@ append using `yrtmp'
 replace blankobs = 0 if missing(blankobs)
 label variable blankobs "Empty category"
 
-// COLLAPSE
+// COLLAPSE TO dta
+preserve
 
-gen nworkers_unw = 1
-label variable nworkers_unw "n, unwtd"
+drop if missing(sector, occ3d2010)
 
-gen nworkers_wt = 1
-label variable nworkers_wt "Total"
+rename workfromhome pct_workfromhome
+rename earnings meanwage
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	`meanstats' `medianstats'
+	(min) blankobs
+	[iw=wpfinwgt], by(sector occ3d2010) fast;
+#delimit cr
+
+drop mean_earnings
+drop median_earnings
+gen source = "SIPP"
+
+save "$SIPPout/SIPPwfh.dta", replace
+
+restore
+
+// COLLAPSE TO EXCEL
 
 replace nworkers_wt = 0 if (blankobs == 1)
 replace nworkers_unw = 0 if (blankobs == 1)

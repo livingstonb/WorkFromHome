@@ -52,6 +52,27 @@ foreach var of varlist nworkers_unw nworkers_wt {
 replace blankobs = 0 if missing(blankobs)
 label variable blankobs "Empty category"
 
+* Collapse and make .dta file
+preserve
+rename pct_doeswfh pct_workfromhome
+rename occ3digit occ3d2010
+drop if missing(occ3d2010, sector)
+
+#delimit ;
+collapse (sum) nworkers_wt
+		(rawsum) nworkers_unw
+		(mean) pct_canwfh
+		(mean) pct_workfromhome
+		(mean) meanwage
+		(min) blankobs
+		[iw=normwt], by(occ3d2010 sector) fast;
+#delimit cr
+
+gen source = "ATUS"
+save "$ATUSstatsout/ATUSwfh.dta", replace
+
+restore
+
 * Collapse and make spreadsheet
 local xlxname "$ATUSstatsout/ATUS_wfh_by_occ3digit_sector.xlsx"
 

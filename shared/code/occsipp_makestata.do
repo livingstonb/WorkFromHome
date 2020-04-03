@@ -1,20 +1,25 @@
 clear
 
 // GET LABELS FROM SOC
-import delimited "$WFHshared/occ2010/temp/soc2010.csv", bindquote(strict)
-drop v1
-
-labmask occ3id, values(occ3labels) lblname(occ3d2010lbl)
-keep soc occ3id
-rename soc soc2010
-rename occ3id occ3d2010
-
-label variable soc2010 "SOC 2010 code"
-label variable occ3d2010 "Occupation, 3-digit based on SOC 2010"
-
-compress
-capture mkdir "$WFHshared/occsipp/temp"
-save "$WFHshared/occsipp/temp/occsipp.dta", replace
+// import delimited "$WFHshared/occ2010/temp/soc2010.csv", bindquote(strict)
+// drop v1
+//
+// labmask occ3id, values(occ3labels) lblname(occ3d2010lbl)
+// keep soc* occ3id
+// rename soc3d soc3d2010
+// rename socfull soc2010
+// rename occ3id occ3d2010
+//
+// label variable soc3d2010 "SOC 2010, 3-digit level"
+// label variable soc2010 "SOC 2010 code"
+// label variable occ3d2010 "Occupation, 3-digit based on SOC 2010"
+//
+// replace soc3d2010 = "51-5100" if (soc3d2010 == "51-5000")
+// replace soc3d2010 = "15-1100" if (soc3d2010 == "15-1000")
+//
+// compress
+// capture mkdir "$WFHshared/occsipp/temp"
+// save "$WFHshared/occsipp/temp/occsipp.dta", replace
 
 // USE 2013 ACS/2014 SIPP codes
 clear
@@ -49,9 +54,10 @@ save "$WFHshared/occsipp/temp/soc_3digit_map.dta", replace
 use "$WFHshared/occsipp/temp/soc_3digit_map.dta", clear
 
 #delimit ;
-merge m:1 soc2010 using "$WFHshared/occsipp/temp/occsipp.dta",
-	keepusing(occ3d2010) keep(match master) nogen;
+merge m:1 soc2010 using "$WFHshared/occ2010/occ/temp/occ2010new.dta",
+	keepusing(minor2010 soc3d2010) keep(match master) nogen;
 #delimit cr
+rename minor2010 occ3d2010
 
 label variable soc2010 "SOC 2010 code"
 label variable occcensus "Census occupation variable, occ"

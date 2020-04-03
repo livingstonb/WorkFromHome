@@ -51,8 +51,10 @@ capture mkdir "$OESout"
 * Dingel-Neiman
 global DNdir "$maindir/DingelNeiman"
 global DNbuild "$DNdir/build"
+global DNbuildtemp "$DNbuild/temp"
 global DNout "$DNbuild/output"
 
+capture mkdir "$DNbuildtemp"
 capture mkdir "$DNout"
 
 * Other

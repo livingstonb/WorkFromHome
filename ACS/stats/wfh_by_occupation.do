@@ -59,6 +59,61 @@ replace nworkers_wt = 0 if (blankobs == 1)
 replace nworkers_unw = 0 if (blankobs == 1)
 label variable blankobs "Empty category"
 
+// PRODUCE STATA FILE
+preserve
+
+tempfile acs2017only
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	(min) blankobs
+	[iw=perwt] if (year == 2017), by(occ3d2010 sector) fast;
+#delimit cr
+gen source = "ACS2017only"
+save `acs2017only', replace
+
+restore
+preserve
+
+tempfile acs2015to2017
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	(min) blankobs
+	[iw=perwt] if inrange(year, 2015, 2017), by(occ3d2010 sector) fast;
+#delimit cr
+gen source = "ACS2015to2017"
+save `acs2015to2017', replace
+
+restore
+preserve
+
+tempfile acs2013to2017
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	(min) blankobs
+	[iw=perwt] if inrange(year, 2013, 2017), by(occ3d2010 sector) fast;
+#delimit cr
+gen source = "ACS2013to2017"
+save `acs2013to2017', replace
+
+clear
+
+use `acs2017only'
+append using `acs2015to2017'
+append using `acs2013to2017'
+save "$ACSstatsout/ACSwfh.dta", replace
+
+restore
+
+
 // POOLED YEARS
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ACS"
@@ -72,7 +127,7 @@ local xlxname "$ACSstatsout/ACS_wfh_pooled_`cdate'.xlsx"
 .descriptions.append "Sector C"
 .descriptions.append "Both sectors"
 .sheets = .descriptions.copy
-sl_createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
+createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
 local occvar occ3d2010
 

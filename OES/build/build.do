@@ -1,8 +1,8 @@
 
-clear
-
-import excel using "$OESbuild/input/nat3d_M2017_dl.xlsx", firstrow
-save "$OESbuildtemp/oes_raw.dta", replace
+// clear
+//
+// import excel using "$OESbuild/input/nat3d_M2017_dl.xlsx", firstrow
+// save "$OESbuildtemp/oes_raw.dta", replace
 
 // SAVE .csv AS .dta
 clear
@@ -13,6 +13,23 @@ save "$OESbuildtemp/naics_to_sector.dta", replace
 // MERGE WITH SECTOR
 use "$OESbuildtemp/oes_raw.dta", clear
 keep if OCC_GROUP == "minor"
+
+rename OCC_CODE soc3d2010
+
+* Prepare 2010 SOC index
+preserve
+tempfile occtmp
+use "$WFHshared/occ2010/output/occindex2010new.dta", clear
+duplicates drop soc3d2010, force
+drop if occ3d2010 > 550
+save `occtmp', replace
+restore
+
+* Merge with 2010 SOC
+#delimit ;
+merge m:1 soc3d2010 using `occtmp',
+	keepusing(occ3d2010) keep(match master);
+#delimit cr
 
 destring NAICS, replace
 gen int ind3d = NAICS / 1000
@@ -61,11 +78,9 @@ foreach var of local stringvars  {
 
 * Housekeeping
 #delimit ;
-keep NAICS NAICS_TITLE OCC_CODE OCC_TITLE OCC_GROUP
+keep NAICS NAICS_TITLE soc3d2010 occ3d2010 OCC_GROUP
 	`stringvars' sector;
 #delimit cr
-
-encode OCC_TITLE, gen(occupation)
 
 rename A_MEAN meanwage
 label variable meanwage "Mean annual wage"
@@ -79,7 +94,7 @@ label variable employment "Total employment rounded to nearest 10 (excl self-emp
 rename PCT_TOTAL occshare_industry
 label variable occshare_industry "% of industry employment in given occ, provided"
 
-bysort sector occupation: egen emp_occ_sector = total(employment)
+bysort sector occ3d2010: egen emp_occ_sector = total(employment)
 label variable emp_occ_sector "Total employment in occupation-sector pair"
 
 bysort sector: egen emp_sector = total(employment)
@@ -89,16 +104,50 @@ gen occshare_sector = emp_occ_sector / emp_sector
 label variable occshare_sector "Occupation share within sector"
 compress
 
-order sector occupation meanwage occshare_sector occshare_industry
+order sector occ3d2010 meanwage occshare_sector occshare_industry
+
+* Add blanks
+tempfile yrtmp
+preserve
+clear
+save `yrtmp', emptyok
+forvalues sval = 0/1 {
+	use occ3d2010 using "$WFHshared/occ2010/output/occindex2010new.dta", clear
+	gen sector = `sval'
+	gen employment = 1
+	gen blankobs = 1
+	
+	append using `yrtmp'
+	save `yrtmp', replace
+}
+restore
+append using `yrtmp'
+drop if (occ3d2010 >= 550) & !missing(occ3d2010)
+replace blankobs = 0 if missing(blankobs)
+
+* Drop blank observations if categories are nonmissing
+bysort occ3d2010 sector: egen emptycat = min(blankobs)
+drop if (emptycat == 0) & (blankobs == 1)
 
 save "$OESbuildtemp/oes_occ_sector.dta", replace
 
 // COLLAPSE TO OCCUPATION-SECTOR LEVEL
 use "$OESbuildtemp/oes_occ_sector.dta", clear
-gen totemp = 10
-collapse (sum) totemp (mean) meanwage [fw=employment], by(sector occupation)
+gen totemp = 1
+collapse (sum) totemp (mean) meanwage (min) blankobs [fw=employment], by(sector occ3d2010)
 drop if missing(sector)
+replace totemp = 0 if blankobs == 1
 
+* Save to .dta file
+preserve
+rename totemp nworkers_wt
+drop blankobs
+gen source = "OES"
+
+save "$OESout/OESstats.dta", replace
+restore
+
+* Save to xlsx
 bysort sector occupation: egen emp_occ_sector = total(totemp)
 label variable emp_occ_sector "Total employment in occupation-sector pair"
 
