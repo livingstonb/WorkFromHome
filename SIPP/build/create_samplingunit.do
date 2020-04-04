@@ -10,7 +10,9 @@ both present in all twelve months and have a stable relationship status (either
 not married the entire time, or married to the same other household head), both
 household heads are coded as missing in the sampling unit variable. */
 
-use "$SIPPtemp/sipp_monthly.dta", clear
+/* Must first set the global macro: wave. */
+
+use "$SIPPtemp/sipp_monthly_w${wave}.dta", clear
 
 // IDENTIFIERS
 egen household = group(ssuid eresidenceid)
@@ -53,4 +55,4 @@ discard
 label variable _sampleunit "Sampling unit, household"
 
 compress
-save "$SIPPtemp/sipp_monthly_with_su.dta", replace
+save "$SIPPtemp/sipp_monthly_with_su_w${wave}.dta", replace

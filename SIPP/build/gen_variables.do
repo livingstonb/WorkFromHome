@@ -5,7 +5,9 @@
 cleaned somewhat, and recombined. Various variables are recoded and 
 new variables are generated. */
 
-use "$SIPPtemp/sipp_combined.dta", clear
+/* Must first set the global macro: wave. */
+
+use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
 egen personid = group(ssuid pnum)
 
@@ -137,7 +139,35 @@ label variable grossinc "Total gross income"
 rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
+// FIND MOST WORKED-OCCUPATION FOR EACH INDIVIDUAL
+// foreach var of varlist tjb*_occ {
+// 	destring `var', replace
+// }
+//
+// preserve
+//
+// keep personid monthcode tjb*_occ
+// reshape wide tjb*_occ, i(personid) j(monthcode)
+// rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
+// drop tjb*_occ*
+//
+// tempfile occtmp
+// save `occtmp'
+//
+// restore
+// merge m:1 personid using `occtmp'
+//
+//
+// // forvalues i=1/7 {
+// // 	local occupation tjb`i'_occ
+// //	
+// // }
+//
+// restore
+
+
 // OCCUPATION AND INDUSTRY
+
 gen nmonthsmax = 0
 gen employed_thismonth = 0
 gen jmainocc = .
@@ -216,9 +246,9 @@ label values employment emplbl
 replace occ3d2010 = -1 if missing(occ3d2010) & (employment == 2)
 replace occ3d2010 = -2 if missing(occ3d2010) & (employment == 3)
 #delimit ;
-label define occ3d2010lbl -1
+label define minor2010lbl -1
 	"Unemployed all year, spent time on layoff or looking for work", add;
-label define occ3d2010lbl -2
+label define minor2010lbl -2
 	"Not employed all year, spent no time on layoff or looking for work", add;
 #delimit cr
 
@@ -246,4 +276,4 @@ foreach var of varlist recode_* {
 }
 
 compress
-save "$SIPPtemp/sipp_monthly.dta", replace
+save "$SIPPtemp/sipp_monthly_w${wave}.dta", replace

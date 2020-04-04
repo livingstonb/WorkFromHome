@@ -1,4 +1,4 @@
-program sl_createxlsx
+program createxlsx
 	#delimit ;
 	syntax [anything(name=args)] using/ ;
 	#delimit cr

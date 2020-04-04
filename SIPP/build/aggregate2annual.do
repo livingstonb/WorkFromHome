@@ -1,5 +1,12 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
 
-use "$SIPPtemp/sipp_monthly_with_su.dta", clear
+/* Dataset: SIPP */
+/* This script aggregates to the annual frequency by summing earnings over
+the year and using assets reported in the last month. */
+
+/* Must first set the global macro: wave. */
+
+use "$SIPPtemp/sipp_monthly_with_su_w${wave}.dta", clear
 
 // EARNINGS
 bysort personid: egen earnings = total(grossearn)
@@ -50,4 +57,4 @@ label variable netliquid "net liquid assets"
 gen netliq_earnings_ratio = netliquid / earnings if (earnings > 1000)
 label variable netliq_earnings_ratio "net liquid assets to earnings ratio for earnings > 1000"
 
-save "$SIPPout/sipp_cleaned.dta", replace
+save "$SIPPout/sipp_cleaned_w${wave}.dta", replace

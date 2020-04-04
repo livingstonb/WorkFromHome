@@ -9,8 +9,9 @@ capture log close
 log using "$ACSbuildtemp/read.log", replace
 
 * Read raw dataset
-global raw_dat_path "$ACSbuild/raw/acs_raw.dat"
-do "$ACSbuild/raw/acs_raw.do"
+// global raw_dat_path "$ACSbuild/raw/acs_raw.dat"
+// do "$ACSbuild/raw/acs_raw.do"
+use "$ACSbuild/raw/acs_raw.dta"
 
 rename occ occn
 #delimit ;

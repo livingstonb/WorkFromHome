@@ -4,14 +4,29 @@
 /* This script reads the raw data from the .dta file, drops some variables,
 compresses, and resaves as .dta files. Done in chunks of 50,000 observations. */
 
-forvalues chunk = 1/10 {
+/* Must first set the global macro: wave. */
+
+clear
+set maxvar 10000
+
+if $wave == 3 {
+	local nchunks 12
+	local nobs 556943
+}
+else if $wave == 4 {
+	local nchunks 10
+	local nobs 492776
+}
+
+forvalues chunk = 1/`nchunks' {
 	local start = (`chunk' - 1) * 50000 + 1
-	local stop = min(492776, `start' + 50000 - 1)
+	
+	local stop = min(`nobs', `start' + 50000 - 1)
 	di "`start' to `stop'"
-	use in `start'/`stop' using "input/pu2014w4.dta", clear
+	use in `start'/`stop' using "$SIPPbuild/input/pu2014w${wave}.dta", clear
 	drop a*
 	compress
 	
-	save "input/wave4pt`chunk'.dta", replace
+	save "$SIPPbuild/input/wave${wave}pt`chunk'.dta", replace
 }
 clear

@@ -4,6 +4,8 @@
 /* This script reads the .dta chunks of the raw data, extracting
 needed variables. */
 
+/* Must first set the global macro: wave. */
+
 clear
 
 cd "$SIPPbuild"
@@ -29,12 +31,10 @@ foreach var of local assetvars {
 
 #delimit ;
 local keepvars
-	tage eeduc eorigin ems epnspouse erace esex efindjob
+	tage eeduc eorigin ems erace esex efindjob
 	rged pnum spanel ssuid wpfinwgt tage_ehc
 	eown_anntr ejb*_wshmwrk ejb1_clwrk ghlfsam
-	rfamnum rfamkind monthcode rfamref shhadid
-	thhldstatus
-	
+	rfamnum rfamkind monthcode swave
 	
 /* Employment and income variables */
 	tjb*_occ tpearn
@@ -70,14 +70,22 @@ local keepvars
 	tprloanamt tmhloanamt
 	
 /* Household-related variables */
-	eresidenceid rfamref epnspouse
+	eresidenceid rfamref
 	epnspous_ehc epncohab_ehc
 	rpnpar1_ehc rpnpar2_ehc;
 #delimit cr
 
-use `keepvars' using "input/wave4pt1.dta", clear
-forvalues chunk = 2/10 {
-	append using "input/wave4pt`chunk'.dta", keep(`keepvars')
+/* Now combine */
+if $wave == 3 {
+	local nchunks 12
+}
+else if $wave == 4 {
+	local nchunks 10
+}
+
+use `keepvars' using "input/wave${wave}pt1.dta", clear
+forvalues chunk = 2/`nchunks' {
+	append using "input/wave${wave}pt`chunk'.dta", keep(`keepvars')
 }
 drop if (tage < 15) | missing(tage)
 
@@ -87,5 +95,6 @@ drop if (tage < 15) | missing(tage)
 
 destring ssuid, replace
 compress
-save "$SIPPtemp/sipp_combined.dta", replace
+save "$SIPPtemp/sipp_combined_w${wave}.dta", replace
+
 

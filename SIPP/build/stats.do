@@ -1,5 +1,11 @@
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
 
-use "$SIPPout/sipp_cleaned.dta", clear
+/* Dataset: SIPP */
+/* This script computes various asset, earnings, and WFH statistics
+and outputs them to a spreadsheet. */
+
+use "$SIPPout/sipp_cleaned_w3.dta", clear
+append using "$SIPPout/sipp_cleaned_w4.dta"
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
@@ -65,7 +71,6 @@ forvalues sval = 0/1 {
 }
 restore
 append using `yrtmp'
-// drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
 replace blankobs = 0 if missing(blankobs)
 label variable blankobs "Empty category"
@@ -105,7 +110,7 @@ local xlxname "$SIPPout/SIPP_wfh_by_occ3digit.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: SIPP"
-.xlxnotes.append "Sample: 2014 Wave 4"
+.xlxnotes.append "Sample: 2014 Waves 3 and 4"
 .xlxnotes.append "Sampling unit: Individual"
 .xlxnotes.append "Description: WFH and asset ownership"
 .xlxnotes.append ""
