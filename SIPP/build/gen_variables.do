@@ -1,4 +1,11 @@
-use "$SIPPtemp/sipp_raw.dta", clear
+// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+
+/* Dataset: SIPP */
+/* This script reads the .dta file after it has been split into chunks,
+cleaned somewhat, and recombined. Various variables are recoded and 
+new variables are generated. */
+
+use "$SIPPtemp/sipp_combined.dta", clear
 
 egen personid = group(ssuid pnum)
 

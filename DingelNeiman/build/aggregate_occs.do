@@ -71,6 +71,8 @@ restore
 
 // Load Dingell-Neiman
 use "$DNbuildtemp/DN_temp.dta", clear
+
+* Assume each 8-digit occupation has same employment share within 6-digit occ
 rename teleworkable teletmp
 bysort soc2010: egen teleworkable = mean(teletmp)
 drop title onetsoccode teletmp
@@ -88,38 +90,57 @@ replace soc3digit = "15-1100" if soc3digit == "15-1000"
 replace soc3digit = "51-5100" if soc3digit == "51-5000"
 
 * Merge at 6 digit level, where possible
-merge m:1 soc2010 sector using `oestmp6', nogen keep(1 3 4) keepusing(employment)
+merge m:1 soc2010 sector using `oestmp6', keep(1 3) keepusing(employment) nogen
 
 * Aggregate to 5 digit level
-bysort soc5digit sector: egen agg_employment = total(employment) if !missing(employment)
+gen missings = missing(employment)
+bysort soc5digit sector: egen missing_employment = max(missings)
+bysort soc5digit sector: egen agg_employment = total(employment)
+replace agg_employment = . if (missing_employment == 1)
 
+* Use weighted mean if employment was present
 gen tele_weighted = teleworkable * employment / agg_employment
-bysort soc5digit sector: egen agg_teleworkable = total(tele_weighted)
+bysort soc5digit sector: egen agg_teleworkable = total(tele_weighted), missing
 
-replace employment = agg_employment
+* Take mean if employment was missing
+bysort soc5digit sector: egen mean_teleworkable = mean(teleworkable)
 replace teleworkable = agg_teleworkable
-drop tele_weighted agg_*
+replace teleworkable = mean_teleworkable if (missing_employment == 1)
 
+drop tele_weighted employment *_teleworkable agg_employment miss*
 duplicates drop soc5digit sector, force
 
 * Merge at 5 digit level
-merge m:1 soc5digit sector using `oestmp5', nogen keep(1 3 4 5) update keepusing(employment)
+merge m:1 soc5digit sector using `oestmp5', keep(1 3) update keepusing(employment) nogen
 
 label define sector_lbl 0 "C" 1 "S"
 label variable sector sector_lbl
 
 * Aggregate to 3 digit level
-bysort occ3d2010 sector: egen agg_employment = total(employment) if !missing(employment)
+gen missings = missing(employment)
+bysort occ3d2010 sector: egen missing_employment = max(missings)
+bysort occ3d2010 sector: egen agg_employment = total(employment)
+replace agg_employment = . if (missing_employment == 1)
 
+* Use weighted mean if employment was present
 gen tele_weighted = teleworkable * employment / agg_employment
-bysort occ3d2010 sector: egen agg_teleworkable = total(tele_weighted)
+bysort occ3d2010 sector: egen agg_teleworkable = total(tele_weighted), missing
 
-replace employment = agg_employment
+* Take mean if employment was missing
+bysort occ3d2010 sector: egen mean_teleworkable = mean(teleworkable)
 replace teleworkable = agg_teleworkable
-drop tele_weighted agg_*
+replace teleworkable = mean_teleworkable if (missing_employment == 1)
 
+drop tele_weighted employment *_teleworkable agg_employment miss*
 duplicates drop occ3d2010 sector, force
 
-* Merge again
-merge m:1 soc3digit sector using `oestmp3', nogen keep(1 3 4 5) update replace keepusing(employment)
+* Merge again, this time to recover full employment statistics
+merge m:1 soc3digit sector using `oestmp3', keep(1 3) keepusing(employment) nogen
 drop soc5digit soc3d soc2010
+duplicates drop soc3digit sector, force
+drop if missing(sector, soc3digit)
+order occ3d2010 sector teleworkable employment
+drop soc3digit
+sort occ3d2010 sector
+
+save "$DNout/DN_aggregated.dta", replace

@@ -1,7 +1,6 @@
 
 use "$SIPPout/sipp_cleaned.dta", clear
 
-
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
 local stats pdeposits pbonds pliqequity liquid ccdebt earnings

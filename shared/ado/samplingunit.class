@@ -1,3 +1,73 @@
+/* Class: samplingunit */
+
+/* This class is used to create a variable that uniquely identifies
+a sampling unit, and to create weights that apportion household-level
+assets between the members */
+
+/* Usage:
+
+--- Initialization ---
+.su = .samplingunit.new
+
+--- Setting the identifiers ---
+(1)	Set the dynamic group id. The variable used for the dynamic group must,
+	separately in each time period, uniquely identify candidate groups.
+
+.su.set_groupid groupidvariable
+
+(2)	Set the person-level id. The variable used here must uniquely identify
+	each individual. Must be constant across time for each individual. The
+	range() option is used to specify the minimum and maximum values for
+	the panelid. Despite the syntax, the range option is required.
+
+.su.set_individualid indidvariable, range(1 12)
+
+(3)	Set the panel id. This variable must identify the time dimension.
+
+.su.set_panelid panelidvariable
+
+(4)	Set the group head id. This variable must take the value of one for every
+	individual that is the group head and zero otherwise. Any individuals
+	which have a one in this variable for at least one time period but do
+	not have a one in this variable for every time period will be
+	coded as missing in the final sampling unit variable.
+
+.su.set_grouphead groupheadvariable
+
+--- Create the sampling unit variable ---
+.su.create
+
+--- Add members to current groups ---
+In this step, other members are added to pre-existing groups. The group head
+was assigned a memberid of 1, and members added in this step can be assigned
+a different memberid with the memberid() option. The required option stipulates
+that if the added member does not show up in all periods or is not identified
+as being a new group member for all periods, then the group head is dropped.
+Otherwise, the new member is simply not added if either of those two conditions
+fail. This variable used here must take on zero or one, and the group member
+will be paired with the group head based on the dynamic groupid supplied
+previously.
+
+.su.assign_member newmembervariable, memberid(2) required
+
+--- Create new groups ---
+In this step, new groups may be identified and their members may be assigned
+a new memberid. The variable used here must take on a zero or one. Groups
+will only be created if an individual has a one for this variable in each
+period. The user should take care not to allow for any of the potential new
+groups to overlap with previously created groups.
+
+.su.new_groups newgroupvariable, memberid(3)
+
+--- Create ownership weights for household-level variables ---
+Here the user specifies the name for the asset weight variable, and the
+memberids used to identify individuals who will recieve equal shares of the
+household-level asset variables. The replace option will drop and replace
+the variable name chosen for the weights variable if necessary.
+
+.su.create_ownership_weights aweights, memberids(1 2) replace
+*/
+
 class samplingunit {
 	string groupid = "_sampleunit"
 	string memberid = "_memberid"
@@ -171,6 +241,7 @@ program .tab_groups
 	tempname nmissing nused pctused
 	local nmissing = `r(N)'
 
+	label variable `nsample' "Group size"
 	tab `nsample' if !missing(`.groupid') `restriction'
 	local nused = `r(N)'
 	local pctused = `nused' / (`nmissing' + `nused') * 100
