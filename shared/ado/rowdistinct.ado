@@ -1,4 +1,4 @@
-program rowdistinct
+program rowdistinct, rclass
 	syntax varlist [, GEN(name)] [, ID(name)]
 		
 	tokenize `varlist'
@@ -18,15 +18,16 @@ program rowdistinct
 			local currvars `currvars' `newvar'
 		}
 		
-		egen `gen'`i' = rowfirst(`currvars')
-		count if !missing(`gen'`i')
+		quietly egen `gen'`i' = rowfirst(`currvars')
+		quietly count if !missing(`gen'`i')
 		if `r(N)' == 0 {
 			drop `gen'`i'
+			return scalar ndistinct = `i' - 1
 			continue, break
 		}
 		
 		foreach var of local currvars {
-			replace `var' = . if `var' == `gen'`i'
+			quietly replace `var' = . if `var' == `gen'`i'
 		}
 		local ++i
 	}
@@ -35,5 +36,5 @@ program rowdistinct
 	save `rdfound'
 	
 	use `rdtmp', clear
-	merge 1:1 `id' using `rdfound', nogen keepusing(`gen'*)
+	quietly merge 1:1 `id' using `rdfound', nogen keepusing(`gen'*)
 end

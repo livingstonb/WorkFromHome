@@ -6,6 +6,7 @@ cleaned somewhat, and recombined. Various variables are recoded and
 new variables are generated. */
 
 /* Must first set the global macro: wave. */
+global wave 4
 
 use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
@@ -140,31 +141,47 @@ rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
 // FIND MOST WORKED-OCCUPATION FOR EACH INDIVIDUAL
-// foreach var of varlist tjb*_occ {
-// 	destring `var', replace
-// }
-//
-// preserve
-//
-// keep personid monthcode tjb*_occ
-// reshape wide tjb*_occ, i(personid) j(monthcode)
-// rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
-// drop tjb*_occ*
-//
-// tempfile occtmp
-// save `occtmp'
-//
-// restore
-// merge m:1 personid using `occtmp'
-//
-//
-// // forvalues i=1/7 {
-// // 	local occupation tjb`i'_occ
-// //	
-// // }
-//
-// restore
+foreach var of varlist tjb*_occ {
+	destring `var', replace
+}
 
+preserve
+
+keep personid monthcode tjb*_occ
+reshape wide tjb*_occ, i(personid) j(monthcode)
+rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
+local ndistinct = `r(ndistinct)'
+
+drop tjb*_occ*
+
+tempfile occtmp
+save `occtmp'
+
+restore
+merge m:1 personid using `occtmp', nogen
+
+forvalues j = 1/`ndistinct' {
+	forvalues i = 1/7 {
+		gen occtmp`i' = (tjb`i'_occ == distinct_occ`j') & !missing(distinct_occ`j')
+	}
+
+	egen month_in_`j' = rowmax(occtmp*)
+	bysort personid: egen nmonths_occ`j' = total(month_in_`j')
+	
+	drop occtmp* month_in_`j'
+}
+egen mostmonths = rowmax(nmonths_occ*)
+replace mostmonths = . if mostmonths == 0
+
+gen primaryocc = .
+forvalues j = 1/`ndistinct' {
+	replace primaryocc = `j' if (nmonths_occ`j' == mostmonths) & missing(primaryocc)
+}
+
+forvalues j = 1/`ndistinct' {
+	replace primaryocc = 10 * distinct_occ`j' if primaryocc == `j'
+}
+replace primaryocc = primaryocc / 10
 
 // OCCUPATION AND INDUSTRY
 
@@ -173,7 +190,7 @@ gen employed_thismonth = 0
 gen jmainocc = .
 forvalues j = 7(-1)1 {
 	local varname tjb`j'_occ
-	destring `varname', replace
+// 	destring `varname', replace
 	bysort personid: egen byte tmp_nmonths = count(`varname')
 	
 	* Update greatest number of months worked in same occupation
