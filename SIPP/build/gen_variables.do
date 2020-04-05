@@ -6,11 +6,16 @@ cleaned somewhat, and recombined. Various variables are recoded and
 new variables are generated. */
 
 /* Must first set the global macro: wave. */
-global wave 4
 
 use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
 egen personid = group(ssuid pnum)
+
+* Destring occupation and industry
+forvalues j = 1/7 {
+	destring tjb`j'_occ, replace
+	destring tjb`j'_ind, replace
+}
 
 // ASSET VARIABLES, PERSON-LEVEL
 #delimit ;
@@ -140,18 +145,13 @@ label variable grossinc "Total gross income"
 rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
-// FIND MOST WORKED-OCCUPATION FOR EACH INDIVIDUAL
-foreach var of varlist tjb*_occ {
-	destring `var', replace
-}
-
+// FIND MOST-WORKED OCCUPATION FOR EACH INDIVIDUAL
 preserve
 
 keep personid monthcode tjb*_occ
 reshape wide tjb*_occ, i(personid) j(monthcode)
 rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
 local ndistinct = `r(ndistinct)'
-
 drop tjb*_occ*
 
 tempfile occtmp
@@ -173,64 +173,54 @@ forvalues j = 1/`ndistinct' {
 egen mostmonths = rowmax(nmonths_occ*)
 replace mostmonths = . if mostmonths == 0
 
-gen primaryocc = .
-forvalues j = 1/`ndistinct' {
-	replace primaryocc = `j' if (nmonths_occ`j' == mostmonths) & missing(primaryocc)
-}
-
-forvalues j = 1/`ndistinct' {
-	replace primaryocc = 10 * distinct_occ`j' if primaryocc == `j'
-}
-replace primaryocc = primaryocc / 10
-
-// OCCUPATION AND INDUSTRY
-
-gen nmonthsmax = 0
-gen employed_thismonth = 0
-gen jmainocc = .
-forvalues j = 7(-1)1 {
-	local varname tjb`j'_occ
-// 	destring `varname', replace
-	bysort personid: egen byte tmp_nmonths = count(`varname')
-	
-	* Update greatest number of months worked in same occupation
-	gen update_mainocc = (tmp_nmonths >= nmonthsmax) & (tmp_nmonths > 0)
-	replace nmonthsmax = tmp_nmonths if (update_mainocc == 1)
-	replace jmainocc = `j' if (update_mainocc == 1)
-	replace employed_thismonth = 1 if (`varname' != 9920) & !missing(`varname')
-	drop tmp_nmonths update_mainocc
-}
-bysort personid: egen monthsemployed = total(employed_thismonth)
-label variable monthsemployed "Number of months in which an occupation was reported"
-
-rename jmainocc tmp_jmainocc
-bysort personid: egen jmainocc = min(tmp_jmainocc)
-label variable jmainocc "Job number of main occupation"
-drop tmp_jmainocc
-
-drop employed_thismonth
-drop nmonthsmax
-
 gen occcensus = .
-gen indcensus = .
-forvalues j = 1/7 {
-	destring tjb`j'_ind, replace
-
-	bysort personid: egen tmp_occmain = min(tjb`j'_occ)
-	replace occcensus = tmp_occmain if (jmainocc == `j')
-	
-	bysort personid: egen tmp_indmain = min(tjb`j'_ind)
-	replace indcensus = tmp_indmain if (jmainocc == `j')
-
-	drop tmp_occmain tmp_indmain
+forvalues j = 1/`ndistinct' {
+	replace occcensus = distinct_occ`j' if (nmonths_occ`j' == mostmonths) & missing(occcensus)
 }
+drop tjb*_occ distinct_occ* mostmonths nmonths_occ*
+
+// FIND MOST-WORKED INDUSTRY FOR EACH INDIVIDUAL
+preserve
+
+keep personid monthcode tjb*_ind
+reshape wide tjb*_ind, i(personid) j(monthcode)
+rowdistinct tjb*_ind*, gen(distinct_ind) id(personid)
+local ndistinct = `r(ndistinct)'
+drop tjb*_ind*
+
+tempfile indtmp
+save `indtmp'
+
+restore
+merge m:1 personid using `indtmp', nogen
+
+forvalues j = 1/`ndistinct' {
+	forvalues i = 1/7 {
+		gen indtmp`i' = (tjb`i'_ind == distinct_ind`j') & !missing(distinct_ind`j')
+	}
+
+	egen month_in_`j' = rowmax(indtmp*)
+	bysort personid: egen nmonths_ind`j' = total(month_in_`j')
+	
+	drop indtmp* month_in_`j'
+}
+egen mostmonths = rowmax(nmonths_ind*)
+replace mostmonths = . if mostmonths == 0
+
+gen indcensus = .
+forvalues j = 1/`ndistinct' {
+	replace indcensus = distinct_ind`j' if (nmonths_ind`j' == mostmonths) & missing(indcensus)
+}
+drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
+
+// RECODE INDUSTRY AND OCCUPATION
 
 * Merge with 3-digit occupation
 #delimit ;
 merge m:1 occcensus using "$WFHshared/occsipp/output/occindexsipp.dta",
 	keepusing(occ3d2010) keep(match master) nogen;
 #delimit cr
-drop tjb*_occ enjflag ejb*_scrnr
+drop enjflag ejb*_scrnr
 
 * Create 2017 industry coding
 gen ind2017 = indcensus

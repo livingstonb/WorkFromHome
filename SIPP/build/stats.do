@@ -106,11 +106,21 @@ replace nworkers_wt = 0 if (blankobs == 1)
 replace nworkers_unw = 0 if (blankobs == 1)
 
 discard
-local xlxname "$SIPPout/SIPP_wfh_by_occ3digit.xlsx"
+
+foreach wave of numlist 3 4 0 {
+if `wave' == 0 {
+	local wlab "pooled"
+	local samples "Waves 3 and 4"
+}
+else {
+	local wlab "w`wave'"
+	local samples "Wave `wave'"
+}
+local xlxname "$SIPPout/SIPP_wfh_`wlab'.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: SIPP"
-.xlxnotes.append "Sample: 2014 Waves 3 and 4"
+.xlxnotes.append "Sample: 2014 `samples'"
 .xlxnotes.append "Sampling unit: Individual"
 .xlxnotes.append "Description: WFH and asset ownership"
 .xlxnotes.append ""
@@ -137,12 +147,22 @@ forvalues sval = 0/2 {
 	}
 
 	if `sval' < 2 {
+		if `wave' != 0 {
+		local restrictions "if (sector == `sval') & (swave == `wave')"
+		}
+		else {
 		local restrictions "if (sector == `sval')"
+		}
 	}
 	else {
+		if `wave' != 0 {
+		local restrictions "if (swave == `wave')"
+		}
+		else {
 		local restrictions
+		}
 	}
-
+		
 	.sheets.loop_next
 	#delimit ;
 	collapse2excel
@@ -156,5 +176,6 @@ forvalues sval = 0/2 {
 		using "`xlxname'",
 		by(`byvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr
+}
 }
 }
