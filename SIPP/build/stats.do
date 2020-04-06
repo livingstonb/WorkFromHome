@@ -169,6 +169,7 @@ forvalues sval = 0/2 {
 		(sum) nworkers_wt
 		(rawsum) nworkers_unw
 		(mean) workfromhome
+		(mean) mworkfromhome
 		`meanstats'
 		`medianstats'
 		(min) blankobs

@@ -174,10 +174,12 @@ egen mostmonths = rowmax(nmonths_occ*)
 replace mostmonths = . if mostmonths == 0
 
 gen occcensus = .
+gen occind = .
 forvalues j = 1/`ndistinct' {
+	replace occind = `j' if (nmonths_occ`j' == mostmonths) & missing(occcensus)
 	replace occcensus = distinct_occ`j' if (nmonths_occ`j' == mostmonths) & missing(occcensus)
 }
-drop tjb*_occ distinct_occ* mostmonths nmonths_occ*
+drop distinct_occ* mostmonths nmonths_occ*
 
 // FIND MOST-WORKED INDUSTRY FOR EACH INDIVIDUAL
 preserve
@@ -260,10 +262,20 @@ label define minor2010lbl -2
 #delimit cr
 
 // WORK FROM HOME
+* Worked from home in any occupation
 egen workfromhome = anymatch(ejb*_wshmwrk), values(1)
 label variable workfromhome "Any days the respondent only worked from home"
 label values workfromhome bin_lbl
-drop ejb*_wshmwrk
+
+* Worked from home in main occupation
+forvalues j = 1/7 {
+	replace ejb`j'_wshmwrk = . if (tjb`j'_occ != occcensus)
+	recode ejb`j'_wshmwrk (2 = 0)
+}
+egen wfh_mainocc = anymatch(ejb*_wshmwrk), values(1)
+label variable wfh_mainocc "There were days R worked only from home in main occ"
+label values wfh_mainocc bin_lbl
+drop ejb*_wshmwrk tjb*_occ
 
 // PROVIDED RECODES
 rename thnetworth recode_hhnetworth

@@ -13,11 +13,15 @@ bysort personid: egen earnings = total(grossearn)
 label variable earnings "earnings"
 
 by personid: egen wfh = max(workfromhome)
-drop workfromhome
+by personid: egen mwfh = max(wfh_mainocc)
+drop workfromhome wfh_mainocc
 
 replace wfh = 100 * wfh
+replace mwfh = 100 * mwfh
 rename wfh workfromhome
+rename mwfh mworkfromhome
 label variable workfromhome " % Who worked from home at least one day of the week"
+label variable mworkfromhome " % Who worked from home at least one day of the week in main occ"
 
 keep if !missing(_sampleunit)
 keep if (monthcode == 12)
