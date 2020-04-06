@@ -57,6 +57,15 @@ global DNout "$DNbuild/output"
 capture mkdir "$DNbuildtemp"
 capture mkdir "$DNout"
 
+* SHED
+global SHEDdir "$maindir/SHED"
+global SHEDbuild "$SHEDdir/build"
+global SHEDbuildtemp "$SHEDbuild/temp"
+global SHEDout "$SHEDbuild/output"
+
+capture mkdir "$SHEDbuildtemp"
+capture mkdir "$SHEDout"
+
 * Other
 global WFHshared "$maindir/shared"
 adopath + "$WFHshared/ado"

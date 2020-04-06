@@ -61,4 +61,22 @@ label variable netliquid "net liquid assets"
 gen netliq_earnings_ratio = netliquid / earnings if (earnings > 1000)
 label variable netliq_earnings_ratio "net liquid assets to earnings ratio for earnings > 1000"
 
+tempvar earnwk
+gen `earnwk' = earnings / 52
+
+gen nla_lt_biweeklyearn = (netliquid < (2 * `earnwk'))
+label variable nla_lt_biweeklyearn "Share with net liquid assets < 2 weeks earnings"
+
+gen nla_lt_monthlyearn = (netliquid < (4 * `earnwk'))
+label variable nla_lt_monthlyearn "Share with net liquid assets < 4 weeks earnings"
+
+gen nla_lt_annearn = (netliquid < earnings)
+label variable nla_lt_annearn "Share with net liquid assets < annual earnings"
+
+gen whtm_biweeklyearn = (netliquid < (2 * `earnwk')) * (netilliquid >= 10000)
+label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >= $10000)"
+
+gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 10000)
+label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $10000)"
+
 save "$SIPPout/sipp_cleaned_w${wave}.dta", replace

@@ -26,25 +26,6 @@ foreach var of local stats {
 	local medianstats `medianstats' (median) median_`var'
 }
 
-tempvar earnwk
-gen `earnwk' = earnings / 52
-
-gen nla_lt_biweeklyearn = (netliquid < (2 * `earnwk'))
-label variable nla_lt_biweeklyearn "Share with net liquid assets < 2 weeks earnings"
-
-gen nla_lt_monthlyearn = (netliquid < (4 * `earnwk'))
-label variable nla_lt_monthlyearn "Share with net liquid assets < 4 weeks earnings"
-
-gen nla_lt_annearn = (netliquid < earnings)
-label variable nla_lt_annearn "Share with net liquid assets < annual earnings"
-
-gen whtm_biweeklyearn = (netliquid < (2 * `earnwk')) * (netilliquid >= 10000)
-label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >= $10000)"
-
-gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 10000)
-label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $10000)"
-
-
 foreach var of varlist nla_lt* whtm* {
 	local meanstats `meanstats' (mean) `var'
 }

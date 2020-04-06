@@ -170,16 +170,16 @@ forvalues j = 1/`ndistinct' {
 	
 	drop occtmp* month_in_`j'
 }
-egen mostmonths = rowmax(nmonths_occ*)
-replace mostmonths = . if mostmonths == 0
+egen months_primaryocc = rowmax(nmonths_occ*)
+replace months_primaryocc = . if months_primaryocc == 0
 
 gen occcensus = .
 gen occind = .
 forvalues j = 1/`ndistinct' {
-	replace occind = `j' if (nmonths_occ`j' == mostmonths) & missing(occcensus)
-	replace occcensus = distinct_occ`j' if (nmonths_occ`j' == mostmonths) & missing(occcensus)
+	replace occind = `j' if (nmonths_occ`j' == months_primaryocc) & missing(occcensus)
+	replace occcensus = distinct_occ`j' if (nmonths_occ`j' == months_primaryocc) & missing(occcensus)
 }
-drop distinct_occ* mostmonths nmonths_occ*
+drop distinct_occ* nmonths_occ*
 
 // FIND MOST-WORKED INDUSTRY FOR EACH INDIVIDUAL
 preserve

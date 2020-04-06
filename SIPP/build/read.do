@@ -9,7 +9,11 @@ compresses, and resaves as .dta files. Done in chunks of 50,000 observations. */
 clear
 set maxvar 10000
 
-if $wave == 3 {
+if $wave == 2 {
+	local nchunks 14
+	local nobs 676105
+}
+else if $wave == 3 {
 	local nchunks 12
 	local nobs 556943
 }
