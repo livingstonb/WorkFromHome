@@ -18,11 +18,6 @@ replace wgt = weight if year == 2013
 replace wgt = weight2b if year == 2018
 drop weight*
 
-/* Normalize weights of first two years */
-bysort year: egen wgtsum = sum(wgt)
-replace wgt = 240000000 * wgt / wgtsum if year <= 2014
-drop wgtsum
-
 // RENAME VARIABLES;
 * Make sure to add any new variables to build_missing.do to clean missing values!
 rename B1_a havemoney
@@ -147,7 +142,8 @@ replace	state = PPSTATE if year == 2013
 rename ppwork working
 replace working = PPWORK if year == 2013
 rename ppcm0160 occupation
-rename IND1 industry
+rename ind2 industry
+replace industry = IND2 if year == 2016
 rename pph10001 physhealth
 rename ppfs0596 savings
 

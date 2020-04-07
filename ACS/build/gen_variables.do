@@ -186,7 +186,7 @@ replace occyear = 2018 if (year == 2018)
 rename occn occcensus
 #delimit ;
 merge m:1 occcensus occyear using "$WFHshared/occ2010/output/occindex2010new.dta",
-	keepusing(occ3d2010) keep(1 3) nogen;
+	keepusing(occ3d2010 soc2d2010) keep(1 3) nogen;
 #delimit cr
 
 * 2018

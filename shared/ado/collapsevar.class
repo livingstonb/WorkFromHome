@@ -1,0 +1,54 @@
+class collapsevar {
+	string varname
+	string vnotes
+	string vlabel
+	string cmd
+	string countvar
+}
+program .set
+	#delimit ;
+	syntax varname
+		[, NOTES(string)] [, LABEL(string)] [, CMD(string)]
+		[, COUNTS];
+	#delimit cr
+	
+	.varname = "`varlist'"
+	.vnotes = "`notes'"
+	.cmd = "`cmd'"
+	
+	if "`label'" == "" {
+		local lab: variable label `varlist'
+		.vlabel = "`lab'"
+		
+	}
+	else {
+	.vlabel = "`label'"
+	}
+	
+	if "`counts'" != "" {
+		gen byte counts_`.varname' = 1 if !missing(`.varname')
+		.countvar = "counts_`.varname'"
+		label variable `.countvar' "# non-missing for prev col"
+	}
+end
+program .dropmissing
+	quietly drop if missing(`.varname')
+end
+program .collapse
+	local cstring "(`.cmd') `.varname'"
+	
+	if "`.countvar'" != "" {
+		local cstring `cstring' (rawsum) `.countvar'
+	}
+	class exit "`cstring'"
+end
+program .relabel
+	label variable `.varname' "`.vlabel'"
+	
+	if "`.countvar'" != "" {
+		label variable `.countvar' "# non-missing for prev col"
+	}
+end
+program .getnotes
+	class exit "`.vnotes'"
+end

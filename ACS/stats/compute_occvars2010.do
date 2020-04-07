@@ -7,7 +7,7 @@ WFH-rigid. */
 
 clear
 
-local yr1 = 2015
+local yr1 = 2014
 local yr2 = 2017
 
 capture label define bin_lbl 0 "No" 1 "Yes"
@@ -27,10 +27,11 @@ gen wfh3digit = 100 * workfromhome
 #delimit ;
 collapse (median) medwage3digit=incwage (mean) meanwage3digit=incwage
 	(mean) wfh3digit (rawsum) nrespondents3digit (sum) nworkers3digit
+	(first) soc2d2010
 	[iw=perwt], by(occ3d2010) fast;
 #delimit cr
 
-order year occ3d2018
+order occ3d2010
 
 label variable medwage3digit "Median wage"
 label variable meanwage3digit "Mean wage"
@@ -39,7 +40,7 @@ label variable nrespondents3digit "n"
 label variable nworkers3digit "Total workers"
 
 * WFH-flexibility, threshold at 4%
-gen wfhflex3digit = (wfh3digit >= 4) & !missing(wfh3digit)
+gen wfhflex3digit = (wfh3digit >= 4) if !missing(wfh3digit)
 label variable wfhflex3digit "WFH-flexible occupation"
 label define wfhflex3digit_lbl 0 "Rigid" 1 "Flexible"
 label values wfhflex3digit wfhflex3digit_lbl

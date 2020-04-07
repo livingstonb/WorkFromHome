@@ -16,6 +16,7 @@ program createxlsx
 		putexcel A`i' = ("``xlxnotes'.loop_get'")
 		local ++i
 	}
+	`xlxnotes'.loop_reset
 
 	putexcel A`i' = ("Date: $S_DATE")
 	local ++i
@@ -37,12 +38,14 @@ program createxlsx
 		putexcel A`i' = ("`isheet'") B`i' = ("`descr'")
 		local ++i
 	}
-
 	`descriptions'.loop_reset
+
 	`sheets'.loop_reset
 	while ( ``descriptions'.loop_next' & ``sheets'.loop_next' ) {
 		
 		putexcel set "`using'", modify sheet("``sheets'.loop_get'")
 		putexcel A1 = ("``descriptions'.loop_get'")
 	}
+	`sheets'.loop_reset
+	`descriptions'.loop_reset
 end

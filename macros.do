@@ -62,9 +62,12 @@ global SHEDdir "$maindir/SHED"
 global SHEDbuild "$SHEDdir/build"
 global SHEDbuildtemp "$SHEDbuild/temp"
 global SHEDout "$SHEDbuild/output"
+global SHEDstats "$SHEDdir/stats"
+global SHEDstatsout "$SHEDstats/output"
 
 capture mkdir "$SHEDbuildtemp"
 capture mkdir "$SHEDout"
+capture mkdir "$SHEDstatsout"
 
 * Other
 global WFHshared "$maindir/shared"
