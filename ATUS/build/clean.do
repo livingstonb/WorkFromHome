@@ -56,11 +56,13 @@ rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
+rename occcensus census
 #delimit ;
-merge m:1 occcensus using "$WFHshared/occ2010/output/occindex2010new.dta",
-	nogen keep(match master) keepusing(occ3d2010);
+merge m:1 census using "$WFHshared/occupations/output/occindex2010.dta",
+	nogen keep(match master) keepusing(soc3d2010);
 #delimit cr
-rename occ3d2010 occ3digit
+rename census occcensus
+rename soc3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
 * Use 2017 Census industry codes

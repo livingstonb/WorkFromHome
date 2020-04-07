@@ -38,7 +38,7 @@ program collapsecustom
 	// ADD TO SPREADSHEET
 	if "`modify'" == "" {
 		#delimit ;
-		export excel using "`using'", keepcellfmt `replace'
+		export excel using "`using'", keepcellfmt
 			cell(A3) firstrow(varlabels) sheet("`sheet'", replace);
 		#delimit cr
 		
@@ -51,6 +51,13 @@ program collapsecustom
 		export excel using "`using'", keepcellfmt
 			cell(A3) firstrow(varlabels) sheet("`sheet'", modify);
 		#delimit cr
+	}
+	
+	// OVERRIDE COLUMN LABELS
+	tokenize `variables'
+	local collapse_commands
+	while "`1'" != "" {
+		
 	}
 	
 	restore

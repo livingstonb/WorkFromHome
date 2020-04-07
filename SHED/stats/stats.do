@@ -32,8 +32,12 @@ label variable nobs "n, unweighted"
 .nobs = .collapsevar.new
 .nobs.set nobs, cmd(rawsum)
 
+label variable wfhflex "Occupation"
+label define flexlbl 0 "WFH-Rigid" 1 "WFH-Flexible"
+label values wfhflex flexlbl
+
 .wfhflex = .collapsevar.new
-.wfhflex.set wfhflex, cmd(firstnm) label("WFH-Flexible")
+.wfhflex.set wfhflex, cmd(firstnm)
 
 .sector = .collapsevar.new
 .sector.set cvsector
@@ -46,8 +50,8 @@ label variable nobs "n, unweighted"
 local xlxname "$SHEDstatsout/SHED_HtM.xlsx"
 
 .descriptions = .statalist.new
-.descriptions.append "In 2x2 economy"
-.descriptions.append "By 2-digit occupation"
+.descriptions.append "A 2x2 economy"
+.descriptions.append "Stats by 2-digit occupation"
 .sheets = .descriptions.copy
 createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 .sheets.loop_reset

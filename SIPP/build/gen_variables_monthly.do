@@ -6,6 +6,7 @@ cleaned somewhat, and recombined. Various variables are recoded and
 new variables are generated. */
 
 /* Must first set the global macro: wave. */
+global wave 4
 
 use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
@@ -218,10 +219,13 @@ drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
 // RECODE INDUSTRY AND OCCUPATION
 
 * Merge with 3-digit occupation
+rename occcensus census
 #delimit ;
-merge m:1 occcensus using "$WFHshared/occsipp/output/occindexsipp.dta",
-	keepusing(occ3d2010) keep(match master) nogen;
+merge m:1 census using "$WFHshared/occupations/output/occindexSIPP.dta",
+	keepusing(soc3d2010) keep(match master) nogen;
 #delimit cr
+rename census occcensus
+rename soc3d2010 occ3d2010
 drop enjflag ejb*_scrnr
 
 * Create 2017 industry coding

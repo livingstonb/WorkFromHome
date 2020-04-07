@@ -121,20 +121,20 @@ label variable havemoney_h2m "Rarely or never have money left over at end of mon
 gen rainyday_h2m = .
 replace rainyday_h2m = 1 if rainyday==0
 replace rainyday_h2m = 0 if rainyday==1
-label variable rainyday_h2m "Have 3 months of rainy day funds set aside"
+label variable rainyday_h2m "Do not have 3 months of rainy day funds set aside"
 	
 * Could you cover expenses for 3 months by borrowing, using savings, etc...
 * 2014-2018
 gen coverexpenses_h2m = .
 replace coverexpenses_h2m = 1 if coverexpenses == 0
 replace coverexpenses_h2m = 0 if coverexpenses == 1
-label variable coverexpenses_h2m "Could cover expenses for 3 months"
+label variable coverexpenses_h2m "Could not cover expenses for 3 months"
 
 * Could you cover a $400 emergency expense right now?
 * 2014-2018
 gen emerg_h2m = (emerg_wouldnt == 1) if !missing(emerg_wouldnt)
 replace emerg_h2m = . if emerg_refused == 1
-label variable emerg_h2m "Could cover a $400 emerg expense right now"
+label variable emerg_h2m "Could not cover a $400 emerg expense right now"
 
 /* In the past month, would you say that your (and your spouse's/and your
 partner's income) was...  */

@@ -183,19 +183,22 @@ gen occyear = 2010 if inrange(year, 2010, 2017)
 replace occyear = 2018 if (year == 2018)
 
 * 2012 - 2017
-rename occn occcensus
+rename occn census
 #delimit ;
-merge m:1 occcensus occyear using "$WFHshared/occ2010/output/occindex2010new.dta",
-	keepusing(occ3d2010 soc2d2010) keep(1 3) nogen;
+merge m:1 census occyear using "$WFHshared/occupations/output/occindex2010.dta",
+	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
 #delimit cr
+rename soc3d2010 occ3d2010
 
 * 2018
 #delimit ;
-merge m:1 occcensus occyear using "$WFHshared/occ2018/output/occindex2018.dta",
-	keepusing(occ3d2018) keep(1 3 4) nogen update;
+merge m:1 census occyear using "$WFHshared/occupations/output/occindex2018.dta",
+	keepusing(soc3d2018) keep(1 3 4) nogen update;
 #delimit cr
+rename soc3d2018 occ3d2018
+
 drop occyear
-rename occcensus occn
+rename census occn
 
 * 2017 industry codes
 gen ind2017 = industry if inrange(year, 2010, 2017)
