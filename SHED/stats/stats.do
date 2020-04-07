@@ -26,6 +26,7 @@ foreach var of varlist *_h2m {
 	.`var'.set `var', cmd(mean) counts
 	local cvars `cvars' .`var'
 }
+do "$SHEDstats/set_colnames.do"
 
 gen nobs = 1
 label variable nobs "n, unweighted"

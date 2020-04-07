@@ -3,9 +3,7 @@ program collapsecustom
 	syntax anything(name=variables)
 		[fweight pweight iweight] [if] using/
 		[, BY(string)]
-		[, TITLE(string)]
-		[, MODIFY]
-		[, SHEET(string)]
+		[, MODIFY] [, SHEET(string)]
 		[, CW];
 	#delimit cr
 
@@ -20,10 +18,12 @@ program collapsecustom
 	
 	tokenize `by'
 	local byvars
+	local n_byvars = 0
 	while "`1'" != "" {
 		local byvars `byvars' ``1'.varname'
 		`1'.dropmissing
 		macro shift
+		local ++n_byvars
 	}
 
 	marksample touse
@@ -44,21 +44,31 @@ program collapsecustom
 		
 		* Add title
 		putexcel set "`using'", modify sheet("`sheet'")
-		putexcel A1=("`title'")
+		putexcel A1 = ("`title'")
 	}
 	else {
 		#delimit ;
 		export excel using "`using'", keepcellfmt
 			cell(A3) firstrow(varlabels) sheet("`sheet'", modify);
 		#delimit cr
+
+		putexcel set "`using'", modify sheet("`sheet'")
 	}
-	
+
 	// OVERRIDE COLUMN LABELS
 	tokenize `variables'
-	local collapse_commands
+	local i = `n_byvars' + 1
 	while "`1'" != "" {
-		
+		local col: word `i' of `c(ALPHA)'
+		putexcel `col'3 = ("``1'.getexcelname'")
+
+		if "``1'.countvar'" != "" {
+			local ++i
+		}
+
+		macro shift
+		local ++i
 	}
-	
+
 	restore
 end	

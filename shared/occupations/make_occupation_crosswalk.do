@@ -48,20 +48,25 @@ replace header3 = 0 if (header3 != 1)
 tempvar d2one d2all
 bysort soc2 (socstr): gen `d2one' = slabel if header2
 bysort soc2 (socstr `d2one'): gen `d2all' = `d2one'[1]
-labmask soc2, values(`d2all')
+labmask soc2, values(`d2all') lblname(soc2d`occyear'_lbl)
 
 * 3-digit
 tempvar d3one d3all
 bysort soc3 (socstr): gen `d3one' = slabel if header3
 bysort soc3 (socstr `d3one'): gen `d3all' = `d3one'[1]
-labmask soc3, values(`d3all')
+labmask soc3, values(`d3all') lblname(soc3d`occyear'_lbl)
 replace soc3 = . if header2
 
 keep soc*
 
 sort socstr
 capture mkdir "$WFHshared/occupations/temp"
-label save soc3 using "$WFHshared/occupations/temp/labels`occyear'.do", replace
+if "`sipp'" != "1" {
+	#delimit ;
+	label save soc3d`occyear'_lbl
+		using "$WFHshared/occupations/output/occ3labels`occyear'.do", replace;
+	#delimit cr
+}
 
 keep soc2 soc3
 duplicates drop soc3, force
@@ -106,7 +111,7 @@ if "`sipp'" == "1" {
 destring soc3, replace
 drop socstr
 
-do "$WFHshared/occupations/temp/labels`occyear'.do"
+do "$WFHshared/occupations/output/occ3labels`occyear'.do"
 label values soc3 soc3
 
 merge m:1 soc3 using "$WFHshared/occupations/temp/occ_soc_`occyear'.dta", nogen
@@ -124,9 +129,9 @@ rename soc2 soc2d`occyear'
 capture mkdir "$WFHshared/occupations/output"
 
 if ("`sipp'" == "1") {
-	local fname "occindexSIPP"
+	local fname "occindexSIPP.dta"
 }
 else {
-	local fname "occindex`occyear'"
+	local fname "occindex`occyear'.dta"
 }
-save "$WFHshared/occupations/output/`fname'.dta", replace
+save "$WFHshared/occupations/output/`fname'", replace

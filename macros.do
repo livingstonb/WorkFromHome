@@ -44,9 +44,12 @@ global OESdir "$maindir/OES"
 global OESbuild "$OESdir/build"
 global OESbuildtemp "$OESbuild/temp"
 global OESout "$OESbuild/output"
+global OESstats "$OESdir/stats"
+global OESstatsout "$OESstats/output"
 
 capture mkdir "$OESbuildtemp"
 capture mkdir "$OESout"
+capture mkdir "$OESstatsout"
 
 * Dingel-Neiman
 global DNdir "$maindir/DingelNeiman"

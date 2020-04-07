@@ -228,17 +228,10 @@ rename census occcensus
 rename soc3d2010 occ3d2010
 drop enjflag ejb*_scrnr
 
-* Create 2017 industry coding
-gen ind2017 = indcensus
-recode ind2017 (1680 1690 = 1691) (3190 3290 = 3291) (4970 = 4971)
-recode ind2017 (5380 = 5381) (5390 = 5391) (5590/5592 = 5593)
-recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
-recode ind2017 (8190 = 8191) (8560 = 8563)
-recode ind2017 (8880 8890 = 8891)
-label variable ind2017 "Industry, 2017 Census coding"
-
+* Map industry to C/S sector
+rename indcensus ind2012
 #delimit ;
-merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
+merge m:1 ind2012 using "$WFHshared/industries/output/industryindex2012.dta",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 

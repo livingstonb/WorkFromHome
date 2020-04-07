@@ -2,26 +2,18 @@ clear
 
 import delimited "$DNbuild/input/occupations_workathome.csv"
 gen soc2010 = substr(onetsoccode, 1, 7)
-gen soc3d = substr(soc2010, 1, 4)
+gen soc3d2010 = substr(soc2010, 1, 4)
+replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
+destring soc3d2010, replace
 
-// Merge with 3-digit categories
-preserve
-
-tempfile occtmp
-use "$WFHshared/occ2010/output/occindex2010new.dta", clear
-gen soc3d = substr(soc2010, 1, 4)
-duplicates drop soc3d, force
-
-save `occtmp'
-
-restore
-
-merge m:1 soc3d using `occtmp', keepusing(occ3d2010) nogen keep(match)
+// Label 3-digit categories
+do "$WFHshared/occupations/output/occ3labels2010.do"
+label values soc3d2010 soc3d2010_lbl
 
 * Save
 save "$DNbuildtemp/DN_temp.dta", replace
 
 // Output to excel
-drop soc2010 soc3d
+drop soc2010 onetsoccode
 export excel "$DNout/DingelNeiman_merged.xlsx", firstrow(varlabels) replace
 

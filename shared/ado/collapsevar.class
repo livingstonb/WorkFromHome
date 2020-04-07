@@ -4,6 +4,7 @@ class collapsevar {
 	string vlabel
 	string cmd
 	string countvar
+	string excelname
 }
 program .set
 	#delimit ;
@@ -51,4 +52,12 @@ program .relabel
 end
 program .getnotes
 	class exit "`.vnotes'"
+end
+program .getexcelname
+	if "`.excelname'" == "" {
+		class exit "`.vlabel'"
+	}
+	else {
+		class exit "`.excelname'"
+	}
 end

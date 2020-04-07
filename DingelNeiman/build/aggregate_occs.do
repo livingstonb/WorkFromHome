@@ -1,25 +1,13 @@
 
 
-
 // Prepare OES 6-digit occs for merge
-use "$OESbuildtemp/oes_raw.dta", clear
-
+use "$OESbuild/output/oes_cleaned.dta", clear
 rename OCC_CODE soc2010
-
-replace TOT_EMP = "" if inlist(TOT_EMP, "*", "**")
-destring TOT_EMP, replace
-rename TOT_EMP employment
-
-* Merge with sector
-destring NAICS, replace
-gen int ind3d = NAICS / 1000
-gen int ind2d = floor(ind3d / 10)
-gen int ind1d = floor(ind3d / 100)
 
 * 1-digit first
 rename ind1d naics2017
 #delimit ;
-merge m:1 naics2017 using "$OESbuildtemp/naics_to_sector.dta",
+merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
 	keepusing(sector) keep(1 3 4) nogen;
 #delimit cr
 rename naics2017 ind1d
@@ -27,7 +15,7 @@ rename naics2017 ind1d
 * 2-digit
 rename ind2d naics2017
 #delimit ;
-merge m:1 naics2017 using "$OESbuildtemp/naics_to_sector.dta",
+merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
 rename naics2017 ind2d
@@ -35,7 +23,7 @@ rename naics2017 ind2d
 * 3-digit
 rename ind3d naics2017
 #delimit ;
-merge m:1 naics2017 using "$OESbuildtemp/naics_to_sector.dta",
+merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
 rename naics2017 ind3d
@@ -113,34 +101,30 @@ duplicates drop soc5digit sector, force
 * Merge at 5 digit level
 merge m:1 soc5digit sector using `oestmp5', keep(1 3) update keepusing(employment) nogen
 
-label define sector_lbl 0 "C" 1 "S"
-label variable sector sector_lbl
-
 * Aggregate to 3 digit level
 gen missings = missing(employment)
-bysort occ3d2010 sector: egen missing_employment = max(missings)
-bysort occ3d2010 sector: egen agg_employment = total(employment)
+bysort soc3d2010 sector: egen missing_employment = max(missings)
+bysort soc3d2010 sector: egen agg_employment = total(employment)
 replace agg_employment = . if (missing_employment == 1)
 
 * Use weighted mean if employment was present
 gen tele_weighted = teleworkable * employment / agg_employment
-bysort occ3d2010 sector: egen agg_teleworkable = total(tele_weighted), missing
+bysort soc3d2010 sector: egen agg_teleworkable = total(tele_weighted), missing
 
 * Take mean if employment was missing
-bysort occ3d2010 sector: egen mean_teleworkable = mean(teleworkable)
+bysort soc3d2010 sector: egen mean_teleworkable = mean(teleworkable)
 replace teleworkable = agg_teleworkable
 replace teleworkable = mean_teleworkable if (missing_employment == 1)
 
 drop tele_weighted employment *_teleworkable agg_employment miss*
-duplicates drop occ3d2010 sector, force
+duplicates drop soc3d2010 sector, force
 
 * Merge again, this time to recover full employment statistics
 merge m:1 soc3digit sector using `oestmp3', keep(1 3) keepusing(employment) nogen
-drop soc5digit soc3d soc2010
-duplicates drop soc3digit sector, force
-drop if missing(sector, soc3digit)
-order occ3d2010 sector teleworkable employment
-drop soc3digit
-sort occ3d2010 sector
+drop soc5digit soc3digit soc2010
+duplicates drop soc3d2010 sector, force
+drop if missing(sector, soc3d2010)
+order soc3d2010 sector teleworkable employment
+sort soc3d2010 sector
 
 save "$DNout/DN_aggregated.dta", replace

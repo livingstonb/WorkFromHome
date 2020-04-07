@@ -31,9 +31,8 @@ label define soclbl 53 "Transportation and Material Moving Occupations", add
 label values soc2d soclbl
 save "$SHEDbuildtemp/occ_crosswalk.dta", replace
 
-* Resave sector crosswalk as stata file
-clear
-import delimited "$SHEDbuild/input/naics_to_sector.csv"
+* Resave sector crosswalk
+use "$WFHshared/industries/output/naicsindex2017.dta", clear
 rename sector cvsector
 save "$SHEDbuildtemp/naics_to_sector.dta", replace
 
