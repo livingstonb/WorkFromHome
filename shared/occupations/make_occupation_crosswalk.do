@@ -4,7 +4,7 @@
 clear
 
 // DECLARE SIPP
-local sipp 0
+local sipp 1
 
 // DECLARE YEAR (2010 OR 2018)
 local occyear 2010
@@ -112,7 +112,7 @@ destring soc3, replace
 drop socstr
 
 do "$WFHshared/occupations/output/occ3labels`occyear'.do"
-label values soc3 soc3
+label values soc3 soc3d`occyear'_lbl
 
 merge m:1 soc3 using "$WFHshared/occupations/temp/occ_soc_`occyear'.dta", nogen
 

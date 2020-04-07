@@ -13,6 +13,9 @@ local stats pdeposits pbonds pliqequity liquid ccdebt earnings
 	netliquid netliq_earnings_ratio netilliquid;
 #delimit cr
 
+label variable foodinsecure "Share who cut or skipped meals b/c not enough money"
+label variable qualitative_h2m "Share who cut or skipped meals or couldn't pay utilities"
+
 local meanstats
 local medianstats
 foreach var of local stats {
@@ -26,7 +29,7 @@ foreach var of local stats {
 	local medianstats `medianstats' (median) median_`var'
 }
 
-foreach var of varlist nla_lt* whtm* {
+foreach var of varlist qualitative_h2m foodinsecure nla_lt* whtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 
@@ -42,10 +45,11 @@ preserve
 clear
 save `yrtmp', emptyok
 forvalues sval = 0/1 {
-	use occ3d2010 using "$WFHshared/occsipp/output/occindexsipp.dta", clear
+	use soc3d2010 using "$WFHshared/occupations/output/occindexSIPP.dta", clear
 	gen sector = `sval'
 	gen wpfinwgt = 1
 	gen blankobs = 1
+	rename soc3d2010 occ3d2010
 	
 	append using `yrtmp'
 	save `yrtmp', replace

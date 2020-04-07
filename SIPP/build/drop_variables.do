@@ -28,7 +28,6 @@ foreach var of local assetvars {
 	local asset_valvars `asset_valvars' tjs`var'val tjo`var'val to`var'val
 }
 
-
 #delimit ;
 local keepvars
 	tage eeduc eorigin ems erace esex efindjob
@@ -72,7 +71,11 @@ local keepvars
 /* Household-related variables */
 	eresidenceid rfamref
 	epnspous_ehc epncohab_ehc
-	rpnpar1_ehc rpnpar2_ehc;
+	rpnpar1_ehc rpnpar2_ehc
+	
+/* Other HtM measures */
+	efood3 efood4 efood5 efood6 eawbgas
+;
 #delimit cr
 
 /* Now combine */

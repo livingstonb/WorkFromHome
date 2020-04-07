@@ -34,3 +34,4 @@ forvalues chunk = 1/`nchunks' {
 	save "$SIPPbuild/input/wave${wave}pt`chunk'.dta", replace
 }
 clear
+global wave

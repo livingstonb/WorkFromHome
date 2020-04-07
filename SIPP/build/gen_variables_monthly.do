@@ -6,8 +6,6 @@ cleaned somewhat, and recombined. Various variables are recoded and
 new variables are generated. */
 
 /* Must first set the global macro: wave. */
-global wave 4
-
 use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
 egen personid = group(ssuid pnum)
@@ -21,8 +19,7 @@ forvalues j = 1/7 {
 // ASSET VARIABLES, PERSON-LEVEL
 #delimit ;
 local assetvars
-	govs ichk sav mm cd mcbd st chk mf rp
-	re;
+	govs ichk sav mm cd mcbd st chk mf rp re;
 #delimit cr
 
 local asset_ownvars
@@ -252,9 +249,9 @@ label values employment emplbl
 replace occ3d2010 = -1 if missing(occ3d2010) & (employment == 2)
 replace occ3d2010 = -2 if missing(occ3d2010) & (employment == 3)
 #delimit ;
-label define minor2010lbl -1
+label define soc3d2010_lbl -1
 	"Unemployed all year, spent time on layoff or looking for work", add;
-label define minor2010lbl -2
+label define soc3d2010_lbl -2
 	"Not employed all year, spent no time on layoff or looking for work", add;
 #delimit cr
 
@@ -290,6 +287,35 @@ foreach var of varlist recode_* {
 	local nameedit = substr("`var'", 8, .)
 	rename `var' `nameedit'
 }
+
+// OTHER VARIABLES
+rename efood3 nofoodmoney
+recode nofoodmoney (2 = 0)
+label values nofoodmoney bin_lbl
+
+rename efood4 freq_nofoodmoney
+replace freq_nofoodmoney = 4 if (nofoodmoney == 0)
+label define freq_nofoodmoney_lbl 1 "Almost every month"
+label define freq_nofoodmoney_lbl 2 "Some months", add
+label define freq_nofoodmoney_lbl 3 "Only 1 or 2 months", add
+label define freq_nofoodmoney_lbl 4 "Never", add
+label values freq_nofoodmoney freq_nofoodmoney_lbl
+
+gen foodinsecure = inrange(freq_nofoodmoney, 1, 3) if !missing(freq_nofoodmoney)
+label values foodinsecure bin_lbl
+label variable foodinsecure "Cut or skipped meals in at least one month b/c not enough money"
+
+replace foodinsecure = 1 if (efood5 == 1) | (efood6 == 1)
+drop efood*
+
+rename eawbgas couldntpayutil
+recode couldntpayutil (2 = 0)
+label values couldntpayutil bin_lbl
+
+gen qualitative_h2m = foodinsecure
+replace qualitative_h2m = 1 if (couldntpayutil == 1)
+label variable qualitative_h2m "HH was food-insecure and/or unable to pay utility bills"
+label values qualitative_h2m bin_lbl
 
 compress
 save "$SIPPtemp/sipp_monthly_w${wave}.dta", replace

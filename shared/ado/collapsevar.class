@@ -1,3 +1,8 @@
+/* Class: collapsevar */
+
+/* This class is used to attach various labels and notes to existing variables
+and to identify the desired collapse command (e.g. mean or median). */
+
 class collapsevar {
 	string varname
 	string vnotes

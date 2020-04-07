@@ -1,5 +1,5 @@
 program countdistinct
-	syntax varname
+	syntax varname [, INCLUDEMISSING]
 	
 	tempvar ones
 	gen `ones' = 1
@@ -8,8 +8,10 @@ program countdistinct
 	quietly save `datatmp'
 	
 	collapse (sum) `ones', by(`varlist') fast
-	quietly drop if missing(`varlist')
 	
+	if "`includemissing'" == "" {
+		quietly drop if missing(`varlist')
+	}
 	
 	di "Distinct values = `c(N)'"
 	use `datatmp', clear

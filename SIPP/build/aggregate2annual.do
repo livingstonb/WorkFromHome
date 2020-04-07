@@ -79,4 +79,5 @@ label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >
 gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 10000)
 label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $10000)"
 
+drop `earnwk'
 save "$SIPPout/sipp_cleaned_w${wave}.dta", replace
