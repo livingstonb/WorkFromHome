@@ -55,6 +55,7 @@ local keepvars
 	tlife_cval eown_life
 	toinvval eown_oinv
 	tdebt_ast tval_ast
+	teq_home
 	
 /* Asset variables, household-level */
 	thval_esav eown_esav
@@ -79,7 +80,10 @@ local keepvars
 #delimit cr
 
 /* Now combine */
-if $wave == 3 {
+if $wave == 2 {
+	local nchunks 14
+}
+else if $wave == 3 {
 	local nchunks 12
 }
 else if $wave == 4 {

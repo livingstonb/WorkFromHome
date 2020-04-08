@@ -4,7 +4,9 @@
 /* This script computes various asset, earnings, and WFH statistics
 and outputs them to a spreadsheet. */
 
-use "$SIPPout/sipp_cleaned_w3.dta", clear
+use "$SIPPout/sipp_cleaned_w1.dta", clear
+append using "$SIPPout/sipp_cleaned_w2.dta"
+append using "$SIPPout/sipp_cleaned_w3.dta"
 append using "$SIPPout/sipp_cleaned_w4.dta"
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE

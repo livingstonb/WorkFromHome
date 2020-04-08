@@ -6,7 +6,7 @@ the year and using assets reported in the last month. */
 
 /* Must first set the global macro: wave. */
 
-use "$SIPPtemp/sipp_monthly_with_su_w${wave}.dta", clear
+use "$SIPPtemp/sipp_monthly_w${wave}.dta", clear
 
 // EARNINGS
 bysort personid: egen earnings = total(grossearn)
@@ -23,8 +23,9 @@ rename mwfh mworkfromhome
 label variable workfromhome " % Who worked from home at least one day of the week"
 label variable mworkfromhome " % Who worked from home at least one day of the week in main occ"
 
-keep if !missing(_sampleunit)
-keep if (monthcode == 12)
+bysort personid: gen nmonths = _N
+keep if (monthcode == 12) & (nmonths == 12)
+drop nmonths
 
 // WEALTH VARIABLES
 * Liquid assets
@@ -45,7 +46,7 @@ gen ccdebt = liab_ccdebt
 label variable ccdebt "credit card debt"
 
 * Illiquid
-gen phomeequity = hhhomeequity * aweights
+gen phomeequity = val_homeequity
 label variable phomeequity "home equity"
 
 egen pretirement = rowtotal(val_ira_keoh val_401k val_ann val_trusts)

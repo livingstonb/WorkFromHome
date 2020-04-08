@@ -5,11 +5,16 @@
 compresses, and resaves as .dta files. Done in chunks of 50,000 observations. */
 
 /* Must first set the global macro: wave. */
+global wave 1
 
 clear
 set maxvar 10000
 
-if $wave == 2 {
+if $wave == 1 {
+	local nchunks 18
+	local nobs 870352
+}
+else if $wave == 2 {
 	local nchunks 14
 	local nobs 676105
 }
@@ -34,4 +39,16 @@ forvalues chunk = 1/`nchunks' {
 	save "$SIPPbuild/input/wave${wave}pt`chunk'.dta", replace
 }
 clear
+
+clear
+forvalues chunk = 1/`nchunks' {
+	append using "$SIPPbuild/input/wave${wave}pt`chunk'.dta"
+}
+foreach var of varlist tjb*_occ tjb*_ind {
+	destring `var', replace
+}
+save "$SIPPbuild/input/wave${wave}_complete.dta"
+
 global wave
+
+

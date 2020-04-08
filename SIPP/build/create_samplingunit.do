@@ -20,39 +20,41 @@ egen monthlyhh = group(monthcode household)
 
 // HOUSEHOLD-LEVEL
 * Find group head
-gen hhhead = (rfamnum == 1) & (rfamref == pnum)
-
-* Find spouse
-bysort monthlyhh (hhhead): gen pnum_spouse = epnspous_ehc[_N]
-gen spouse = (pnum == pnum_spouse) & (rfamnum == 1)
-drop pnum_spouse
-
-* Find other family heads
-gen othfamheads = (rfamnum > 1)
-
-* Find anyone who has never been hh head or hh head spouse
-bysort personid: egen oth1ind = max(hhhead)
-bysort personid: egen oth2ind = max(spouse)
-gen otherind = (oth1ind == 0) & (oth2ind == 0)
-drop oth1ind oth2ind
-
-* Use samplingunit class to create sampling unit variable and
-* weights for household-level assets
-discard
-.su = .samplingunit.new
-.su.set_groupid monthlyhh
-.su.set_individualid personid
-.su.set_panelid monthcode, range(1 12)
-.su.set_grouphead hhhead
-.su.create
-.su.assign_member spouse, memberid(2) required
-.su.new_groups otherind, memberid(5)
-.su.create_ownership_weights aweights, memberids(1, 2) replace
-
-* Check group sizes
-.su.tab_groups
-
-label variable _sampleunit "Sampling unit, household"
+// gen hhhead = (rfamnum == 1) & (rfamref == pnum)
+//
+// * Find spouse
+// bysort monthlyhh (hhhead): gen pnum_spouse = epnspous_ehc[_N]
+// gen spouse = (pnum == pnum_spouse) & (rfamnum == 1)
+// drop pnum_spouse
+//
+// * Find other family heads
+// gen othfamheads = (rfamnum > 1)
+//
+// * Find anyone who has never been hh head or hh head spouse
+// bysort personid: egen oth1ind = max(hhhead)
+// bysort personid: egen oth2ind = max(spouse)
+// gen otherind = (oth1ind == 0) & (oth2ind == 0)
+// drop oth1ind oth2ind
+//
+// * Use samplingunit class to create sampling unit variable and
+// * weights for household-level assets
+// .su = .samplingunit.new
+// .su.set_groupid monthlyhh
+// .su.set_individualid personid
+// .su.set_panelid monthcode, range(1 12)
+// .su.set_grouphead hhhead
+// .su.create
+// .su.assign_member spouse, memberid(2) required
+// .su.new_groups otherind, memberid(5)
+// .su.create_ownership_weights aweights, memberids(1, 2) replace
+//
+// * Check group sizes
+// .su.tab_groups
+//
+// label variable _sampleunit "Sampling unit, household"
+bysort personid: gen nmonths = _N
+gen _sampleunit = 1 if (nmonths == 12)
+drop nmonths
 
 compress
 save "$SIPPtemp/sipp_monthly_with_su_w${wave}.dta", replace

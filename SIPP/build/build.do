@@ -5,12 +5,11 @@
 has not been broken into chunks, first use read.do. */
 
 clear mata
-forvalues wavenum = 3/4 {
+forvalues wavenum = 1/4 {
 	global wave = `wavenum'
 
 	do "$SIPPbuild/drop_variables.do"
 	do "$SIPPbuild/gen_variables_monthly.do"
-	do "$SIPPbuild/create_samplingunit.do"
 	do "$SIPPbuild/aggregate2annual.do"
 }
 global wave

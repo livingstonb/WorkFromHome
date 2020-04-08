@@ -10,6 +10,11 @@ use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
 
 egen personid = group(ssuid pnum)
 
+if "$wave" == "4" {
+	* See Wave 4 User Notes
+	replace wpfinwgt = 0 if missing(wpfinwgt)
+}
+
 * Destring occupation and industry
 forvalues j = 1/7 {
 	destring tjb`j'_occ, replace
@@ -132,6 +137,10 @@ egen hhliab_primaryres = rowtotal(tprloanamt tmhloanamt)
 replace hhliab_primaryres = 0 if missing(hhliab_primaryres)
 label variable hhliab_primaryres "Value of debt on primary residence"
 drop tprloanamt tmhloanamt
+
+// PERSON-LEVEL VARIABLES FOR HH-LEVEL ASSETS/LIABILITIES
+rename teq_home val_homeequity
+label variable val_homeequity "Value of home equity"
 
 // INCOME
 rename tpearn grossearn
