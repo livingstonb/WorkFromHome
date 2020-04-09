@@ -1,4 +1,9 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+/* --- MAKEFILE INSTRUCTIONS ---
+PREREQS
+	build/temp/sipp_monthly2.dta
+TARGETS
+	build/output/sipp_cleaned.dta
+*/
 
 /* Dataset: SIPP */
 /* This script aggregates to the annual frequency by summing earnings over

@@ -1,3 +1,14 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+PREREQS
+	../occupations/build/output/occindexSIPP.dta
+	../ado/statalist.class
+	../ado/createxlsx.ado
+	../ado/collapse2excel.ado
+TARGETS
+	stats/output/SIPPwfh.dta
+*/
+
+
 /* Dataset: SIPP */
 /* This script computes various asset, earnings, and WFH statistics
 and outputs them to a spreadsheet. */

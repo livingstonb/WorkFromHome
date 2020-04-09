@@ -1,3 +1,13 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+PREREQS
+	build/input/sipp_raw_w1.dta
+	build/input/sipp_raw_w2.dta
+	build/input/sipp_raw_w3.dta
+	build/input/sipp_raw_w4.dta
+TARGETS
+	build/temp/sipp_monthly1.dta
+*/
+
 /* Dataset: SIPP */
 /* This script reads the .dta chunks of the raw data, extracting
 needed variables and combining waves. */

@@ -1,3 +1,13 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+PREREQS
+	build/temp/sipp_monthly1.dta
+	../occupations/build/output/occindexSIPP.dta
+	../industries/build/output/industryindex2012.dta
+	../ado/rowdistinct.ado
+TARGETS
+	build/temp/sipp_monthly2.dta
+*/
+
 /* Dataset: SIPP */
 /* This script reads the .dta file after it has been split into chunks,
 cleaned somewhat, and recombined. Various variables are recoded and 

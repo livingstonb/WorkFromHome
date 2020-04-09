@@ -1,3 +1,2 @@
-# Make directories
-mkdirs :
+mkdirs:
 	mkdir -p $(OBJDIRS)

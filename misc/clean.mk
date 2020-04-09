@@ -1,4 +1,2 @@
-# Cleanup
-clean :
+clean:
 	rm -rf $(OBJDIRS)
-	rm **/*.log
