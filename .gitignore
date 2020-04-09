@@ -17,3 +17,4 @@
 *.dta
 **__pycache__
 **.log
+*.mk

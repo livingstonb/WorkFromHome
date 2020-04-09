@@ -2,6 +2,8 @@ clear
 capture mkdir "build/temp"
 capture mkdir "build/output"
 
+adopath + "../ado"
+
 // PREPARE ESSENTIAL INDUSTRIES DATA
 clear
 import delimited "build/input/essential_industries.csv", varnames(1)
@@ -36,7 +38,11 @@ destring code3d, replace
 gen code4d = substr(naics, 1, 4)
 destring code4d, replace
 
+gen code5d = substr(naics, 1, 5)
+destring code5d, replace
+
 destring naics, replace
+gen code6d = naics
 
 * Perform merge
 forvalues d = 3/4 {
@@ -73,6 +79,11 @@ rename exclusions2 excludedtmp
 * Separate multiple industries per category
 split indtmp, gen(industry) parse(", " ",") destring
 split excludedtmp, gen(excluding) parse(", " ",") destring
+//
+// forvalues i = 1/7 {
+// 	gen indpartial`i' = industry`i' if partial
+// 	replace industry`i' = . if partial
+// }
 
 egen nexcl = rownonmiss(excluding*)
 gen noexclusions = (nexcl == 0)
@@ -99,3 +110,135 @@ save "build/temp/census_industry_cwalk_for_essential.dta", replace
 // NOW MERGE BOTH
 use "build/temp/essential_industries_merged.dta", clear
 
+local k = 1
+tempfile mtmp1 mtmp2
+forvalues i = 1/7 {
+foreach d of numlist 2/6 {
+	preserve
+	use "build/temp/census_industry_cwalk_for_essential.dta", clear
+	rename industry`i' code`d'd
+	drop if partial == 1
+	
+	save `mtmp1', replace
+	restore
+	
+	* Make copy of current dataset with unique ids, perform merge
+	preserve
+	duplicates drop code`d'd, force
+	
+	#delimit ;
+	merge 1:m code`d'd using `mtmp1',
+		keep(1 3 4) keepusing(census) nogen update;
+	#delimit cr
+
+	save `mtmp2', replace
+	restore
+	
+	* Now merge back
+	#delimit ;
+	merge m:1 code`d'd using `mtmp2',
+		keep(1 3) keepusing(census) nogen update;
+	#delimit cr
+	rename census indcensus`k'
+
+	local ++k
+}
+}
+
+gen nobs = _n
+rowdistinct indcensus*, gen(cunique) id(nobs)
+drop indcensus* nobs
+
+* Drop exclusions
+foreach var of varlist cunique* {
+	rename `var' census
+	#delimit ;
+	merge m:1 census using "build/temp/census_industry_cwalk_for_essential.dta",
+		keep(1 3) keepusing(excluding*) nogen;
+	#delimit cr
+	rename census `var'
+
+	forvalues d = 2/6 {
+		forvalues i = 1/4 {
+			replace `var' = . if code`d'd == excluding`i'
+		}
+	}
+	drop excluding*
+}
+egen v1census = rowfirst(cunique*)
+drop cunique*
+
+* Merge in partial matches
+local k = 1
+tempfile ptmp1 ptmp2
+forvalues i = 1/7 {
+foreach d of numlist 2/6 {
+	preserve
+	use "build/temp/census_industry_cwalk_for_essential.dta", clear
+	rename industry`i' code`d'd
+	keep if partial == 1
+	
+	save `ptmp1', replace
+	restore
+	
+	* Make copy of current dataset with unique ids, perform merge
+	preserve
+	duplicates drop code`d'd, force
+	
+	#delimit ;
+	merge 1:m code`d'd using `ptmp1',
+		keep(1 3 4) keepusing(census) nogen update;
+	#delimit cr
+
+	save `ptmp2', replace
+	restore
+	
+	* Now merge back
+	#delimit ;
+	merge m:1 code`d'd using `ptmp2',
+		keep(1 3) keepusing(census) nogen update;
+	#delimit cr
+	rename census indcensus`k'
+
+	local ++k
+}
+}
+
+gen nobs = _n
+rowdistinct indcensus*, gen(v2census) id(nobs)
+drop indcensus* nobs
+
+// CLEAN
+rename v1census census_matched
+
+local i = 1
+foreach var of varlist v2census* {
+	rename `var' census_partial`i'
+	local ++i
+}
+drop code6d
+label variable naics "Full six-digit NAICS category"
+label variable code2d "NAICS first two digits"
+label variable code3d "NAICS first three digits"
+label variable code4d "NAICS first four digits"
+label variable code5d "NAICS first five digits"
+label variable census_match "Census industry code"
+label variable census_partial1 "Census industry code, if partial match only"
+label variable census_partial2 "Census industry code, if partial match only"
+
+* Indicator for if matched census code has a non-constant "essential" value
+bysort census_match (essential): gen mixed = (essential[_N] != essential[1])
+replace mixed = . if missing(census_match)
+label define mixed_lbl 0 "Census code has homogenous essential/non-essential"
+label define mixed_lbl 1 "Census code has mixed essential and non-essential", add
+label values mixed mixed_lbl
+label variable mixed "Census code-level indicator for presence of mixed essential/non-essential"
+
+* Essential labels
+label variable essential "Indicator for essential industry"
+label define essential_lbl 0 "Not essential" 1 "Essential"
+label values essential essential_lbl
+
+* Save
+sort census_match
+save "build/output/essential_industries.dta", replace

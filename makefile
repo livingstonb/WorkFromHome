@@ -5,24 +5,24 @@ all : crosswalks acs sipp atus shed
 # 	rm **/build/*.mk **/stats/*.mk
 
 crosswalks :
-	make -C occupations
-	make -C industries
+	$(MAKE) -C occupations
+	$(MAKE) -C industries
 
 acs : crosswalks
-	make -C ACS
+	$(MAKE) -C ACS
 
 mkfiles = SIPP/build/combine_waves.mk
 mkfiles += SIPP/build/clean_monthly.mk
 mkfiles += SIPP/build/clean_annual.mk
 mkfiles += SIPP/stats/stats.mk
 sipp : crosswalks $(mkfiles)
-	make -C SIPP
+	$(MAKE) -C SIPP
 
 atus : crosswalks
-	make -C ATUS
+	$(MAKE) -C ATUS
 
 shed : acs crosswalks
-	make -C SHED
+	$(MAKE) -C SHED
 
 cleanlogs :
 	rm **/*.log
