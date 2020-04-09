@@ -1,5 +1,3 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: SIPP */
 /* This script reads the .dta file after it has been split into chunks,
 cleaned somewhat, and recombined. Various variables are recoded and 

@@ -5,10 +5,10 @@ OBJS += occ3labels2010.do occ3labels2018.do
 OBJS := $(addprefix build/output/, $(OBJS))
 DOFILE = build/occupation_crosswalk.do
 
-.PHONY : clean all mkdirs
-
 all : mkdirs $(OBJS)
 	rm -rf build/temp
+
+.PHONY : clean all mkdirs
 
 objects = census_soc_crosswalk_2010.csv occ_soc_2010.txt
 objects := $(addprefix build/input/, $(objects))
@@ -25,11 +25,4 @@ objects := $(addprefix build/input/, $(objects))
 build/output/occindex2018.dta build/output/occ3labels2018.do : $(DOFILE) $(objects)
 	../statab do $< 2018
 
-# Make directories
-mkdirs :
-	mkdir -p $(OBJDIRS)
-
-# Cleanup
-clean :
-	rm -rf $(OBJDIRS)
-	rm **.log
+include ../misc/mkdirs.mk ../misc/clean.mk

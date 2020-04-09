@@ -39,11 +39,4 @@ objects = build/output/acs_cleaned.dta
 stats/output/acs_stats_for_shed.dta : stats/stats_for_shed.do
 	../statab do $<
 
-# Make directories
-mkdirs :
-	mkdir -p $(OBJDIRS)
-
-# Cleanup
-clean :
-	rm -rf $(OBJDIRS)
-	rm **.log
+include ../misc/mkdirs.mk ../misc/clean.mk

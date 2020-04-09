@@ -44,11 +44,4 @@ adofiles := $(addprefix ../ado/, $(adofiles))
 stats/output/SIPPwfh.dta : stats/stats.do $(CLEANED) $(adofiles) $(objects)
 	../statab do $<
 
-# Make directories
-mkdirs :
-	mkdir -p $(OBJDIRS)
-
-# Cleanup
-clean :
-	rm -rf $(OBJDIRS)
-	rm **.log
+include ../misc/mkdirs.mk ../misc/clean.mk

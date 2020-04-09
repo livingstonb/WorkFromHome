@@ -33,13 +33,4 @@ objects += ../occupations/build/output/occindex2010.dta
 stats/output/ATUSwfh.dta : stats/wfh_by_occupation.do $(objects)
 	../statab do $<
 
-# Make directories
-mkdirs :
-	mkdir -p $(OBJDIRS)
-
-# Cleanup
-clean :
-	rm -rf $(OBJDIRS)
-	rm **.log
-
-.PHONY : clean
+include ../misc/mkdirs.mk ../misc/clean.mk

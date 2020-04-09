@@ -34,11 +34,4 @@ objects += build/output/shed_cleaned.dta
 stats/output/SHED_HtM.xlsx : stats/summary_stats.do $(objects)
 	../statab do $<
 
-# Make directories
-mkdirs :
-	mkdir -p $(OBJDIRS)
-
-# Cleanup
-clean :
-	rm -rf $(OBJDIRS)
-	rm **.log
+include ../misc/mkdirs.mk ../misc/clean.mk

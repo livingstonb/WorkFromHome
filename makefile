@@ -20,4 +20,4 @@ shed : acs crosswalks
 	make -C SHED
 
 cleanlogs :
-	rm **.log
+	rm **/*.log
