@@ -1,19 +1,15 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: ACS */
 /* This script computes WFH and other statistics for the ACS.
 Statistics are computed separately for different occupations
-and sectors */
+and sectors. Assumes the cwd is ACS. */
 
 clear
 capture log close
-log using "$ACSstatstemp/wfh_by_occupation.log", replace
-
-local cdate "3_31_20"
+log using "stats/wfh_by_occupation.log", replace
+adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
-cd "$ACSdir"
-use "$ACScleaned/acs_cleaned.dta" if inrange(year, 2010, 2018), clear
+use "build/output/acs_cleaned.dta" if inrange(year, 2010, 2018), clear
 drop if missing(sector)
 drop if missing(occ3d2018) & missing(occ3d2010)
 
@@ -39,8 +35,8 @@ clear
 save `yrtmp', emptyok
 forvalues yr = 2010(1)2017 {
 forvalues sval = 0/1 {
-	use occ3d2010 using "$WFHshared/occ2010/output/occindex2010new.dta", clear
-
+	use soc3d2010 using "../occupations/build/output/occindex2010.dta", clear
+	rename soc3d2010 occ3d2010
 	gen year = `yr'
 	gen sector = `sval'
 	gen perwt = 1
@@ -120,7 +116,7 @@ restore
 .xlxnotes.append "Sample: 2010-2017 pooled"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-local xlxname "$ACSstatsout/ACS_wfh_pooled_`cdate'.xlsx"
+local xlxname "stats/output/ACS_wfh_pooled.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "Sector S"
@@ -160,7 +156,7 @@ forvalues sval = 0/2 {
 .xlxnotes.append "Sample: 2010-2018, separated by year"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-local xlxname "$ACSstatsout/ACS_wfh_yearly_`cdate'.xlsx"
+local xlxname "stats/output/ACS_wfh_yearly.xlsx"
 
 .descriptions = .statalist.new
 forvalues yr = 2010/2018 {

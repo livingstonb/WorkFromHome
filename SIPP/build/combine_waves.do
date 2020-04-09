@@ -1,18 +1,12 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: SIPP */
 /* This script reads the .dta chunks of the raw data, extracting
-needed variables. */
-
-/* Must first set the global macro: wave. */
+needed variables and combining waves. */
 
 clear
-
-cd "$SIPPbuild"
 set maxvar 10000
+log using "build/combine_waves.log", text replace
 
 label define bin_lbl 0 "No" 1 "Yes"
-
 
 * Asset variables separately coded for joint and single ownership
 #delimit ;
@@ -79,22 +73,17 @@ local keepvars
 ;
 #delimit cr
 
-/* Now combine */
-if $wave == 2 {
-	local nchunks 14
-}
-else if $wave == 3 {
-	local nchunks 12
-}
-else if $wave == 4 {
-	local nchunks 10
+local conds (tage > 15) & !missing(tage)
+forvalues i = 1/4 {
+	tempfile raw`i'
+	use `keepvars' if `conds' using "build/input/sipp_raw_w`i'.dta", clear
+	save `raw`i''
 }
 
-use `keepvars' using "input/wave${wave}pt1.dta", clear
-forvalues chunk = 2/`nchunks' {
-	append using "input/wave${wave}pt`chunk'.dta", keep(`keepvars')
+clear
+forvalues i = 1/4 {
+	append using `raw`i''
 }
-drop if (tage < 15) | missing(tage)
 
 * NOTE: families uniquely identified by ssuid & eresidenceid & rfamnum
 * HHs uniquely identified by ssuid & eresidenceid, in a given month
@@ -102,6 +91,5 @@ drop if (tage < 15) | missing(tage)
 
 destring ssuid, replace
 compress
-save "$SIPPtemp/sipp_combined_w${wave}.dta", replace
-
-
+save "build/temp/sipp_monthly1.dta", replace
+log close

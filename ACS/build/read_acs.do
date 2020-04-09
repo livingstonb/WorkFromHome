@@ -1,17 +1,13 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: ACS */
 /* This script reads the raw data from the .dat file and
-performs some minor cleaning tasks */
+performs some minor cleaning tasks. Assumes the cwd
+is ACS. */
 
+log using "build/read_acs.log", text replace
 clear
-capture log close
-log using "$ACSbuildtemp/read.log", replace
 
 * Read raw dataset
-// global raw_dat_path "$ACSbuild/raw/acs_raw.dat"
-// do "$ACSbuild/raw/acs_raw.do"
-use "$ACSbuild/raw/acs_raw.dta"
+use "build/input/acs_raw.dta"
 
 rename occ occn
 #delimit ;
@@ -84,5 +80,6 @@ keep if (age >= 15) & !missing(age)
 keep if (incwage > 0) & !missing(incwage)
 
 compress
-save "$ACSbuildtemp/acs_temp.dta", replace
+capture mkdir "build/temp"
+save "build/temp/acs_temp.dta", replace
 log close

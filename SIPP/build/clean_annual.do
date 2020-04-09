@@ -4,16 +4,14 @@
 /* This script aggregates to the annual frequency by summing earnings over
 the year and using assets reported in the last month. */
 
-/* Must first set the global macro: wave. */
-
-use "$SIPPtemp/sipp_monthly_w${wave}.dta", clear
+use "build/temp/sipp_monthly2.dta", clear
 
 // EARNINGS
-bysort personid: egen earnings = total(grossearn)
+bysort personid swave: egen earnings = total(grossearn)
 label variable earnings "earnings"
 
-by personid: egen wfh = max(workfromhome)
-by personid: egen mwfh = max(wfh_mainocc)
+by personid swave: egen wfh = max(workfromhome)
+by personid swave: egen mwfh = max(wfh_mainocc)
 drop workfromhome wfh_mainocc
 
 replace wfh = 100 * wfh
@@ -23,7 +21,7 @@ rename mwfh mworkfromhome
 label variable workfromhome " % Who worked from home at least one day of the week"
 label variable mworkfromhome " % Who worked from home at least one day of the week in main occ"
 
-bysort personid: gen nmonths = _N
+bysort personid swave: gen nmonths = _N
 keep if (monthcode == 12) & (nmonths == 12)
 drop nmonths
 
@@ -81,4 +79,4 @@ gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 10000)
 label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $10000)"
 
 drop `earnwk'
-save "$SIPPout/sipp_cleaned_w${wave}.dta", replace
+save "build/output/sipp_cleaned.dta", replace

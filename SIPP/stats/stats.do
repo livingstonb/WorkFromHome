@@ -1,13 +1,9 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: SIPP */
 /* This script computes various asset, earnings, and WFH statistics
 and outputs them to a spreadsheet. */
 
-use "$SIPPout/sipp_cleaned_w1.dta", clear
-append using "$SIPPout/sipp_cleaned_w2.dta"
-append using "$SIPPout/sipp_cleaned_w3.dta"
-append using "$SIPPout/sipp_cleaned_w4.dta"
+adopath + "../ado"
+use "build/output/sipp_cleaned.dta", clear
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
@@ -46,15 +42,18 @@ tempfile yrtmp
 preserve
 clear
 save `yrtmp', emptyok
+forvalues wave = 1/4 {
 forvalues sval = 0/1 {
-	use soc3d2010 using "$WFHshared/occupations/output/occindexSIPP.dta", clear
+	use soc3d2010 using "../occupations/build/output/occindexSIPP.dta", clear
 	gen sector = `sval'
+	gen swave = `wave'
 	gen wpfinwgt = 1
 	gen blankobs = 1
 	rename soc3d2010 occ3d2010
 	
 	append using `yrtmp'
 	save `yrtmp', replace
+}
 }
 restore
 append using `yrtmp'
@@ -83,27 +82,25 @@ drop mean_earnings
 drop median_earnings
 gen source = "SIPP"
 
-save "$SIPPout/SIPPwfh.dta", replace
+capture mkdir "stats/output"
+save "stats/output/SIPPwfh.dta", replace
 
 restore
 
 // COLLAPSE TO EXCEL
 
-replace nworkers_wt = 0 if (blankobs == 1)
-replace nworkers_unw = 0 if (blankobs == 1)
-
 discard
 
-foreach wave of numlist 3 4 0 {
+foreach wave of numlist 1 2 3 4 0 {
 if `wave' == 0 {
 	local wlab "pooled"
-	local samples "Waves 3 and 4"
+	local samples "Waves 1-4"
 }
 else {
 	local wlab "w`wave'"
 	local samples "Wave `wave'"
 }
-local xlxname "$SIPPout/SIPP_wfh_`wlab'.xlsx"
+local xlxname "stats/output/SIPP_wfh_`wlab'.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: SIPP"
@@ -135,18 +132,18 @@ forvalues sval = 0/2 {
 
 	if `sval' < 2 {
 		if `wave' != 0 {
-		local restrictions "if (sector == `sval') & (swave == `wave')"
+			local restrictions "if (sector == `sval') & (swave == `wave')"
 		}
 		else {
-		local restrictions "if (sector == `sval')"
+			local restrictions "if (sector == `sval')"
 		}
 	}
 	else {
 		if `wave' != 0 {
-		local restrictions "if (swave == `wave')"
+			local restrictions "if (swave == `wave')"
 		}
 		else {
-		local restrictions
+			local restrictions
 		}
 	}
 		
@@ -160,7 +157,7 @@ forvalues sval = 0/2 {
 		`meanstats'
 		`medianstats'
 		(min) blankobs
-		`restrictions' [iw=wpfinwgt]
+		[iw=wpfinwgt] `restrictions'
 		using "`xlxname'",
 		by(`byvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr

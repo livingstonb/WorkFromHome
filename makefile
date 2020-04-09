@@ -1,8 +1,14 @@
 
+.PHONY : clean
 
-.PHONY: clean
+all : acs sipp
 
-# ACS
-acs = ACS/build
-$(acs)/temp/acs_temp.dta: $(acs)/acs_raw.dta $(acs)/read_acs.do
-	stata -b do $(acs)/read_acs
+crosswalks :
+	make -C occupations
+	make -C industries
+
+acs : crosswalks
+	make -C ACS
+
+sipp : crosswalks
+	make -C SIPP

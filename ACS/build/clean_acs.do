@@ -1,17 +1,14 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: ACS */
 /* This script performs cleaning and generates new variables for
-the ACS. */
+the ACS. Assumes that the cwd is ACS. */
 
 clear
-capture log close
-log using "$ACSbuildtemp/gen_variables.log", replace
+log using "build/clean_acs.log", text replace
 
 capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
-use if (year >= 2010) using "$ACSbuildtemp/acs_temp.dta" , clear
+use if (year >= 2010) using "build/temp/acs_temp.dta" , clear
 
 * Nominal wage income
 gen nincwage = incwage
@@ -185,14 +182,14 @@ replace occyear = 2018 if (year == 2018)
 * 2012 - 2017
 rename occn census
 #delimit ;
-merge m:1 census occyear using "$WFHshared/occupations/output/occindex2010.dta",
+merge m:1 census occyear using "../occupations/build/output/occindex2010.dta",
 	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
 #delimit cr
 rename soc3d2010 occ3d2010
 
 * 2018
 #delimit ;
-merge m:1 census occyear using "$WFHshared/occupations/output/occindex2018.dta",
+merge m:1 census occyear using "../occupations/build/output/occindex2018.dta",
 	keepusing(soc3d2018) keep(1 3 4) nogen update;
 #delimit cr
 rename soc3d2018 occ3d2018
@@ -200,22 +197,15 @@ rename soc3d2018 occ3d2018
 drop occyear
 rename census occn
 
-* 2017 industry codes
-gen ind2017 = industry if inrange(year, 2010, 2017)
-recode ind2017 (1680 1690 = 1691) (3190 3290 = 3291) (4970 = 4971)
-recode ind2017 (5380 = 5381) (5390 = 5391) (5590/5592 = 5593)
-recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
-recode ind2017 (8190 = 8191) (8560 = 8563)
-recode ind2017 (8880 8890 = 8891)
-replace ind2017 = industry if (year == 2018)
-label variable ind2017 "Industry, 2017 Census coding"
-
+* Industry coding
+rename industry ind2017
 #delimit ;
-merge m:1 ind2017 using "$WFHshared/ind2017/industryindex2017.dta",
+merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
 	keepusing(sector) keep(1 3 4) nogen;
 #delimit cr
 compress
 
 compress
-save "$ACScleaned/acs_cleaned.dta", replace
+capture mkdir "build/output"
+save "build/output/acs_cleaned.dta", replace
 log close

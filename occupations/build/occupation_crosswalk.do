@@ -1,22 +1,25 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* This script creates crosswalks for occupation codes. */
+args crosswalk
+
 clear
+log using "build/occupation_crosswalk.log", text replace
 
-// DECLARE SIPP
-local sipp 1
-
-// DECLARE YEAR (2010 OR 2018)
-local occyear 2010
-
-// SET OCCYEAR TO 2010 IF SIPP
-if `sipp' == 1 {
+if "`crosswalk'" == "2010" {
 	local occyear 2010
+	local sipp 0
+}
+else if "`crosswalk'" == "2018" {
+	local occyear 2018
+	local sipp 0
+}
+else if "`crosswalk'" == "SIPP" {
+	local occyear 2010
+	local sipp 1
 }
 
 #delimit ;
 infix str socstr 1-7 str slabel 8-100
-	using "$WFHshared/occupations/input/occ_soc_`occyear'.txt";
+	using "build/input/occ_soc_`occyear'.txt";
 #delimit cr
 
 replace slabel = strtrim(slabel)
@@ -60,18 +63,18 @@ replace soc3 = . if header2
 keep soc*
 
 sort socstr
-capture mkdir "$WFHshared/occupations/temp"
+capture mkdir "build/temp"
 if "`sipp'" != "1" {
 	#delimit ;
 	label save soc3d`occyear'_lbl
-		using "$WFHshared/occupations/output/occ3labels`occyear'.do", replace;
+		using "build/output/occ3labels`occyear'.do", replace;
 	#delimit cr
 }
 
 keep soc2 soc3
 duplicates drop soc3, force
 drop if missing(soc3)
-save "$WFHshared/occupations/temp/occ_soc_`occyear'.dta", replace
+save "build/temp/occ_soc_`occyear'.dta", replace
 
 // USE CENSUS-SOC CROSSWALK
 clear
@@ -83,7 +86,7 @@ else {
 	local fname "census_soc_crosswalk_`occyear'"
 }
 
-import delimited "$WFHshared/occupations/input/`fname'.csv", bindquotes(strict)
+import delimited "build/input/`fname'.csv", bindquotes(strict)
 
 if (`occyear' == 2018) | ("`sipp'" == "1") {
 	rename v1 census
@@ -111,10 +114,10 @@ if "`sipp'" == "1" {
 destring soc3, replace
 drop socstr
 
-do "$WFHshared/occupations/output/occ3labels`occyear'.do"
+do "build/output/occ3labels`occyear'.do"
 label values soc3 soc3d`occyear'_lbl
 
-merge m:1 soc3 using "$WFHshared/occupations/temp/occ_soc_`occyear'.dta", nogen
+merge m:1 soc3 using "build/temp/occ_soc_`occyear'.dta", nogen
 
 drop if census >= 9800
 keep census soc3 soc2
@@ -126,12 +129,12 @@ label variable soc2 "Occupation, 2-digit"
 rename soc3 soc3d`occyear'
 rename soc2 soc2d`occyear'
 
-capture mkdir "$WFHshared/occupations/output"
-
+capture mkdir "build/output"
 if ("`sipp'" == "1") {
 	local fname "occindexSIPP.dta"
 }
 else {
 	local fname "occindex`occyear'.dta"
 }
-save "$WFHshared/occupations/output/`fname'", replace
+save "build/output/`fname'", replace
+log close

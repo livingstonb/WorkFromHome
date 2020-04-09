@@ -1,17 +1,16 @@
 
-
 * Prepare NAICS to sector data
 clear
-import delimited "$WFHshared/industries/input/naics_to_sector", bindquotes(strict)
+import delimited "build/input/naics_to_sector.csv", bindquotes(strict)
 drop v1
 drop if missing(sector)
 label define sector_lbl 0 "C" 1 "S"
 label values sector sector_lbl
-save "$WFHshared/industries/output/naicsindex2017.dta", replace
+save "build/output/naicsindex2017.dta", replace
 
 * Prepare 2012 census codes
 clear
-import delimited "$WFHshared/industries/input/ind2012.csv", bindquotes(strict)
+import delimited "build/input/ind2012.csv", bindquotes(strict)
 rename v1 ind2012
 drop if _n == 1
 replace ind2012 = strtrim(ind2012)
@@ -23,7 +22,7 @@ save `ind2012tmp'
 
 * Read census-sector correspondence
 clear
-local docpath "$WFHshared/industries/input/industryindex2017.xlsx"
+local docpath "build/input/industryindex2017.xlsx"
 import excel "`docpath'",  firstrow
 
 rename census ind2017
@@ -35,7 +34,7 @@ label define sector_lbl 0 "C" 1 "S"
 label values sector sector_lbl
 
 * Save
-save "$WFHshared/industries/output/industryindex2017.dta", replace
+save "build/output/industryindex2017.dta", replace
 
 * Map from 2012 codes
 use `ind2012tmp', clear
@@ -47,11 +46,11 @@ recode ind2017 (8190 = 8191) (8560 = 8563)
 recode ind2017 (8880 8890 = 8891)
 
 #delimit ;
-merge m:m ind2017 using  "$WFHshared/industries/output/industryindex2017.dta",
+merge m:m ind2017 using  "build/output/industryindex2017.dta",
 	keepusing(sector) keep(match) nogen;
 #delimit cr
 
 drop ind2017
 duplicates drop ind2012, force
 order ind2012 sector
-save "$WFHshared/industries/output/industryindex2012.dta", replace
+save "build/output/industryindex2012.dta", replace

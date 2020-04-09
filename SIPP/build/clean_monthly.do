@@ -5,15 +5,13 @@
 cleaned somewhat, and recombined. Various variables are recoded and 
 new variables are generated. */
 
-/* Must first set the global macro: wave. */
-use "$SIPPtemp/sipp_combined_w${wave}.dta", clear
+use "build/temp/sipp_monthly1.dta", clear
+adopath + "../ado"
 
 egen personid = group(ssuid pnum)
 
-if "$wave" == "4" {
-	* See Wave 4 User Notes
-	replace wpfinwgt = 0 if missing(wpfinwgt)
-}
+* See Wave 4 User Notes
+replace wpfinwgt = 0 if missing(wpfinwgt)
 
 * Destring occupation and industry
 forvalues j = 1/7 {
@@ -153,19 +151,27 @@ rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
 // FIND MOST-WORKED OCCUPATION FOR EACH INDIVIDUAL
-preserve
+* By wave
+levelsof swave, local(waves)
 
-keep personid monthcode tjb*_occ
-reshape wide tjb*_occ, i(personid) j(monthcode)
-rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
-local ndistinct = `r(ndistinct)'
-drop tjb*_occ*
+tempfile occwave
+foreach wave of local waves {
+	preserve
 
-tempfile occtmp
-save `occtmp'
+	keep personid swave monthcode tjb*_occ
+	keep if swave == `wave'
 
-restore
-merge m:1 personid using `occtmp', nogen
+	reshape wide tjb*_occ, i(personid) j(monthcode)
+	rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
+	local ndistinct = `r(ndistinct)'
+	drop tjb*_occ*
+
+	
+	save `occwave', replace
+	restore
+	
+	merge m:1 personid swave using `occwave', nogen keep(1 3 4)
+}
 
 forvalues j = 1/`ndistinct' {
 	forvalues i = 1/7 {
@@ -173,7 +179,7 @@ forvalues j = 1/`ndistinct' {
 	}
 
 	egen month_in_`j' = rowmax(occtmp*)
-	bysort personid: egen nmonths_occ`j' = total(month_in_`j')
+	bysort personid swave: egen nmonths_occ`j' = total(month_in_`j')
 	
 	drop occtmp* month_in_`j'
 }
@@ -189,19 +195,26 @@ forvalues j = 1/`ndistinct' {
 drop distinct_occ* nmonths_occ*
 
 // FIND MOST-WORKED INDUSTRY FOR EACH INDIVIDUAL
-preserve
+* By wave
+levelsof swave, local(waves)
 
-keep personid monthcode tjb*_ind
-reshape wide tjb*_ind, i(personid) j(monthcode)
-rowdistinct tjb*_ind*, gen(distinct_ind) id(personid)
-local ndistinct = `r(ndistinct)'
-drop tjb*_ind*
+tempfile indwave
+foreach wave of local waves {
+	preserve
 
-tempfile indtmp
-save `indtmp'
+	keep personid monthcode swave tjb*_ind
+	keep if swave == `wave'
 
-restore
-merge m:1 personid using `indtmp', nogen
+	reshape wide tjb*_ind, i(personid) j(monthcode)
+	rowdistinct tjb*_ind*, gen(distinct_ind) id(personid)
+	local ndistinct = `r(ndistinct)'
+	drop tjb*_ind*
+
+	save `indwave', replace
+
+	restore
+	merge m:1 personid swave using `indwave', nogen keep(1 3 4)
+}
 
 forvalues j = 1/`ndistinct' {
 	forvalues i = 1/7 {
@@ -209,7 +222,7 @@ forvalues j = 1/`ndistinct' {
 	}
 
 	egen month_in_`j' = rowmax(indtmp*)
-	bysort personid: egen nmonths_ind`j' = total(month_in_`j')
+	bysort personid swave: egen nmonths_ind`j' = total(month_in_`j')
 	
 	drop indtmp* month_in_`j'
 }
@@ -227,7 +240,7 @@ drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
 * Merge with 3-digit occupation
 rename occcensus census
 #delimit ;
-merge m:1 census using "$WFHshared/occupations/output/occindexSIPP.dta",
+merge m:1 census using "../occupations/build/output/occindexSIPP.dta",
 	keepusing(soc3d2010) keep(match master) nogen;
 #delimit cr
 rename census occcensus
@@ -237,7 +250,7 @@ drop enjflag ejb*_scrnr
 * Map industry to C/S sector
 rename indcensus ind2012
 #delimit ;
-merge m:1 ind2012 using "$WFHshared/industries/output/industryindex2012.dta",
+merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 
@@ -247,7 +260,7 @@ gen emptmp = 1 if inrange(empstatus, 1, 5)
 replace emptmp = 2 if inrange(empstatus, 6, 7)
 replace emptmp = 3 if (empstatus == 8)
 
-bysort personid: egen employment = min(emptmp)
+bysort personid swave: egen employment = min(emptmp)
 drop emptmp empstatus
 label define emplbl 1 "Employed at least one week of the year"
 label define emplbl 2 "Unemployed, spent at least one week on layoff or looking for work", add
@@ -327,4 +340,4 @@ label variable qualitative_h2m "HH was food-insecure and/or unable to pay utilit
 label values qualitative_h2m bin_lbl
 
 compress
-save "$SIPPtemp/sipp_monthly_w${wave}.dta", replace
+save "build/temp/sipp_monthly2.dta", replace
