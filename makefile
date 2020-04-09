@@ -1,7 +1,7 @@
 
-.PHONY : clean
+.PHONY : clean all crosswalks acs sipp atus shed cleanlogs
 
-all : acs sipp
+all : crosswalks acs sipp atus shed
 
 crosswalks :
 	make -C occupations
@@ -12,3 +12,12 @@ acs : crosswalks
 
 sipp : crosswalks
 	make -C SIPP
+
+atus : crosswalks
+	make -C ATUS
+
+shed : acs crosswalks
+	make -C SHED
+
+cleanlogs :
+	rm **.log

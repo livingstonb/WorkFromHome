@@ -4,8 +4,6 @@ Statistics are computed separately for different occupations
 and sectors. Assumes the cwd is ACS. */
 
 clear
-capture log close
-log using "stats/wfh_by_occupation.log", replace
 adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
@@ -105,7 +103,7 @@ clear
 use `acs2017only'
 append using `acs2015to2017'
 append using `acs2013to2017'
-save "$ACSstatsout/ACSwfh.dta", replace
+save "stats/output/ACSwfh.dta", replace
 
 restore
 
@@ -200,4 +198,3 @@ forvalues sval = 0/2 {
 }
 
 drop nworkers_unw nworkers_wt meanwage
-log close

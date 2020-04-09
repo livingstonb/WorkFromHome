@@ -170,7 +170,7 @@ foreach wave of local waves {
 	save `occwave', replace
 	restore
 	
-	merge m:1 personid swave using `occwave', nogen keep(1 3 4)
+	merge m:1 personid swave using `occwave', nogen update keep(1 3 4)
 }
 
 forvalues j = 1/`ndistinct' {
@@ -213,7 +213,7 @@ foreach wave of local waves {
 	save `indwave', replace
 
 	restore
-	merge m:1 personid swave using `indwave', nogen keep(1 3 4)
+	merge m:1 personid swave using `indwave', nogen update keep(1 3 4)
 }
 
 forvalues j = 1/`ndistinct' {

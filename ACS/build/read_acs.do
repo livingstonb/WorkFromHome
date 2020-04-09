@@ -3,7 +3,6 @@
 performs some minor cleaning tasks. Assumes the cwd
 is ACS. */
 
-log using "build/read_acs.log", text replace
 clear
 
 * Read raw dataset
@@ -82,4 +81,3 @@ keep if (incwage > 0) & !missing(incwage)
 compress
 capture mkdir "build/temp"
 save "build/temp/acs_temp.dta", replace
-log close

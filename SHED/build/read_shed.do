@@ -8,7 +8,7 @@ clear
 * Append years
 gen year = .
 forvalues yr = 2013/2018 {
-	append using "$SHEDbuild/input/SHED`yr'.dta"
+	append using "build/input/SHED`yr'.dta"
 	replace year = `yr' if missing(year)
 }
 
@@ -156,5 +156,24 @@ foreach var of varlist * {
 }
 if "`todrop'" != "" drop `todrop'
 
+#delimit ;
+local codevars havemoney mortpmt savaut ccmin behindstudpmts
+	retsavings borrowret inccat billstruggle spendinc 
+	retired educ studdebt rainyday coverexpenses paybills paybills400 
+	delinq_rentmort delinq_cc delinq_util
+	delinq_phonecable delinq_car delinq_studloan delinq_other skip_rentmort 
+	skip_cc skip_util skip_phonecable skip_car skip_studloan skip_other
+	notafford_med notafford_doc notafford_mentcare notafford_dental 
+	notafford_specialist notafford_followup ccunpaid
+	educmother educfather hispanic spanish age agecat
+	educ2 educ2cat race gender hhhead hhsize hhincome marital region4 region9
+	state working occupation industry physhealth savings fincomfort finlit1 finlit2
+	finlit3 finlit4 finlit5;
+#delimit cr
+
+foreach codevar of local codevars {
+	replace `codevar' = . if inlist(`codevar', -9, -2, -1)
+}
+
 compress
-save "$SHEDbuildtemp/SHED_temp.dta", replace
+save "build/temp/shed_temp.dta", replace

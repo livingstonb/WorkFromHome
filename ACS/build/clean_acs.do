@@ -3,8 +3,6 @@
 the ACS. Assumes that the cwd is ACS. */
 
 clear
-log using "build/clean_acs.log", text replace
-
 capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
@@ -198,7 +196,7 @@ drop occyear
 rename census occn
 
 * Industry coding
-rename industry ind2017
+rename industry ind2012
 #delimit ;
 merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
 	keepusing(sector) keep(1 3 4) nogen;
@@ -208,4 +206,3 @@ compress
 compress
 capture mkdir "build/output"
 save "build/output/acs_cleaned.dta", replace
-log close

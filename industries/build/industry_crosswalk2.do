@@ -29,3 +29,4 @@ drop cdupe
 duplicates drop census description, force
 
 * Save
+save "build/output/industry2017crosswalk.dta", replace

@@ -1,10 +1,9 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: SHED */
 /* This do-file computes summary statistics for SHED. */
 
 clear
-use if inlist(year, 2014, 2016) using "$SHEDout/SHED.dta"
+adopath + "../ado"
+use if inlist(year, 2014, 2016) using "build/output/shed_cleaned.dta"
 
 // NORMALIZE WEIGHTS
 quietly sum wgt if (year == 2014)
@@ -26,7 +25,12 @@ foreach var of varlist *_h2m {
 	.`var'.set `var', cmd(mean) counts
 	local cvars `cvars' .`var'
 }
-do "$SHEDstats/set_colnames.do"
+.paybills_h2m.excelname = "Unable to pay all bills in full this month"
+.paybills400_h2m.excelname = "Unable to pay all bills in full this month if there is a $400 emergency expense (modified to at least include households from previous question)"
+.ccmin_h2m.excelname = "In the past 12 months, most or all of the time have only paid the minimum payment on one or more of your credit cards."
+.rainyday_h2m.excelname = "Do not have rainy day funds that would cover 3 months of expenses in the case of emergency"
+.coverexpenses_h2m.excelname = "If respondent were to lose his/her main source of income, would not be able to cover 3 months of expenses by borrowing, using savings, or selling assets"
+.emerg_h2m.excelname = "Could not cover a $400 expense right now (by essentially any means)"
 
 gen nobs = 1
 label variable nobs "n, unweighted"
@@ -48,7 +52,7 @@ label values wfhflex flexlbl
 .xlxnotes.append "Sample: 2014 and 2016"
 .xlxnotes.append "Description: HtM statistics"
 
-local xlxname "$SHEDstatsout/SHED_HtM.xlsx"
+local xlxname "stats/output/SHED_HtM.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "A 2x2 economy"

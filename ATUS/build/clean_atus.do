@@ -3,7 +3,7 @@
 /* Dataset: ATUS */
 /* This script performs cleaning for the ATUS dataset. */
 
-use "$ATUSbuildtemp/merged.dta", clear
+use "build/temp/merged.dta", clear
 
 drop if missing(leavemod)
 drop leavemod
@@ -58,7 +58,7 @@ rename tuyear year
 * 3-digit occupation
 rename occcensus census
 #delimit ;
-merge m:1 census using "$WFHshared/occupations/output/occindex2010.dta",
+merge m:1 census using "../occupations/build/output/occindex2010.dta",
 	nogen keep(match master) keepusing(soc3d2010);
 #delimit cr
 rename census occcensus
@@ -68,7 +68,7 @@ label variable occ3digit "Occupation, 3 digit"
 * Sector
 rename inddetailed ind2012
 #delimit ;
-merge m:1 ind2012 using "$WFHshared/industries/output/industryindex2012.dta",
+merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 
@@ -203,5 +203,4 @@ label define hasyoungchild_lbl 2 "Parent of a child 13 to 17 years (none younger
 label values hasyoungchild hasyoungchild_lbl
 
 compress
-save "$ATUSbuild/output/ATUS_cleaned.dta", replace
-
+save "build/output/atus_cleaned.dta", replace

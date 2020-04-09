@@ -2,11 +2,15 @@
 OBJDIRS = build/output build/temp stats/output stats/temp
 CLEANED = build/output/sipp_cleaned.dta
 OBJS = $(CLEANED) stats/output/SIPPwfh.dta
-SRC = build/read_sipp.do build/combine_waves.do
-SRC += build/clean_monthly.do build/clean_annual.do
-SRC += stats/stats.do
 
-all : $(OBJDIRS) $(OBJS)
+all : mkdirs build_data stats
+.PHONY : all clean mkdirs build_data stats
+
+# Build recipes
+build_data :
+	$(MAKE) build/temp/sipp_monthly1.dta
+	$(MAKE) build/temp/sipp_monthly2.dta
+	$(MAKE) build/output/sipp_cleaned.dta
 
 # Read raw data
 build/input/sipp_raw_w%.dta : build/read_sipp.do pu2014w%.dta
@@ -19,32 +23,32 @@ build/temp/sipp_monthly1.dta : build/combine_waves.do $(objects)
 	../statab do $<
 
 # Clean monthly data
-crosswalks = ../occupations/build/output/occindexSIPP.dta
-crosswalks += ../industries/build/output/industryindex2012.dta
-objects = build/clean_monthly.do build/temp/sipp_monthly1.dta
+objects = build/temp/sipp_monthly1.dta
+objects = ../occupations/build/output/occindexSIPP.dta
+objects += ../industries/build/output/industryindex2012.dta
 adofiles = ../ado/rowdistinct.ado
-build/temp/sipp_monthly2.dta : $(objects) $(crosswalks) $(adofiles)
+build/temp/sipp_monthly2.dta : build/clean_monthly.do  $(objects) $(adofiles)
 	../statab do $<
 
 # Clean and aggregate to annual
 $(CLEANED) : build/clean_annual.do build/temp/sipp_monthly2.dta
 	../statab do $<
 
-# Statistics
-crosswalks = ../occupations/build/output/occindexSIPP.dta
+# Statistics recipes
+stats : build_data
+	$(MAKE) stats/output/SIPPwfh.dta
+
+objects = ../occupations/build/output/occindexSIPP.dta
 adofiles = statalist.class createxlsx.ado collapse2excel.ado
 adofiles := $(addprefix ../ado/, $(adofiles))
-stats/output/SIPPwfh.dta : stats/stats.do $(CLEANED) $(adofiles) $(crosswalks)
+stats/output/SIPPwfh.dta : stats/stats.do $(CLEANED) $(adofiles) $(objects)
 	../statab do $<
 
 # Make directories
-$(OBJDIRS) :
+mkdirs :
 	mkdir -p $(OBJDIRS)
 
 # Cleanup
 clean :
 	rm -rf $(OBJDIRS)
 	rm **.log
-
-
-.PHONY : clean

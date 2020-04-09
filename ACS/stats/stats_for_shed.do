@@ -1,5 +1,3 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: ACS */
 /* This script generates occupation-industry-specific variables
 to be used in correspondence with SHED data. */
@@ -13,7 +11,7 @@ capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 
 * Collapse by occ322018
-use "$ACSbuild/cleaned/acs_cleaned.dta", clear
+use "build/output/acs_cleaned.dta", clear
 drop if missing(sector, soc2d2010)
 keep if inrange(year, `yr1', `yr2')
 
@@ -28,4 +26,4 @@ collapse
 gen wfhflex = (wfh2digit > 3.5)
 label values wfhflex bin_lbl
 
-save "$SHEDbuild/input/acs_wfh_stats.dta", replace
+save "stats/output/acs_stats_for_shed.dta", replace

@@ -119,7 +119,6 @@ local xlxname "stats/output/SIPP_wfh_`wlab'.xlsx"
 .descriptions.append "Both sectors, by empl"
 
 .sheets = .descriptions.copy
-.sheets = .descriptions.copy
 createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
 .sheets.loop_reset

@@ -1,10 +1,9 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
-/* Dataset: ACS */
+/* Dataset: ATUS */
 /* This script computes WFH and other statistics by occupation
 and sector. */
 
-use "$ATUSbuild/output/ATUS_cleaned.dta", clear
+use "build/output/atus_cleaned.dta", clear
+adopath + "../ado"
 
 * Gen new variables
 gen pct_canwfh = 100 * canwfh
@@ -27,8 +26,8 @@ tempfile yrtmp
 preserve
 save `yrtmp', emptyok
 forvalues sval = 0/1 {
-	use occ3d2010 using "$WFHshared/occ2010/output/occindex2010new.dta", clear
-	rename occ3d2010 occ3digit
+	use soc3d2010 using "../occupations/build/output/occindex2010.dta", clear
+	rename soc3d2010 occ3digit
 	gen sector = `sval'
 	gen normwt = 1
 	gen blankobs = 1
@@ -69,12 +68,12 @@ collapse (sum) nworkers_wt
 #delimit cr
 
 gen source = "ATUS"
-save "$ATUSstatsout/ATUSwfh.dta", replace
+save "stats/output/ATUSwfh.dta", replace
 
 restore
 
 * Collapse and make spreadsheet
-local xlxname "$ATUSstatsout/ATUS_wfh_by_occ3digit_sector.xlsx"
+local xlxname "stats/output/ATUS_wfh_by_occ.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ATUS"

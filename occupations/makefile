@@ -1,13 +1,13 @@
 # Variables
 OBJDIRS = build/output build/temp
 OBJS = occindex2010.dta occindex2018.dta occindexSIPP.dta
-OBJS := $(OBJS) occ3labels2010.do occ3labels2018.do
+OBJS += occ3labels2010.do occ3labels2018.do
 OBJS := $(addprefix build/output/, $(OBJS))
 DOFILE = build/occupation_crosswalk.do
 
-.PHONY : clean
+.PHONY : clean all mkdirs
 
-all : $(OBJDIRS) $(OBJS)
+all : mkdirs $(OBJS)
 	rm -rf build/temp
 
 objects = census_soc_crosswalk_2010.csv occ_soc_2010.txt
@@ -26,7 +26,7 @@ build/output/occindex2018.dta build/output/occ3labels2018.do : $(DOFILE) $(objec
 	../statab do $< 2018
 
 # Make directories
-$(OBJDIRS) :
+mkdirs :
 	mkdir -p $(OBJDIRS)
 
 # Cleanup
