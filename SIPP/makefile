@@ -1,10 +1,21 @@
 # Variables
 OBJDIRS = build/output build/temp stats/output stats/temp
-STATAB = ../statab do
+OBJS = build/output/sipp_cleaned.dta stats/output/SIPPwfh.dta
+STATA = ../statab do
 
-all : mkdirs build/output/sipp_cleaned.dta stats/output/SIPPwfh.dta
+buildnames = combine_waves.mk clean_monthly.mk clean_annual.mk
+buildnames := $(addprefix build/, $(buildnames))
+INCLUDES = $(buildnames) stats/stats.mk
 
-# Build from raw data
+all : $(INCLUDES) mkdirs $(OBJS)
+
+# Utilities
+include ../misc/mkdirs.mk ../misc/clean.mk ../misc/mkrule.mk
+
+# Includes
+include $(INCLUDES)
+
+# Read raw data
 ifdef WAVE
 rawcmd = "$(MAKE) build/input/sipp_raw_w$(WAVE).dta"
 else
@@ -14,16 +25,7 @@ endif
 raw :
 	$(rawcmd)
 
-
-# Includes
-include mkfiles_sipp.mk
-include $(includes_sipp)
-
-# Read raw data
 build/input/sipp_raw_w%.dta : build/read_sipp.do pu2014w%.dta
 	../statab do $< $*
 
 .PHONY : all clean mkdirs raw
-
-# Utilities
-include ../misc/mkdirs.mk ../misc/clean.mk

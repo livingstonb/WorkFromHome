@@ -2,7 +2,9 @@
 .PHONY : clean all crosswalks acs sipp atus shed cleanlogs
 
 all : crosswalks acs sipp atus shed
-# 	rm **/build/*.mk **/stats/*.mk
+
+cleanmks :
+	rm **/build/*.mk **/stats/*.mk
 
 crosswalks :
 	$(MAKE) -C occupations
@@ -11,9 +13,7 @@ crosswalks :
 acs : crosswalks
 	$(MAKE) -C ACS
 
-include SIPP/mkfiles_sipp.mk
-includes_sipp := $(addprefix SIPP/, $(includes_sipp))
-sipp : crosswalks $(includes_sipp)
+sipp : crosswalks
 	$(MAKE) -C SIPP
 
 atus : crosswalks
