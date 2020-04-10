@@ -4,8 +4,8 @@
 /* This do-file maps 2017 Census industry categories to sectors C and S. */
 clear
 
-local MAKEREQ "build/input/industryindex2017.xlsx"
-import excel "`MAKEREQ'",  firstrow
+`#PREREQ' local index17 "build/input/industryindex2017.xlsx"
+import excel "`index17'",  firstrow
 
 rename census ind2017
 drop description
@@ -16,5 +16,5 @@ label define sector_lbl 0 "C" 1 "S"
 label values sector sector_lbl
 
 * Save
-local MAKETARGET "build/output/industryindex2017.dta"
-save "`MAKETARGET'", replace
+`#TARGET' local out17 "build/output/industryindex2017.dta"
+save "`out17'", replace

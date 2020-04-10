@@ -1,12 +1,13 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+*/
+
 /* Dataset: ACS */
 /* This script reads the raw data from the .dat file and
 performs some minor cleaning tasks. Assumes the cwd
 is ACS. */
 
-clear
-
 * Read raw dataset
-use "build/input/acs_raw.dta"
+`#PREREQ' use "build/input/acs_raw.dta", clear
 
 rename occ occn
 #delimit ;
@@ -80,4 +81,4 @@ keep if (incwage > 0) & !missing(incwage)
 
 compress
 capture mkdir "build/temp"
-save "build/temp/acs_temp.dta", replace
+`#TARGET' save "build/temp/acs_temp.dta", replace

@@ -1,5 +1,5 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-MAKEREQ ../ado/rowdistinct.ado
+`#PREREQ' "../ado/rowdistinct.ado"
 */
 
 /* This do-file creates a crosswalk with industry descriptions, NAICS codes,
@@ -10,8 +10,8 @@ adopath + "../ado"
 // PREPARE ESSENTIAL INDUSTRIES DATA
 clear
 
-local MAKEREQ "build/input/essential_industries.csv"
-import delimited "`MAKEREQ'", varnames(1)
+`#PREREQ' local essential "build/input/essential_industries.csv"
+import delimited "`essential'", varnames(1)
 gen code4d = naics / 100
 gen code3d = floor(naics / 1000)
 
@@ -27,8 +27,8 @@ save "build/temp/essential_industries.dta", replace
 // Merge All 4-digit NAICS codes with essential industries data
 clear
 
-local MAKEREQ "build/input/naics_codes.csv"
-import delimited "`MAKEREQ'", varnames(1)
+`#PREREQ' local naics "build/input/naics_codes.csv"
+import delimited "`naics'", varnames(1)
 replace naics = strtrim(naics)
 replace description = strtrim(description)
 rename description description_naics
@@ -62,8 +62,7 @@ replace essential = 0 if missing(essential)
 save "build/temp/essential_industries_merged.dta", replace
 
 // PREPARE CENSUS-INDUSTRY CROSSWALK
-local MAKEREQ "build/output/industry2017crosswalk.dta"
-use "`MAKEREQ'", clear
+`#PREREQ' use "build/output/industry2017crosswalk.dta", clear
 
 * NAICS codes that include "Part of"
 gen partial = strpos(naics, "Part of") > 0
@@ -230,8 +229,7 @@ label values essential essential_lbl
 * Save and clean up
 sort census_match
 
-local MAKETARGET "build/output/essential_industries.dta"
-save "`MAKETARGET'", replace
+`#TARGET' save "build/output/essential_industries.dta", replace
 
 erase "build/temp/essential_industries.dta"
 erase "build/temp/essential_industries_merged.dta"

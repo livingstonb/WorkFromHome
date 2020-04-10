@@ -10,15 +10,26 @@ def extract_mk(filepath):
 			if line.startswith("DOFILE"):
 				lines = line.split(" ")
 				dofiles.append(lines[1].rstrip())
-			elif line.startswith("local MAKEREQ"):
-				lines = line.split(" ")
-				prereqs.append(lines[2].replace('"', '').rstrip())
-			elif line.startswith("MAKEREQ"):
-				lines = line.split(" ")
-				prereqs.append(lines[1].rstrip())
-			elif line.startswith("local MAKETARGET"):
-				lines = line.split(" ")
-				targets.append(lines[2].replace('"', '').rstrip())
+			elif line.startswith("local MAKEREQ") \
+				or line.startswith("`#PREREQ'"):
+				words = line.split(" ")
+				for word in words:
+					word = word.strip()
+					if word.startswith('"') and (
+						word.endswith('"') or word.endswith(',')):
+						cleaned = word.replace('"', '').replace(',', '')
+						prereqs.append(cleaned)
+						break
+			elif line.startswith("local MAKETARGET") \
+				or line.startswith("`#TARGET'"):
+				words = line.split(" ")
+				for word in words:
+					word = word.strip()
+					if word.startswith('"') and (
+						word.endswith('"') or word.endswith(',')):
+						cleaned = word.replace('"', '').replace(',', '')
+						targets.append(cleaned)
+						break
 
 	mk = dict()
 	mk['dofiles'] = dofiles

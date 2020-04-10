@@ -1,3 +1,6 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+*/
+
 /* Dataset: ACS */
 /* This script performs cleaning and generates new variables for
 the ACS. Assumes that the cwd is ACS. */
@@ -6,7 +9,8 @@ clear
 capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
-use if (year >= 2010) using "build/temp/acs_temp.dta" , clear
+`#PREREQ' local tempinput "build/temp/acs_temp.dta"
+use if (year >= 2010) using "`tempinput'" , clear
 
 * Nominal wage income
 gen nincwage = incwage
@@ -178,16 +182,18 @@ gen occyear = 2010 if inrange(year, 2010, 2017)
 replace occyear = 2018 if (year == 2018)
 
 * 2012 - 2017
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 rename occn census
 #delimit ;
-merge m:1 census occyear using "../occupations/build/output/occindex2010.dta",
+merge m:1 census occyear using "`occ2010'",
 	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
 #delimit cr
 rename soc3d2010 occ3d2010
 
 * 2018
+`#PREREQ' local occ2018 "../occupations/build/output/occindex2018.dta"
 #delimit ;
-merge m:1 census occyear using "../occupations/build/output/occindex2018.dta",
+merge m:1 census occyear using "`occ2018'",
 	keepusing(soc3d2018) keep(1 3 4) nogen update;
 #delimit cr
 rename soc3d2018 occ3d2018
@@ -196,13 +202,14 @@ drop occyear
 rename census occn
 
 * Industry coding
+`#PREREQ' local ind "../industries/build/output/industryindex2012.dta"
 rename industry ind2012
 #delimit ;
-merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
+merge m:1 ind2012 using "`ind'",
 	keepusing(sector) keep(1 3 4) nogen;
 #delimit cr
 compress
 
 compress
 capture mkdir "build/output"
-save "build/output/acs_cleaned.dta", replace
+`#TARGET' save "build/output/acs_cleaned.dta", replace

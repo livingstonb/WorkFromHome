@@ -9,16 +9,16 @@ occupations :
 industries :
 	$(MAKE) -C industries
 
-acs : crosswalks
+acs : occupations industries
 	$(MAKE) -C ACS
 
-sipp : crosswalks
+sipp : occupations industries
 	$(MAKE) -C SIPP
 
-atus : crosswalks
+atus : occupations industries
 	$(MAKE) -C ATUS
 
-shed : acs crosswalks
+shed : acs occupations industries
 	$(MAKE) -C SHED
 
 cleanlogs :

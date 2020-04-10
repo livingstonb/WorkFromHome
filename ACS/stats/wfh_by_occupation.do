@@ -1,3 +1,9 @@
+/* --- MAKEFILE INSTRUCTIONS ---
+MAKEREQ "../ado/createxlsx.ado"
+MAKEREQ "../ado/collapse2excel.ado"
+MAKEREQ "../ado/statalist.class"
+*/
+
 /* Dataset: ACS */
 /* This script computes WFH and other statistics for the ACS.
 Statistics are computed separately for different occupations
@@ -7,7 +13,8 @@ clear
 adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
-use "build/output/acs_cleaned.dta" if inrange(year, 2010, 2018), clear
+`#PREREQ' local cleaned "build/output/acs_cleaned.dta"
+use "`cleaned'" if inrange(year, 2010, 2018), clear
 drop if missing(sector)
 drop if missing(occ3d2018) & missing(occ3d2010)
 
@@ -30,10 +37,12 @@ label variable meanwage "Mean wage/salary income"
 tempfile yrtmp
 preserve
 clear
+
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 save `yrtmp', emptyok
 forvalues yr = 2010(1)2017 {
 forvalues sval = 0/1 {
-	use soc3d2010 using "../occupations/build/output/occindex2010.dta", clear
+	use soc3d2010 using "`occ2010'", clear
 	rename soc3d2010 occ3d2010
 	gen year = `yr'
 	gen sector = `sval'
@@ -103,10 +112,9 @@ clear
 use `acs2017only'
 append using `acs2015to2017'
 append using `acs2013to2017'
-save "stats/output/ACSwfh.dta", replace
+`#TARGET' save "stats/output/ACSwfh.dta", replace
 
 restore
-
 
 // POOLED YEARS
 .xlxnotes = .statalist.new
@@ -114,16 +122,18 @@ restore
 .xlxnotes.append "Sample: 2010-2017 pooled"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-local xlxname "stats/output/ACS_wfh_pooled.xlsx"
+`#TARGET' local pooledxlx "stats/output/ACS_wfh_pooled.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "Sector S"
 .descriptions.append "Sector C"
 .descriptions.append "Both sectors"
 .sheets = .descriptions.copy
-createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 
-local occvar occ3d2010
+#delimit ;
+createxlsx .descriptions .sheets .xlxnotes
+	using "`pooledxlx'";
+#delimit cr
 
 .sheets.loop_reset
 forvalues sval = 0/2 {
@@ -138,13 +148,11 @@ forvalues sval = 0/2 {
 	
 	#delimit ;
 	collapse2excel
-		(sum) nworkers_wt
-		(rawsum) nworkers_unw
-		(mean) pct_workfromhome
-		(mean) meanwage
+		(sum) nworkers_wt (rawsum) nworkers_unw
+		(mean) pct_workfromhome (mean) meanwage
 		(min) blankobs
-		[iw=perwt] if `conds'
-		using "`xlxname'", by(`occvar') modify sheet("`.sheets.loop_get'");
+		[iw=perwt] if `conds' using "`pooledxlx'",
+		by(occ3d2010) modify sheet("`.sheets.loop_get'");
 	#delimit cr
 }
 
@@ -154,7 +162,7 @@ forvalues sval = 0/2 {
 .xlxnotes.append "Sample: 2010-2018, separated by year"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-local xlxname "stats/output/ACS_wfh_yearly.xlsx"
+`#TARGET' local yearly "stats/output/ACS_wfh_yearly.xlsx"
 
 .descriptions = .statalist.new
 forvalues yr = 2010/2018 {
@@ -163,7 +171,7 @@ forvalues yr = 2010/2018 {
 	.descriptions.append "`yr', Both sectors"
 }
 .sheets = .descriptions.copy
-createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
+createxlsx .descriptions .sheets .xlxnotes using "`yearly'"
 
 .sheets.loop_reset
 forvalues yr = 2010/2018 {
@@ -192,7 +200,8 @@ forvalues sval = 0/2 {
 		(mean) pct_workfromhome
 		(mean) meanwage
 		[iw=perwt] if `conds'
-		using "`xlxname'", by(`occvar') modify sheet("`.sheets.loop_get'");
+		using "`yearly'",
+		by(`occvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr
 }
 }

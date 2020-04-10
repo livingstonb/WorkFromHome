@@ -10,8 +10,8 @@ local yr2 = 2017
 capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 
-* Collapse by occ322018
-use "build/output/acs_cleaned.dta", clear
+* Collapse by occupation
+`#PREREQ' use "build/output/acs_cleaned.dta", clear
 drop if missing(sector, soc2d2010)
 keep if inrange(year, `yr1', `yr2')
 
@@ -26,4 +26,4 @@ collapse
 gen wfhflex = (wfh2digit > 3.5)
 label values wfhflex bin_lbl
 
-save "stats/output/acs_stats_for_shed.dta", replace
+`#TARGET' save "stats/output/acs_stats_for_shed.dta", replace

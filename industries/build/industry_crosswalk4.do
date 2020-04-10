@@ -1,5 +1,5 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-MAKEREQ ../ado/filldown.ado
+`#PREREQ' "../ado/filldown.ado"
 */
 
 /* This do-file creates a crosswalk with industry descriptions, NAICS codes,
@@ -7,9 +7,9 @@ Census codes, and the C/S sector designam. */
 clear
 adopath + "../ado"
 
-local MAKEREQ "build/input/census_naics_2017.csv"
+`#PREREQ' local naics "build/input/census_naics_2017.csv"
 #delimit ;
-import delimited "`MAKEREQ'",
+import delimited "`naics'",
 	bindquotes(strict) varnames(1);
 #delimit cr
 
@@ -34,5 +34,5 @@ drop cdupe
 duplicates drop census description, force
 
 * Save
-local MAKETARGET "build/output/industry2017crosswalk.dta"
-save "`MAKETARGET'", replace
+`#TARGET' local cwalk "build/output/industry2017crosswalk.dta"
+save "`cwalk'", replace
