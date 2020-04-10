@@ -7,10 +7,18 @@ def extract_mk(filepath):
 	targets = []
 	with open(filepath, 'r') as fobj:
 		for line in fobj:
+			if line.startswith("#MAKEIGNORE"):
+				return None
 			if line.startswith("DOFILE"):
-				lines = line.split(" ")
-				dofiles.append(lines[1].rstrip())
-			elif line.startswith("local MAKEREQ") \
+				words = line.split(" ")
+				for word in words:
+					word = word.strip()
+					if word.startswith('"') and (
+						word.endswith('"') or word.endswith(',')):
+						cleaned = word.replace('"', '').replace(',', '')
+						dofiles.append(cleaned)
+						break
+			elif line.startswith("#PREREQ") \
 				or line.startswith("`#PREREQ'"):
 				words = line.split(" ")
 				for word in words:
@@ -20,7 +28,7 @@ def extract_mk(filepath):
 						cleaned = word.replace('"', '').replace(',', '')
 						prereqs.append(cleaned)
 						break
-			elif line.startswith("local MAKETARGET") \
+			elif line.startswith("#TARGET") \
 				or line.startswith("`#TARGET'"):
 				words = line.split(" ")
 				for word in words:
@@ -56,4 +64,5 @@ filepath = sys.argv[1]
 outpath = sys.argv[2]
 
 mk = extract_mk(filepath)
-write_mk(outpath, mk)
+if mk is not None:
+	write_mk(outpath, mk)

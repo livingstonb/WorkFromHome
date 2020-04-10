@@ -1,8 +1,8 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-MAKEREQ build/input/sipp_raw_w1.dta
-MAKEREQ build/input/sipp_raw_w2.dta
-MAKEREQ build/input/sipp_raw_w3.dta
-MAKEREQ build/input/sipp_raw_w4.dta
+#PREREQ "build/input/sipp_raw_w1.dta"
+#PREREQ "build/input/sipp_raw_w2.dta"
+#PREREQ "build/input/sipp_raw_w3.dta"
+#PREREQ "build/input/sipp_raw_w4.dta"
 */
 
 /* Dataset: SIPP */
@@ -97,6 +97,4 @@ forvalues i = 1/4 {
 
 destring ssuid, replace
 compress
-
-local MAKETARGET "build/temp/sipp_monthly1.dta"
-save "`MAKETARGET'", replace
+`#TARGET' save "build/temp/sipp_monthly1.dta", replace

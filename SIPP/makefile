@@ -19,4 +19,5 @@ build/input/sipp_raw_w%.dta : build/read_sipp.do pu2014w%.dta
 
 .PHONY : clean mkdirs raw
 
+SRCEXCLUDES = --exclude build/read_sipp.do
 include ../misc/includes.mk

@@ -2,7 +2,6 @@
 args crosswalk
 
 clear
-log using "build/occupation_crosswalk.log", text replace
 
 if "`crosswalk'" == "2010" {
 	local occyear 2010
@@ -137,4 +136,3 @@ else {
 	local fname "occindex`occyear'.dta"
 }
 save "build/output/`fname'", replace
-log close

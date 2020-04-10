@@ -1,5 +1,5 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-`#PREREQ' "../ado/rowdistinct.ado"
+#PREREQ "../ado/rowdistinct.ado"
 */
 
 /* This do-file creates a crosswalk with industry descriptions, NAICS codes,
@@ -229,7 +229,7 @@ label values essential essential_lbl
 * Save and clean up
 sort census_match
 
-`#TARGET' save "build/output/essential_industries.dta", replace
+`#TARGET' save "build/output/essential_industries1.dta", replace
 
 erase "build/temp/essential_industries.dta"
 erase "build/temp/essential_industries_merged.dta"

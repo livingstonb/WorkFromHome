@@ -1,5 +1,5 @@
 
-use "$OESout/oes_cleaned.dta", clear
+use "$OESout/oes3d_cleaned.dta", clear
 
 * Housekeeping
 keep if OCC_GROUP == "minor"

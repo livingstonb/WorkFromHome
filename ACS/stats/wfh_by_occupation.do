@@ -1,7 +1,7 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-MAKEREQ "../ado/createxlsx.ado"
-MAKEREQ "../ado/collapse2excel.ado"
-MAKEREQ "../ado/statalist.class"
+#PREREQ "../ado/createxlsx.ado"
+#PREREQ "../ado/collapse2excel.ado"
+#PREREQ "../ado/statalist.class"
 */
 
 /* Dataset: ACS */

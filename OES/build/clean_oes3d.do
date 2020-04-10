@@ -1,6 +1,6 @@
 
 // GET 3-DIGIT OCC VARIABLE
-use "$OESbuild/input/oes_raw.dta", clear
+use "$OESbuild/input/oes3d_raw.dta", clear
 
 gen soc3d2010 = substr(OCC_CODE, 1, 4)
 replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
@@ -63,4 +63,4 @@ rename PCT_TOTAL occshare_industry
 label variable occshare_industry "% of industry employment in given occ, provided"
 
 * Save
-save "$OESout/oes_cleaned.dta", replace
+save "$OESout/oes3d_cleaned.dta", replace

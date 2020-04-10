@@ -4,9 +4,7 @@
 /* Dataset: SIPP */
 /* This script aggregates to the annual frequency by summing earnings over
 the year and using assets reported in the last month. */
-
-local MAKEREQ "build/temp/sipp_monthly2.dta"
-use "`MAKEREQ'", clear
+`#PREREQ' use "build/temp/sipp_monthly2.dta", clear
 
 // EARNINGS
 bysort personid swave: egen earnings = total(grossearn)
@@ -94,5 +92,4 @@ replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
 
 drop `earnwk'
 
-local MAKETARGET "build/output/sipp_cleaned.dta"
-save "`MAKETARGET'", replace
+`#TARGET' save "build/output/sipp_cleaned.dta", clear

@@ -1,5 +1,5 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-`#PREREQ' "../ado/filldown.ado"
+#PREREQ "../ado/filldown.ado"
 */
 
 /* This do-file creates a crosswalk with industry descriptions, NAICS codes,
