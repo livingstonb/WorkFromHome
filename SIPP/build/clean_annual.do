@@ -1,7 +1,5 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-DOFILE build/clean_annual.do
 */
-
 
 /* Dataset: SIPP */
 /* This script aggregates to the annual frequency by summing earnings over

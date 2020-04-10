@@ -1,5 +1,4 @@
 /* --- ADDITIONAL MAKEFILE INSTRUCTIONS ---
-DOFILE build/clean_monthly.do
 MAKEREQ ../ado/rowdistinct.ado
 */
 

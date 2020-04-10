@@ -1,5 +1,4 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-DOFILE build/combine_waves.do
 MAKEREQ build/input/sipp_raw_w1.dta
 MAKEREQ build/input/sipp_raw_w2.dta
 MAKEREQ build/input/sipp_raw_w3.dta

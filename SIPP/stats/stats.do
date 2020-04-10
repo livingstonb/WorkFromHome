@@ -1,5 +1,4 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-DOFILE stats/stats.do
 MAKEREQ ../ado/statalist.class
 MAKEREQ ../ado/createxlsx.ado
 MAKEREQ ../ado/collapse2excel.ado
