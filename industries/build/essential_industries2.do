@@ -1,20 +1,26 @@
-clear
+/* --- HEADER ---
+This do-file computes the share of each 3-digit occupation working in
+essential industries according to OES data.
+*/
 
-`#PREREQ' local essential "../industries/build/input/essential_industries.csv"
+// PREPARE ESSENTIAL INDUSTRIES DATA
+clear
+`#PREREQ' local essential "build/input/essential_industries.csv"
 import delimited "`essential'", varnames(1)
 gen essential = 1
-save "build/temp/essential.dta", replace
 
-// GET 4-DIGIT OCC VARIABLE
-use "build/temp/oes4d_temp.dta", clear
+tempfile essential_tmp
+save `essential_tmp', replace
+
+// GET 4-DIGIT INDUSTRY VARIABLE
+`#PREREQ' use "../OES/build/output/oes4d.dta", clear
 
 gen soc3d2010 = substr(OCC_CODE, 1, 4)
 replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
 destring soc3d2010, replace
 
-do "../occupations/build/output/occ3labels2010.do"
+`#PREREQ' do "../occupations/build/output/occ3labels2010.do"
 label values soc3d2010 soc3d2010_lbl
-
 drop if missing(soc3d2010)
 
 * Replace ** with missing
@@ -40,12 +46,7 @@ label variable employment "Total employment rounded to nearest 10 (excl self-emp
 rename PCT_TOTAL occshare_industry
 label variable occshare_industry "% of industry employment in given occ, provided"
 
-* Save
-save "build/output/oes4d_cleaned.dta", replace
-
-
-* Stats
-use "build/output/oes4d_cleaned.dta", clear
+* Statistics
 keep if OCC_GROUP == "minor"
 
 #delimit ;
@@ -53,13 +54,13 @@ keep NAICS NAICS_TITLE soc3d2010 employment;
 #delimit cr
 
 rename NAICS naics
-
 replace naics = subinstr(naics, "A", "0", .)
 destring naics, replace
 
-merge m:1 naics using "build/temp/essential.dta", keep(1 3) nogen keepusing(essential)
+merge m:1 naics using `essential_tmp', keep(1 3) nogen keepusing(essential)
 replace essential = 0 if missing(essential)
 keep employment soc3d2010 essential
 
-// gen marker = 1
 collapse (mean) essential [iw=employment], by(soc3d2010)
+
+`#TARGET' save "build/output/essential_workers.dta", replace

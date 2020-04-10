@@ -1,3 +1,7 @@
+/* --- HEADER ---
+This do-file reads the OES 3- or 4-digit industry data from excel into stata
+and resaves.
+*/
 
 use "build/temp/oes4d_temp.dta", clear
 adopath + "../ado"

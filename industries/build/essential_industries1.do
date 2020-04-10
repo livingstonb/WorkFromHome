@@ -1,4 +1,4 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
 #PREREQ "../ado/rowdistinct.ado"
 */
 

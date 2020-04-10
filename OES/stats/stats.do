@@ -1,5 +1,28 @@
+/* --- HEADER ---
+This do-file computes employment and wage statistics by 3-digit
+occupation from OES data.
+*/
 
-use "$OESout/oes3d_cleaned.dta", clear
+clear
+
+// PREPARE BLANK OCCUPATION ENTRIES
+`#PREREQ' local occ2010dta "../occupations/build/output/occindex2010.dta"
+tempfile yrtmp
+save `yrtmp', emptyok
+forvalues sval = 0/1 {
+	use soc3d2010 using "`occ2010dta'", clear
+	gen sector = `sval'
+	gen employment = 1
+	gen blankobs = 1
+	
+	rename soc3d2010 occ3d2010
+	
+	append using `yrtmp'
+	save `yrtmp', replace
+}
+
+// READ CLEANED OES DATA
+`#PREREQ' use "build/output/oes3d_cleaned.dta", clear
 
 * Housekeeping
 keep if OCC_GROUP == "minor"
@@ -24,22 +47,6 @@ compress
 order sector occ3d2010 meanwage occshare_sector occshare_industry
 
 * Add blanks
-tempfile yrtmp
-preserve
-clear
-save `yrtmp', emptyok
-forvalues sval = 0/1 {
-	use soc3d2010 using "$WFHshared/occupations/output/occindex2010.dta", clear
-	gen sector = `sval'
-	gen employment = 1
-	gen blankobs = 1
-	
-	rename soc3d2010 occ3d2010
-	
-	append using `yrtmp'
-	save `yrtmp', replace
-}
-restore
 append using `yrtmp'
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 replace blankobs = 0 if missing(blankobs)
@@ -60,7 +67,7 @@ rename totemp nworkers_wt
 drop blankobs
 gen source = "OES"
 
-save "$OESstatsout/OESstats.dta", replace
+`#TARGET' save "stats/output/OESstats.dta", replace
 restore
 
 * Save to xlsx
@@ -73,8 +80,5 @@ label variable emp_sector "Total employment in sector"
 gen occshare_sector = emp_occ_sector / emp_sector
 label variable occshare_sector "Occupation share within sector"
 
-#delimit ;
-export excel
-	using "$OESstatsout/oes_occ_sector.xlsx",
-	replace firstrow(varlabels);
-#delimit cr
+`#TARGET' local xlxpath "stats/output/oes_occ_sector.xlsx"
+export excel using "`xlxpath'", replace firstrow(varlabels)
