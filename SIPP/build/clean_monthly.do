@@ -1,11 +1,6 @@
-/* --- MAKEFILE INSTRUCTIONS ---
-PREREQS
-	build/temp/sipp_monthly1.dta
-	../occupations/build/output/occindexSIPP.dta
-	../industries/build/output/industryindex2012.dta
-	../ado/rowdistinct.ado
-TARGETS
-	build/temp/sipp_monthly2.dta
+/* --- ADDITIONAL MAKEFILE INSTRUCTIONS ---
+DOFILE build/clean_monthly.do
+MAKEREQ ../ado/rowdistinct.ado
 */
 
 /* Dataset: SIPP */
@@ -13,7 +8,8 @@ TARGETS
 cleaned somewhat, and recombined. Various variables are recoded and 
 new variables are generated. */
 
-use "build/temp/sipp_monthly1.dta", clear
+local MAKEREQ "build/temp/sipp_monthly1.dta"
+use "`MAKEREQ'", clear
 adopath + "../ado"
 
 egen personid = group(ssuid pnum)
@@ -247,8 +243,9 @@ drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
 
 * Merge with 3-digit occupation
 rename occcensus census
+local MAKEREQ "../occupations/build/output/occindexSIPP.dta"
 #delimit ;
-merge m:1 census using "../occupations/build/output/occindexSIPP.dta",
+merge m:1 census using "`MAKEREQ'",
 	keepusing(soc3d2010) keep(match master) nogen;
 #delimit cr
 rename census occcensus
@@ -257,8 +254,9 @@ drop enjflag ejb*_scrnr
 
 * Map industry to C/S sector
 rename indcensus ind2012
+local MAKEREQ "../industries/build/output/industryindex2012.dta"
 #delimit ;
-merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
+merge m:1 ind2012 using "`MAKEREQ'",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 
@@ -348,4 +346,6 @@ label variable qualitative_h2m "HH was food-insecure and/or unable to pay utilit
 label values qualitative_h2m bin_lbl
 
 compress
-save "build/temp/sipp_monthly2.dta", replace
+
+local MAKETARGET "build/temp/sipp_monthly2.dta"
+save "`MAKETARGET'", replace

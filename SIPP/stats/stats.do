@@ -1,20 +1,18 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-PREREQS
-	../occupations/build/output/occindexSIPP.dta
-	../ado/statalist.class
-	../ado/createxlsx.ado
-	../ado/collapse2excel.ado
-TARGETS
-	stats/output/SIPPwfh.dta
+DOFILE stats/stats.do
+MAKEREQ ../ado/statalist.class
+MAKEREQ ../ado/createxlsx.ado
+MAKEREQ ../ado/collapse2excel.ado
 */
-
 
 /* Dataset: SIPP */
 /* This script computes various asset, earnings, and WFH statistics
 and outputs them to a spreadsheet. */
 
 adopath + "../ado"
-use "build/output/sipp_cleaned.dta", clear
+
+local MAKEREQ "build/output/sipp_cleaned.dta"
+use "`MAKEREQ'", clear
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
@@ -53,9 +51,10 @@ tempfile yrtmp
 preserve
 clear
 save `yrtmp', emptyok
+local MAKEREQ "../occupations/build/output/occindexSIPP.dta"
 forvalues wave = 1/4 {
 forvalues sval = 0/1 {
-	use soc3d2010 using "../occupations/build/output/occindexSIPP.dta", clear
+	use soc3d2010 using "`MAKEREQ'", clear
 	gen sector = `sval'
 	gen swave = `wave'
 	gen wpfinwgt = 1
@@ -94,7 +93,9 @@ drop median_earnings
 gen source = "SIPP"
 
 capture mkdir "stats/output"
-save "stats/output/SIPPwfh.dta", replace
+
+local MAKETARGET "stats/output/SIPPwfh.dta"
+save "`MAKETARGET'", replace
 
 restore
 

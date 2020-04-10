@@ -1,11 +1,9 @@
 /* --- MAKEFILE INSTRUCTIONS ---
-PREREQS
-	build/input/sipp_raw_w1.dta
-	build/input/sipp_raw_w2.dta
-	build/input/sipp_raw_w3.dta
-	build/input/sipp_raw_w4.dta
-TARGETS
-	build/temp/sipp_monthly1.dta
+DOFILE build/combine_waves.do
+MAKEREQ build/input/sipp_raw_w1.dta
+MAKEREQ build/input/sipp_raw_w2.dta
+MAKEREQ build/input/sipp_raw_w3.dta
+MAKEREQ build/input/sipp_raw_w4.dta
 */
 
 /* Dataset: SIPP */
@@ -14,7 +12,6 @@ needed variables and combining waves. */
 
 clear
 set maxvar 10000
-log using "build/combine_waves.log", text replace
 
 label define bin_lbl 0 "No" 1 "Yes"
 
@@ -101,5 +98,6 @@ forvalues i = 1/4 {
 
 destring ssuid, replace
 compress
-save "build/temp/sipp_monthly1.dta", replace
-log close
+
+local MAKETARGET "build/temp/sipp_monthly1.dta"
+save "`MAKETARGET'", replace

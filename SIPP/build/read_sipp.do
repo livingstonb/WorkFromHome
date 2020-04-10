@@ -7,7 +7,6 @@ args wave
 
 clear
 set maxvar 10000
-log using "build/read_sipp.log", text replace
 
 if `wave' == 1 {
 	local nchunks 18
@@ -49,4 +48,3 @@ foreach var of varlist tjb*_occ tjb*_ind {
 save "build/input/wave`wave'_complete.dta"
 
 global wave
-log close
