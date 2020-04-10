@@ -1,12 +1,17 @@
-clear
-capture mkdir "build/temp"
-capture mkdir "build/output"
+/* --- MAKEFILE INSTRUCTIONS ---
+MAKEREQ ../ado/rowdistinct.ado
+*/
 
+/* This do-file creates a crosswalk with industry descriptions, NAICS codes,
+Census codes, and the C/S sector designation. */
+clear
 adopath + "../ado"
 
 // PREPARE ESSENTIAL INDUSTRIES DATA
 clear
-import delimited "build/input/essential_industries.csv", varnames(1)
+
+local MAKEREQ "build/input/essential_industries.csv"
+import delimited "`MAKEREQ'", varnames(1)
 gen code4d = naics / 100
 gen code3d = floor(naics / 1000)
 
@@ -21,7 +26,9 @@ save "build/temp/essential_industries.dta", replace
 
 // Merge All 4-digit NAICS codes with essential industries data
 clear
-import delimited "build/input/naics_codes.csv", varnames(1)
+
+local MAKEREQ "build/input/naics_codes.csv"
+import delimited "`MAKEREQ'", varnames(1)
 replace naics = strtrim(naics)
 replace description = strtrim(description)
 rename description description_naics
@@ -52,12 +59,11 @@ forvalues d = 3/4 {
 	#delimit cr
 }
 replace essential = 0 if missing(essential)
-
 save "build/temp/essential_industries_merged.dta", replace
 
 // PREPARE CENSUS-INDUSTRY CROSSWALK
-clear
-use "build/output/industry2017crosswalk.dta"
+local MAKEREQ "build/output/industry2017crosswalk.dta"
+use "`MAKEREQ'", clear
 
 * NAICS codes that include "Part of"
 gen partial = strpos(naics, "Part of") > 0
@@ -79,11 +85,6 @@ rename exclusions2 excludedtmp
 * Separate multiple industries per category
 split indtmp, gen(industry) parse(", " ",") destring
 split excludedtmp, gen(excluding) parse(", " ",") destring
-//
-// forvalues i = 1/7 {
-// 	gen indpartial`i' = industry`i' if partial
-// 	replace industry`i' = . if partial
-// }
 
 egen nexcl = rownonmiss(excluding*)
 gen noexclusions = (nexcl == 0)
@@ -92,20 +93,6 @@ label values noexclusions nexc_lbl
 
 drop indtmp excludedtmp nexcl
 save "build/temp/census_industry_cwalk_for_essential.dta", replace
-//
-// * Loop through industries and merge
-// foreach var of varlist industry* {
-// foreach digit of numlist 4 3 2 1 {
-// 	rename `var' naics`digit'd
-//	
-// 	#delimit ;
-// 	merge m:m naics`digit'd using "build/temp/essential_industries_merged.dta",
-// 		nogen keep(1 3 4) keepusing(essential);
-// 	#delimit cr
-//	
-// 	rename naics`digit'd `var'
-// }
-// }
 
 // NOW MERGE BOTH
 use "build/temp/essential_industries_merged.dta", clear
@@ -216,6 +203,7 @@ foreach var of varlist v2census* {
 	rename `var' census_partial`i'
 	local ++i
 }
+
 drop code6d
 label variable naics "Full six-digit NAICS category"
 label variable code2d "NAICS first two digits"
@@ -239,6 +227,12 @@ label variable essential "Indicator for essential industry"
 label define essential_lbl 0 "Not essential" 1 "Essential"
 label values essential essential_lbl
 
-* Save
+* Save and clean up
 sort census_match
-save "build/output/essential_industries.dta", replace
+
+local MAKETARGET "build/output/essential_industries.dta"
+save "`MAKETARGET'", replace
+
+erase "build/temp/essential_industries.dta"
+erase "build/temp/essential_industries_merged.dta"
+erase "build/temp/census_industry_cwalk_for_essential.dta"
