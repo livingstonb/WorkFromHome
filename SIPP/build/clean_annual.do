@@ -77,11 +77,23 @@ label variable nla_lt_monthlyearn "Share with net liquid assets < 4 weeks earnin
 gen nla_lt_annearn = (netliquid < earnings)
 label variable nla_lt_annearn "Share with net liquid assets < annual earnings"
 
-gen whtm_biweeklyearn = (netliquid < (2 * `earnwk')) * (netilliquid >= 10000)
-label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >= $10000)"
+gen whtm_biweeklyearn = (netliquid < (2 * `earnwk')) * (netilliquid >= 5000)
+label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >= $5000)"
 
-gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 10000)
-label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $10000)"
+gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 5000)
+label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $5000)"
+
+gen whtm_annearn = (netliquid < earnings) * (netilliquid >= 5000)
+label variable whtm_monthlyearn "Share WHtM (NLIQ < annual earnings and NILLIQ >= $5000)"
+
+gen phtm_biweeklyearn = (nla_lt_biweeklyearn == 1) & (whtm_biweeklyearn == 0)
+replace phtm_biweeklyearn = . if missing(nla_lt_biweeklyearn, whtm_biweeklyearn)
+
+gen phtm_monthlyearn = (nla_lt_monthlyearn == 1) & (whtm_monthlyearn == 0)
+replace phtm_monthlyearn = . if missing(nla_lt_monthlyearn, whtm_monthlyearn)
+
+gen phtm_annearn = (nla_lt_annearn == 1) & (whtm_annearn == 0)
+replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
 
 drop `earnwk'
 save "build/output/sipp_cleaned.dta", replace

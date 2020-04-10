@@ -38,7 +38,7 @@ foreach var of local stats {
 	local medianstats `medianstats' (median) median_`var'
 }
 
-foreach var of varlist qualitative_h2m foodinsecure nla_lt* whtm* {
+foreach var of varlist qualitative_h2m foodinsecure nla_lt* whtm* phtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 

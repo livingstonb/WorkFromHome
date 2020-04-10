@@ -11,11 +11,9 @@ crosswalks :
 acs : crosswalks
 	$(MAKE) -C ACS
 
-mkfiles = SIPP/build/combine_waves.mk
-mkfiles += SIPP/build/clean_monthly.mk
-mkfiles += SIPP/build/clean_annual.mk
-mkfiles += SIPP/stats/stats.mk
-sipp : crosswalks $(mkfiles)
+include SIPP/mkfiles_sipp.mk
+includes_sipp := $(addprefix SIPP/, $(includes_sipp))
+sipp : crosswalks $(includes_sipp)
 	$(MAKE) -C SIPP
 
 atus : crosswalks

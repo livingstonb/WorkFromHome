@@ -2,16 +2,24 @@
 OBJDIRS = build/output build/temp stats/output stats/temp
 
 all : mkdirs build_data compute_stats
-.PHONY : all clean mkdirs build_data compute_stats
+
+# Build from raw data
+ifdef WAVE
+rawcmd = "$(MAKE) build/input/sipp_raw_w$(WAVE).dta"
+else
+rawcmd = $(error raw command requires a 'WAVE' argument)
+endif
+
+raw :
+	$(rawcmd)
+
+# Includes
+include mkfiles_sipp.mk
+include $(includes_sipp)
 
 # Main recipes
-build_data : combine_waves clean_monthly clean_annual
-compute_stats : build_data stats
-
-include build/combine_waves.mk
-include build/clean_monthly.mk
-include build/clean_annual.mk
-include stats/stats.mk
+build_data : $(buildroutines_sipp)
+compute_stats : build_data $(statsroutines_sipp)
 
 $(combine_waves_targets) :
 	$(MAKE) combine_waves
@@ -26,11 +34,7 @@ $(stats_targets) :
 build/input/sipp_raw_w%.dta : build/read_sipp.do pu2014w%.dta
 	../statab do $< $*
 
+.PHONY : all clean mkdirs raw
+
 # Utilities
-include ../misc/mkdirs.mk ../misc/clean.mk
-
-.SECONDEXPANSION:
-
-% :: build/%.do build/%.mk $$(%_objects)
-	../statab do $<
-	touch $@
+include ../misc/mkdirs.mk ../misc/clean.mk ../misc/mkrule.mk

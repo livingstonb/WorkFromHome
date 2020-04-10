@@ -1,5 +1,3 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
-
 /* Dataset: SIPP */
 /* This script reads the raw data from the .dta file, drops some variables,
 compresses, and resaves as .dta files. Done in chunks of 50,000 observations. */
