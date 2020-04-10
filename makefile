@@ -1,13 +1,12 @@
 
-.PHONY : clean all crosswalks acs sipp atus shed cleanlogs
+.PHONY : clean all occupations industries acs sipp atus shed cleanlogs
 
-all : crosswalks acs sipp atus shed
+all : occupations industries acs sipp atus shed
 
-cleanmks :
-	rm **/build/*.mk **/stats/*.mk
-
-crosswalks :
+occupations :
 	$(MAKE) -C occupations
+
+industries :
 	$(MAKE) -C industries
 
 acs : crosswalks
@@ -25,5 +24,5 @@ shed : acs crosswalks
 cleanlogs :
 	rm **/*.log
 
-%.mk : %.do
-	python ./misc/parse_instructions.py $< $*
+cleanmks :
+	rm **/build/*.mk **/stats/*.mk
