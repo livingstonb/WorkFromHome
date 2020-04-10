@@ -1,5 +1,5 @@
 
-use "shared/combine/merged_4_9_20.dta", clear
+use "combine/merged_4_10_20.dta", clear
 
 tostring sector, replace force
 tostring source, replace force
@@ -28,4 +28,9 @@ drop oes_employment_d* oes_meanwage_d* oes_occshare_d*
 
 order occ3d2010 oes*
 
-save "shared/combine/merged_4_9_20_wide4.dta", replace
+* Merge in essential workers data
+rename occ3d2010 soc3d2010
+merge 1:1 soc3d2010 using "../industries/build/output/essential_workers.dta", nogen keep(1 3)
+rename soc3d2010 occ3d2010
+
+save "combine/merged_4_10_20_wide.dta", replace

@@ -1,22 +1,22 @@
 clear
 
 tempfile oestmp
-use "OES/build/output/OESstats.dta", clear
+use "../OES/build/output/OESstats.dta", clear
 rename meanwage oes_meanwage
 rename nworkers_wt oes_employment
 save `oestmp'
 
 tempfile dntmp
-use "DingelNeiman/build/output/DN_aggregated.dta", clear
+use "../DingelNeiman/build/output/DN_aggregated.dta", clear
 gen source = "DingelNeiman"
 drop employment
 rename soc3d2010 occ3d2010
 save `dntmp'
 
 
-use "ACS/stats/output/ACSwfh.dta", clear
-append using "ATUS/stats/output/ATUSwfh.dta"
-append using "SIPP/stats/output/SIPPwfh.dta"
+use "../ACS/stats/output/ACSwfh.dta", clear
+append using "../ATUS/stats/output/ATUSwfh.dta"
+append using "../SIPP/stats/output/SIPPwfh.dta"
 append using `dntmp'
 
 merge m:1 occ3d2010 sector using `oestmp', keepusing(oes_meanwage oes_employment)
@@ -75,6 +75,5 @@ gen essential = 1
 order sector occ3d2010 oes* source pct_workfromhome
 sort occ3d2010 sector source
 
-
 compress
-save "shared/combine/merged_4_9_20.dta", replace
+save "combine/merged_4_10_20.dta", replace
