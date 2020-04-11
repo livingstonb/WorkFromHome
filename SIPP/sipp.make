@@ -1,3 +1,5 @@
+SUBDIRS += SIPP
+OBJDIRS += SIPP/build SIPP/stats
 sources = build/clean_annual.do build/clean_monthly.do \
 	build/combine_waves.do stats/stats.do
 

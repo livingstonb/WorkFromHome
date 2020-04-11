@@ -1,4 +1,5 @@
-SUBDIRS += 
+SUBDIRS += ACS
+OBJDIRS += ACS/build ACS/stats
 
 sources = build/clean_acs.do \
 	build/read_acs.do \

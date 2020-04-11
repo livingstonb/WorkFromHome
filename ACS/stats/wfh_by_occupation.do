@@ -1,4 +1,4 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
 #PREREQ "../ado/createxlsx.ado"
 #PREREQ "../ado/collapse2excel.ado"
 #PREREQ "../ado/statalist.class"

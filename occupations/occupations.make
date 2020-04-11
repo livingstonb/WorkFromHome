@@ -1,3 +1,6 @@
+SUBDIRS += occupations
+OBJDIRS += occupations/build
+
 types = 2010 2018 SIPP
 targets = $(foreach type, $(types), occindex$(type).dta)
 targets += $(foreach year, 2010 2018, occ3labels$(year).do)

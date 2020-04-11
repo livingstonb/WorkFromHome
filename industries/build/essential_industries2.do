@@ -61,6 +61,7 @@ merge m:1 naics using `essential_tmp', keep(1 3) nogen keepusing(essential)
 replace essential = 0 if missing(essential)
 keep employment soc3d2010 essential
 
-collapse (mean) essential [iw=employment], by(soc3d2010)
+gen ones = 1
+collapse (mean) essential (sum) employment=ones [iw=employment], by(soc3d2010)
 
 `#TARGET' save "build/output/essential_workers.dta", replace

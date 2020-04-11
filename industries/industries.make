@@ -1,3 +1,5 @@
+SUBDIRS += industries
+OBJDIRS += industries/build
 
 sources = essential_industries1.do \
 	essential_industries2.do \

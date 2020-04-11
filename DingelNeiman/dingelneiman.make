@@ -1,3 +1,6 @@
+SUBDIRS += DingelNeiman
+OBJDIRS += DingelNeiman/build
+
 sources = build/build.do build/aggregate_occs.do
 sources := $(addprefix DingelNeiman/, $(sources))
 includes = $(sources:%.do=%.mk)

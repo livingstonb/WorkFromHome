@@ -1,3 +1,6 @@
+SUBDIRS += OES
+OBJDIRS += OES/build OES/stats
+
 sources = build/clean_oes3d.do \
 	stats/stats.do
 sources := $(addprefix OES/, $(sources))

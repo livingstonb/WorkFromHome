@@ -1,3 +1,5 @@
+SUBDIRS += SHED
+OBJDIRS += SHED/build SHED/stats
 sources = build/clean_shed.do build/read_shed.do
 sources := $(addprefix SHED/, $(sources))
 includes = $(sources:%.do=%.mk)

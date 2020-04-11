@@ -1,3 +1,6 @@
+SUBDIRS += ATUS
+OBJDIRS += ATUS/build ATUS/stats
+
 sources = build/clean_atus.do build/read_atus.do \
 	stats/wfh_by_occupation.do
 

@@ -1,6 +1,7 @@
-/* Dataset: ACS */
-/* This script generates occupation-industry-specific variables
-to be used in correspondence with SHED data. */
+/* --- HEADER ---
+Generates occupation-industry-specific variables
+to be used in correspondence with SHED data.
+*/
 
 clear
 

@@ -1,10 +1,8 @@
-/* --- MAKEFILE INSTRUCTIONS ---
-*/
-
-/* Dataset: ACS */
-/* This script reads the raw data from the .dat file and
+/* --- HEADER ---
+Reads the raw data from the .dat file and
 performs some minor cleaning tasks. Assumes the cwd
-is ACS. */
+is ACS.
+*/
 
 * Read raw dataset
 `#PREREQ' use "build/input/acs_raw.dta", clear
