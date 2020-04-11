@@ -1,7 +1,7 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+This do-file maps 2017 Census industry categories to sectors C and S.
 */
 
-/* This do-file maps 2017 Census industry categories to sectors C and S. */
 clear
 
 `#PREREQ' local index17 "build/input/industryindex2017.xlsx"

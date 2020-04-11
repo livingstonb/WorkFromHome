@@ -1,9 +1,10 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+This do-file creates a crosswalk with industry descriptions, NAICS codes,
+Census codes, and the C/S sector designation.
+
 #PREREQ "../ado/filldown.ado"
 */
 
-/* This do-file creates a crosswalk with industry descriptions, NAICS codes,
-Census codes, and the C/S sector designam. */
 clear
 adopath + "../ado"
 

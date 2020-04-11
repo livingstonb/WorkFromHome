@@ -1,7 +1,7 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+This do-file maps 2012 Census industry categories to sectors C and S.
 */
 
-/* This do-file maps 2012 Census industry categories to sectors C and S. */
 clear
 
 * Read all 2012 codes
