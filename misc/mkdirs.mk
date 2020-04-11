@@ -1,2 +1,0 @@
-mkdirs:
-	mkdir -p $(OBJDIRS)

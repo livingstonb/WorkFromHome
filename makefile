@@ -1,7 +1,10 @@
 STATA = ../statab do
-.PHONY : clean all occupations industries acs sipp
+SUBS = occupations industries oes acs sipp \
+	atus dingelneiman shed
 
-all : occupations industries oes acs sipp atus
+.PHONY : clean all $(SUBS)
+	
+all : $(SUBS)
 
 %.mk : %.do misc/parse_instructions.py makefile
 	python misc/parse_instructions.py $< $* $(@D)
@@ -12,27 +15,14 @@ include OES/oes.make
 include ACS/acs.make
 include SIPP/sipp.make
 include ATUS/atus.make
-
-# occupations :
-# 	$(MAKE) -C occupations
-
-# industries :
-# 	$(MAKE) -C industries
-
-# acs : occupations industries
-# 	$(MAKE) -C ACS
-
-# sipp : occupations industries
-# 	$(MAKE) -C SIPP
-
-# atus : occupations industries
-# 	$(MAKE) -C ATUS
+include DingelNeiman/dingelneiman.make
+include SHED/shed.make
 
 # shed : acs occupations industries
 # 	$(MAKE) -C SHED
 
-# cleanlogs :
-# 	rm **/*.log
+cleanlogs :
+	rm **/*.log
 
-# cleanmks :
-# 	rm **/*.mka
+cleanmks :
+	rm **/*.mk

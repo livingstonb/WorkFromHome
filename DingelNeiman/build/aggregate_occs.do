@@ -1,13 +1,17 @@
-
+/* --- HEADER ---
+This script reads the teleworkable measure constructed by
+Dingel and Neiman, and aggregates it up to the 3-digit level.
+*/
 
 // Prepare OES 6-digit occs for merge
-use "$OESbuild/output/oes_cleaned.dta", clear
+`#PREREQ' use "../OES/build/output/oes_cleaned.dta", clear
 rename OCC_CODE soc2010
 
+`#PREREQ' local naics "../industries/build/output/naicsindex2017.dta"
 * 1-digit first
 rename ind1d naics2017
 #delimit ;
-merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
+merge m:1 naics2017 using "`naics'",
 	keepusing(sector) keep(1 3 4) nogen;
 #delimit cr
 rename naics2017 ind1d
@@ -15,7 +19,7 @@ rename naics2017 ind1d
 * 2-digit
 rename ind2d naics2017
 #delimit ;
-merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
+merge m:1 naics2017 using "`naics'",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
 rename naics2017 ind2d
@@ -23,7 +27,7 @@ rename naics2017 ind2d
 * 3-digit
 rename ind3d naics2017
 #delimit ;
-merge m:1 naics2017 using "$WFHshared/industries/output/naicsindex2017.dta",
+merge m:1 naics2017 using "`naics'",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
 rename naics2017 ind3d
@@ -58,7 +62,7 @@ save `oestmp3', replace
 restore
 
 // Load Dingell-Neiman
-use "$DNbuildtemp/DN_temp.dta", clear
+`#PREREQ' use "build/temp/DN_temp.dta", clear
 
 * Assume each 8-digit occupation has same employment share within 6-digit occ
 rename teleworkable teletmp
@@ -127,4 +131,4 @@ drop if missing(sector, soc3d2010)
 order soc3d2010 sector teleworkable employment
 sort soc3d2010 sector
 
-save "$DNout/DN_aggregated.dta", replace
+`#TARGET' save "build/output/DN_aggregated.dta", replace

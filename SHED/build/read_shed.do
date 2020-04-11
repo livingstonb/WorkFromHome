@@ -1,7 +1,13 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+/* --- HEADER ---
+Reads the SHED raw data.
 
-/* Dataset: SHED */
-/* This is the main build script for SHED. */
+#PREREQ "build/input/SHED2013.dta"
+#PREREQ "build/input/SHED2014.dta"
+#PREREQ "build/input/SHED2015.dta"
+#PREREQ "build/input/SHED2016.dta"
+#PREREQ "build/input/SHED2017.dta"
+#PREREQ "build/input/SHED2018.dta"
+*/
 
 clear
 
@@ -176,4 +182,4 @@ foreach codevar of local codevars {
 }
 
 compress
-save "build/temp/shed_temp.dta", replace
+`#TARGET' save "build/temp/shed_temp.dta", replace

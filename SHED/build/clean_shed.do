@@ -1,11 +1,12 @@
-/* Dataset: SHED */
-/* This do-file generates new variables for the SHED dataset. */
+/* --- HEADER ---
+This do-file cleans the SHED dataset.
+*/
 
 adopath + "../ado"
 
 * Resave occupation crosswalk as stata file
 clear
-import delimited "build/input/occ_crosswalk.csv", bindquotes(strict)
+`#PREREQ' import delimited "build/input/occ_crosswalk.csv", bindquotes(strict)
 label define soclbl 11 "Management Occupations"
 label define soclbl 13 "Business and Financial Operations Occupations", add
 label define soclbl 15 "Computer and Mathematical Occupations", add
@@ -29,26 +30,31 @@ label define soclbl 49 "Installation, Maintenance, and Repair Occupations", add
 label define soclbl 51 "Production Occupations", add
 label define soclbl 53 "Transportation and Material Moving Occupations", add
 label values soc2d soclbl
-save "build/temp/occ_crosswalk.dta", replace
 
-* Resave sector crosswalk
-use "../industries/build/output/naicsindex2017.dta", clear
+tempfile cwalk
+save `cwalk', replace
+
+* Prepare sector crosswalk
+`#PREREQ' use "../industries/build/output/naicsindex2017.dta", clear
 rename sector cvsector
-save "build/temp/naics_to_sector.dta", replace
+
+tempfile naics
+save `naics', replace
 
 * Read main data file
-use "build/temp/shed_temp.dta", clear
+`#PREREQ' use "build/temp/shed_temp.dta", clear
 
 // RECODE OCCUPATION
 #delimit ;
-merge m:1 occupation year using "build/temp/occ_crosswalk.dta",
+merge m:1 occupation year using `cwalk',
 	keep(match master) keepusing(soc2d soc_2d_label) nogen;
 #delimit cr
 drop soc_2d_label
 rename soc2d soc2d2010
 
+`#PREREQ' local acsstats "../ACS/stats/output/acs_stats_for_shed.dta"
 #delimit ;
-merge m:1 soc2d2010 using "../ACS/stats/output/acs_stats_for_shed.dta",
+merge m:1 soc2d2010 using "`acsstats'",
 	keep(match master) nogen;
 #delimit cr
 label variable wfhflex "2x2 Occupation"
@@ -64,7 +70,7 @@ forvalues i = 1/3 {
 	rename ind`i'digit naics2017
 
 	#delimit ;
-	merge m:1 naics2017 using "build/temp/naics_to_sector.dta",
+	merge m:1 naics2017 using `naics',
 		keepusing(cvsector) keep(1 3 4) update nogen;
 	#delimit cr
 	rename naics2017 ind`i'digit
@@ -145,4 +151,4 @@ replace spendinc_h2m = 1 if inlist(spendinc, 1, 2) & (year == 2018)
 replace	spendinc_h2m = 0 if spendinc == 3 & (year == 2018)
 label variable spendinc_h2m "Income was less or equal to than spending"
 
-save "build/output/shed_cleaned.dta", replace
+`#TARGET' save "build/output/shed_cleaned.dta", replace

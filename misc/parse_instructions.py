@@ -1,43 +1,33 @@
 import sys
 import os
 
+def getnames(line):
+	words = line.split(" ")
+	for word in words:
+		word = word.strip()
+		if word.startswith('"') and (
+			word.endswith('"') or word.endswith(',')):
+			cleaned = word.replace('"', '').replace(',', '')
+			return cleaned
+
 def extract_mk(filepath, prefix):
 	dofiles = [filepath]
 	prereqs = []
 	targets = []
 	with open(filepath, 'r') as fobj:
 		for line in fobj:
-			if line.startswith("#MAKEIGNORE"):
-				return None
-			if line.startswith("DOFILE"):
-				words = line.split(" ")
-				for word in words:
-					word = word.strip()
-					if word.startswith('"') and (
-						word.endswith('"') or word.endswith(',')):
-						cleaned = word.replace('"', '').replace(',', '')
-						dofiles.append(cleaned)
-						break
-			elif line.startswith("#PREREQ") \
-				or line.startswith("`#PREREQ'"):
-				words = line.split(" ")
-				for word in words:
-					word = word.strip()
-					if word.startswith('"') and (
-						word.endswith('"') or word.endswith(',')):
-						cleaned = word.replace('"', '').replace(',', '')
-						prereqs.append(cleaned)
-						break
-			elif line.startswith("#TARGET") \
-				or line.startswith("`#TARGET'"):
-				words = line.split(" ")
-				for word in words:
-					word = word.strip()
-					if word.startswith('"') and (
-						word.endswith('"') or word.endswith(',')):
-						cleaned = word.replace('"', '').replace(',', '')
-						targets.append(cleaned)
-						break
+			if "#DOFILE" in line:
+				cleaned = getnames(line)
+				if cleaned is not None:
+					dofiles.append(cleaned)
+			elif "#PREREQ" in line:
+				cleaned = getnames(line)
+				if cleaned is not None:
+					prereqs.append(cleaned)
+			elif "#TARGET" in line:
+				cleaned = getnames(line)
+				if cleaned is not None:
+					targets.append(cleaned)
 
 	for vlist in [prereqs, targets]:
 		for i in range(len(vlist)):

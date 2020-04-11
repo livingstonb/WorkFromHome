@@ -1,9 +1,12 @@
-/* Dataset: SHED */
-/* This do-file computes summary statistics for SHED. */
+/* --- HEADER ---
+Computes summary statistics for SHED.
+*/
 
 clear
 adopath + "../ado"
-use if inlist(year, 2014, 2016) using "build/output/shed_cleaned.dta"
+
+`#PREREQ' local cleaned "build/output/shed_cleaned.dta"
+use if inlist(year, 2014, 2016) using "`cleaned'"
 
 // NORMALIZE WEIGHTS
 quietly sum wgt if (year == 2014)
@@ -52,7 +55,7 @@ label values wfhflex flexlbl
 .xlxnotes.append "Sample: 2014 and 2016"
 .xlxnotes.append "Description: HtM statistics"
 
-local xlxname "stats/output/SHED_HtM.xlsx"
+`#TARGET' local xlxname "stats/output/SHED_HtM.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "A 2x2 economy"
