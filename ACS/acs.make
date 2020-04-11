@@ -1,3 +1,5 @@
+SUBDIRS += 
+
 sources = build/clean_acs.do \
 	build/read_acs.do \
 	stats/stats_for_shed.do \

@@ -3,7 +3,6 @@ sources := $(addprefix merges/build/, $(sources))
 includes = $(sources:%.do=%.mk)
 
 targets = merges/build/output/wfh_merged_wide.dta
-# targets := $(addprefix merges/, $(targets))
 
 merges : $(includes) $(targets)
 

@@ -1,4 +1,4 @@
-STATA = ../statab do
+STATA = ../misc/statab do
 SUBS = occupations industries oes acs sipp \
 	atus dingelneiman shed merges
 
@@ -6,7 +6,7 @@ SUBS = occupations industries oes acs sipp \
 	
 all : $(SUBS)
 
-%.mk : %.do misc/parse_instructions.py makefile
+%.mk : %.do misc/parse_instructions.py
 	python misc/parse_instructions.py $< $* $(@D)
 
 include occupations/occupations.make
@@ -22,5 +22,9 @@ include merges/merges.make
 cleanlogs :
 	rm **/*.log
 
+MYDIR = .
+list : $(MYDIR)/*
+	for d in $<; do (cd $(d)/build && rm *.mk); done 
+
 cleanmks :
-	rm **/*.mk
+	for d in */; do (cd $(d)/build && rm *.mk); done
