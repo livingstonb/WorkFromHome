@@ -5,7 +5,7 @@ OBJS = naicsindex2017.dta industryindex2012.dta industryindex2017.dta \
 	essential_industries1.dta
 OBJS := $(addprefix build/output/, $(OBJS))
 
-all : $(INCLUDES) mkdirs $(OBJS)
+all : $(MKFILE) $(INCLUDES) mkdirs $(OBJS)
 
 .PHONY : clean mkdirs
 

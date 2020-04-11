@@ -1,9 +1,10 @@
 /* --- HEADER ---
+This do-file creates a crosswalk with industry descriptions, NAICS codes,
+Census codes, and the C/S sector designation.
+
 #PREREQ "../ado/rowdistinct.ado"
 */
 
-/* This do-file creates a crosswalk with industry descriptions, NAICS codes,
-Census codes, and the C/S sector designation. */
 clear
 adopath + "../ado"
 
