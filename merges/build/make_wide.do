@@ -1,13 +1,19 @@
+/* --- HEADER ---
+Reshapes merged datasets into wide format.
+*/
 
-use "combine/merged_4_10_20.dta", clear
+`#PREREQ' use "build/output/wfh_merged.dta", clear
 
 tostring sector, replace force
 tostring source, replace force
 gen col = "_d" + source + "s" + sector
 
 rename median_netliq_earnings_ratio median_nla_earnratio
-local variables oes* pct_* mean* median* nla* foodinsecure* qualitative_h2m* teleworkable whtm* phtm*
 
+#delimit ;
+local variables oes* pct_* mean* median* nla*
+	foodinsecure* qualitative_h2m* teleworkable whtm* phtm*;
+#delimit cr
 
 keep occ3d2010 col `variables'
 reshape wide `variables', i(occ3d2010) j(col) string
@@ -29,8 +35,9 @@ drop oes_employment_d* oes_meanwage_d* oes_occshare_d*
 order occ3d2010 oes*
 
 * Merge in essential workers data
+`#PREREQ' local essential "../industries/build/output/essential_workers.dta"
 rename occ3d2010 soc3d2010
-merge 1:1 soc3d2010 using "../industries/build/output/essential_workers.dta", nogen keep(1 3)
+merge 1:1 soc3d2010 using "`essential'", nogen keep(1 3)
 rename soc3d2010 occ3d2010
 
-save "combine/merged_4_10_20_wide.dta", replace
+`#TARGET' save "build/output/wfh_merged_wide.dta", replace

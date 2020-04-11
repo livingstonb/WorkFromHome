@@ -1,22 +1,27 @@
+/* --- HEADER ---
+Combines datasets into one larger dataset which provided
+statistics by occupation.
+*/
+
 clear
 
 tempfile oestmp
-use "../OES/build/output/OESstats.dta", clear
+`#PREREQ' use "../OES/build/output/OESstats.dta", clear
 rename meanwage oes_meanwage
 rename nworkers_wt oes_employment
 save `oestmp'
 
 tempfile dntmp
-use "../DingelNeiman/build/output/DN_aggregated.dta", clear
+`#PREREQ' use "../DingelNeiman/build/output/DN_aggregated.dta", clear
 gen source = "DingelNeiman"
 drop employment
 rename soc3d2010 occ3d2010
 save `dntmp'
 
 
-use "../ACS/stats/output/ACSwfh.dta", clear
-append using "../ATUS/stats/output/ATUSwfh.dta"
-append using "../SIPP/stats/output/SIPPwfh.dta"
+`#PREREQ' use "../ACS/stats/output/ACSwfh.dta", clear
+`#PREREQ' append using "../ATUS/stats/output/ATUSwfh.dta"
+`#PREREQ' append using "../SIPP/stats/output/SIPPwfh.dta"
 append using `dntmp'
 
 merge m:1 occ3d2010 sector using `oestmp', keepusing(oes_meanwage oes_employment)
@@ -27,13 +32,12 @@ rename source srctmp
 encode srctmp, gen(source)
 drop srctmp
 
-
 label variable oes_employment "Employment level in occ-sector pair from OES"
 label variable oes_meanwage "Mean wage in occ-sector pair from OES"
 label variable source "Dataset"
 label variable pct_workfromhome "% WFH in occ-sector pair"
 label variable nworkers_wt "Est of total workers in group from given dataset"
-label variable nworkers_unw "n, Actual num respondents
+label variable nworkers_unw "n, Actual num respondents"
 
 label variable mean_pdeposits "Mean deposits"
 label variable mean_pbonds "Mean bonds"
@@ -64,7 +68,7 @@ label variable pct_canwfh "% can WFH, ATUS only"
 
 drop _merge
 
-// new variables
+* New variables
 bysort sector source: egen empsec = total(oes_employment)
 gen oes_occshare = oes_employment / empsec
 drop empsec
@@ -76,4 +80,4 @@ order sector occ3d2010 oes* source pct_workfromhome
 sort occ3d2010 sector source
 
 compress
-save "combine/merged_4_10_20.dta", replace
+`#TARGET' save "build/output/wfh_merged.dta", replace

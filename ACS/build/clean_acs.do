@@ -1,9 +1,7 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+Performs cleaning and generates new variables for
+the ACS.
 */
-
-/* Dataset: ACS */
-/* This script performs cleaning and generates new variables for
-the ACS. Assumes that the cwd is ACS. */
 
 clear
 capture label define bin_lbl 0 "No" 1 "Yes"

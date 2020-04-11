@@ -1,6 +1,6 @@
 STATA = ../statab do
 SUBS = occupations industries oes acs sipp \
-	atus dingelneiman shed
+	atus dingelneiman shed merges
 
 .PHONY : clean all $(SUBS)
 	
@@ -17,9 +17,7 @@ include SIPP/sipp.make
 include ATUS/atus.make
 include DingelNeiman/dingelneiman.make
 include SHED/shed.make
-
-# shed : acs occupations industries
-# 	$(MAKE) -C SHED
+include merges/merges.make
 
 cleanlogs :
 	rm **/*.log
