@@ -1,17 +1,15 @@
-/* --- MAKEFILE INSTRUCTIONS ---
-MAKEREQ ../ado/statalist.class
-MAKEREQ ../ado/createxlsx.ado
-MAKEREQ ../ado/collapse2excel.ado
-*/
+/* --- HEADER ---
+This script computes various asset, earnings, and WFH statistics
+for SIPP and outputs them to a spreadsheet.
 
-/* Dataset: SIPP */
-/* This script computes various asset, earnings, and WFH statistics
-and outputs them to a spreadsheet. */
+#PREREQ ../ado/statalist.class
+#PREREQ ../ado/createxlsx.ado
+#PREREQ ../ado/collapse2excel.ado
+*/
 
 adopath + "../ado"
 
-local MAKEREQ "build/output/sipp_cleaned.dta"
-use "`MAKEREQ'", clear
+`#PREREQ' use "build/output/sipp_cleaned.dta", clear
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
@@ -50,10 +48,10 @@ tempfile yrtmp
 preserve
 clear
 save `yrtmp', emptyok
-local MAKEREQ "../occupations/build/output/occindexSIPP.dta"
+`#PREREQ' local occsipp "../occupations/build/output/occindexSIPP.dta"
 forvalues wave = 1/4 {
 forvalues sval = 0/1 {
-	use soc3d2010 using "`MAKEREQ'", clear
+	use soc3d2010 using "`occsipp'", clear
 	gen sector = `sval'
 	gen swave = `wave'
 	gen wpfinwgt = 1
@@ -93,15 +91,10 @@ gen source = "SIPP"
 
 capture mkdir "stats/output"
 
-local MAKETARGET "stats/output/SIPPwfh.dta"
-save "`MAKETARGET'", replace
-
+`#TARGET' save "stats/output/SIPPwfh.dta", replace
 restore
 
 // COLLAPSE TO EXCEL
-
-discard
-
 foreach wave of numlist 1 2 3 4 0 {
 if `wave' == 0 {
 	local wlab "pooled"

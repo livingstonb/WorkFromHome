@@ -1,8 +1,13 @@
-/* Dataset: ATUS */
-/* This script computes WFH and other statistics by occupation
-and sector. */
+/* --- HEADER ---
+This script computes WFH and other statistics by occupation
+and sector.
 
-use "build/output/atus_cleaned.dta", clear
+#PREREQ ../ado/statalist.class
+#PREREQ ../ado/createxlsx.ado
+#PREREQ ../ado/collapse2excel.ado
+*/
+
+`#PREREQ' use "build/output/atus_cleaned.dta", clear
 adopath + "../ado"
 
 * Gen new variables
@@ -22,11 +27,13 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add blanks
-tempfile yrtmp
 preserve
+
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+tempfile yrtmp
 save `yrtmp', emptyok
 forvalues sval = 0/1 {
-	use soc3d2010 using "../occupations/build/output/occindex2010.dta", clear
+	use soc3d2010 using "`occ2010'", clear
 	rename soc3d2010 occ3digit
 	gen sector = `sval'
 	gen normwt = 1
@@ -68,12 +75,12 @@ collapse (sum) nworkers_wt
 #delimit cr
 
 gen source = "ATUS"
-save "stats/output/ATUSwfh.dta", replace
+`#TARGET' save "stats/output/ATUSwfh.dta", replace
 
 restore
 
 * Collapse and make spreadsheet
-local xlxname "stats/output/ATUS_wfh_by_occ.xlsx"
+`#TARGET' local xlxname "stats/output/ATUS_wfh_by_occ.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ATUS"

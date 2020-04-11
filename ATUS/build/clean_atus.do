@@ -1,9 +1,8 @@
-// NOTE: FIRST RUN "do macros.do" IN THE MAIN DIRECTORY
+/* --- HEADER ---
+This script performs cleaning for the ATUS dataset.
+*/
 
-/* Dataset: ATUS */
-/* This script performs cleaning for the ATUS dataset. */
-
-use "build/temp/merged.dta", clear
+`#PREREQ' use "build/temp/atus_combined.dta", clear
 
 drop if missing(leavemod)
 drop leavemod
@@ -56,9 +55,10 @@ rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 rename occcensus census
 #delimit ;
-merge m:1 census using "../occupations/build/output/occindex2010.dta",
+merge m:1 census using "`occ2010'",
 	nogen keep(match master) keepusing(soc3d2010);
 #delimit cr
 rename census occcensus
@@ -66,9 +66,10 @@ rename soc3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
 * Sector
+`#PREREQ' local ind2012 "../industries/build/output/industryindex2012.dta"
 rename inddetailed ind2012
 #delimit ;
-merge m:1 ind2012 using "../industries/build/output/industryindex2012.dta",
+merge m:1 ind2012 using "`ind2012'",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 
@@ -203,4 +204,4 @@ label define hasyoungchild_lbl 2 "Parent of a child 13 to 17 years (none younger
 label values hasyoungchild hasyoungchild_lbl
 
 compress
-save "build/output/atus_cleaned.dta", replace
+`#TARGET' save "build/output/atus_cleaned.dta", replace

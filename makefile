@@ -1,28 +1,38 @@
+STATA = ../statab do
+.PHONY : clean all occupations industries acs sipp
 
-.PHONY : clean all occupations industries acs sipp atus shed cleanlogs
+all : occupations industries oes acs sipp atus
 
-all : occupations industries acs sipp atus shed
+%.mk : %.do misc/parse_instructions.py makefile
+	python misc/parse_instructions.py $< $* $(@D)
 
-occupations :
-	$(MAKE) -C occupations
+include occupations/occupations.make
+include industries/industries.make
+include OES/oes.make
+include ACS/acs.make
+include SIPP/sipp.make
+include ATUS/atus.make
 
-industries :
-	$(MAKE) -C industries
+# occupations :
+# 	$(MAKE) -C occupations
 
-acs : occupations industries
-	$(MAKE) -C ACS
+# industries :
+# 	$(MAKE) -C industries
 
-sipp : occupations industries
-	$(MAKE) -C SIPP
+# acs : occupations industries
+# 	$(MAKE) -C ACS
 
-atus : occupations industries
-	$(MAKE) -C ATUS
+# sipp : occupations industries
+# 	$(MAKE) -C SIPP
 
-shed : acs occupations industries
-	$(MAKE) -C SHED
+# atus : occupations industries
+# 	$(MAKE) -C ATUS
 
-cleanlogs :
-	rm **/*.log
+# shed : acs occupations industries
+# 	$(MAKE) -C SHED
 
-cleanmks :
-	rm **/build/*.mk **/stats/*.mk
+# cleanlogs :
+# 	rm **/*.log
+
+# cleanmks :
+# 	rm **/*.mka

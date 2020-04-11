@@ -17,7 +17,7 @@ def find_needed_mks(basenames):
 	mks = []
 	for name in basenames:
 		if not os.path.isfile(name + ".mk"):
-			mks.append(name + ".mk-auto")
+			mks.append(name + ".mktemp")
 
 	return mks
 
