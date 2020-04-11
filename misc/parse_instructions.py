@@ -54,7 +54,7 @@ def write_mk(outpath, mk):
 
 	lines = [doline, prereqline, targetline]
 	body = "\n".join(lines)
-	with open(outpath + ".mk", 'w') as fobj:
+	with open(outpath + ".mk-auto", 'w') as fobj:
 		fobj.write(body)
 		fobj.write("\n")
 		fobj.write("$(targets) : $(dofiles) $(objects)\n")

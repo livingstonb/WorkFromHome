@@ -30,6 +30,7 @@ def inc_line(mks):
 def write_mk(args, sources, mks):
 	with open(args['outpath'], 'w') as fobj:
 		fobj.write(src_line(sources))
+		fobj.write('\n')
 		fobj.write(inc_line(mks))
 
 def parse(cmdargs):

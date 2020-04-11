@@ -68,5 +68,5 @@ rename PCT_TOTAL occshare_industry
 label variable occshare_industry "% of industry employment in given occ, provided"
 
 * Save
-`#TARGET' local outpath "..OES/build/output/oes3d_cleaned.dta"
+`#TARGET' local outpath "build/output/oes3d_cleaned.dta"
 save "`outpath'", replace

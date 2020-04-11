@@ -1,11 +1,6 @@
 /* --- HEADER ---
 This do-file reads the OES 3- or 4-digit industry data from excel into stata
 and resaves.
-
-MAKE
-output/oes%d.dta : read_oes.do input/nat%d_M2017_dl.xlsx
-	$(STATA) $<
-END
 */
 
 args digit
