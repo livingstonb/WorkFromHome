@@ -6,7 +6,7 @@ def check_valid(word):
 		(word.endswith('"') or word.endswith(",")))
 
 def getnames(line):
-	words = line.split(" ")
+	words = map(lambda x: x.strip(), line.split(" "))
 	words = list(filter(check_valid, words))
 	if len(words) == 1:
 		return words[0].replace('"', '').replace(',', '')

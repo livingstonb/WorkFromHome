@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $# -ge 2 ]
+then
+  if [ "$1" == "clean" ]
+  then
+    if [ "$2" == "logs" ]
+    then
+      python misc/clean.py . .log
+    elif [ "$2" == "mk" ]
+    then
+      python misc/clean.py . .mk
+    else
+  	  echo "Unknown command :" "$2"
+    fi
+  fi
+fi

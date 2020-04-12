@@ -37,7 +37,7 @@ order occ3d2010 oes*
 * Merge in essential workers data
 `#PREREQ' local essential "../industries/build/output/essential_workers.dta"
 rename occ3d2010 soc3d2010
-merge 1:1 soc3d2010 using "`essential'", nogen keep(1 3)
+merge 1:1 soc3d2010 using "`essential'", nogen keep(1 3) keepusing(essential)
 rename soc3d2010 occ3d2010
 
 `#TARGET' save "build/output/wfh_merged_wide.dta", replace
