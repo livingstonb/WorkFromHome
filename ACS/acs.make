@@ -1,4 +1,3 @@
-SUBDIRS += ACS
 OBJDIRS += ACS/build ACS/stats
 
 sources = build/clean_acs.do \
@@ -13,6 +12,6 @@ targets = build/output/acs_cleaned.dta \
 	stats/output/ACSwfh.dta
 targets := $(addprefix ACS/, $(targets))
 
-acs : $(includes) $(targets)
+ACS : $(includes) $(targets)
 
 -include $(includes)

@@ -92,4 +92,4 @@ replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
 
 drop `earnwk'
 
-`#TARGET' save "build/output/sipp_cleaned.dta", clear
+`#TARGET' save "build/output/sipp_cleaned.dta", replace

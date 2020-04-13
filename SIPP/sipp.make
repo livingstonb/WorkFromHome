@@ -1,4 +1,3 @@
-SUBDIRS += SIPP
 OBJDIRS += SIPP/build SIPP/stats
 sources = build/clean_annual.do build/clean_monthly.do \
 	build/combine_waves.do stats/stats.do
@@ -10,6 +9,6 @@ targets = build/output/sipp_cleaned.dta \
 	stats/output/SIPPwfh.dta
 targets := $(addprefix SIPP/, $(targets))
 
-sipp : $(includes) $(targets)
+SIPP : $(includes) $(targets)
 
 -include $(includes)

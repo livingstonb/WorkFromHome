@@ -1,16 +1,11 @@
 import sys
 import os
+import re
 
-def check_valid(word):
-	return (word.startswith('"') and
-		(word.endswith('"') or word.endswith(",")))
-
-def getnames(line):
-	words = map(lambda x: x.strip(), line.split(" "))
-	words = list(filter(check_valid, words))
-	if len(words) == 1:
-		return words[0].replace('"', '').replace(',', '')
-
+def extract_name(line):
+	matches = re.findall(r'"(.*?)"', line)
+	if len(matches) > 0:
+		return matches[0]
 
 def extract_mk(filepath, prefix):
 	mk = {	"#DOFILE": [filepath],
@@ -21,7 +16,7 @@ def extract_mk(filepath, prefix):
 		for line in fobj:
 			for key in mk.keys():
 				if key in line:
-					cleaned = getnames(line)
+					cleaned = extract_name(line)
 					if cleaned is not None:
 						mk[key].append(cleaned)
 						break
@@ -35,18 +30,15 @@ def extract_mk(filepath, prefix):
 	return mk
 	
 def write_mk(outpath, mk, prefix):
-	base = os.path.basename(outpath)
-
 	do = "/".join(mk['#DOFILE'][0].split("/")[1:])
 
 	doline = "dofiles = " + " \\\n\t".join(mk["#DOFILE"])
 	prereqline = "objects = " + " \\\n\t".join(mk["#PREREQ"])
 	targetline = "targets = " + " \\\n\t".join(mk["#TARGET"])
 
-	lines = [doline, prereqline, targetline]
-	body = "\n".join(lines) + "\n"
+	body = "\n".join([doline, prereqline, targetline])
 	with open(outpath + ".mk", 'w') as fobj:
-		fobj.write(body)
+		fobj.write(body + '\n')
 		fobj.write("$(targets) : $(dofiles) $(objects)\n")
 		fobj.write(f"\tcd {prefix} && $(STATA) {do}")
 

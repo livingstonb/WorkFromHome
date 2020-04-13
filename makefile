@@ -1,10 +1,9 @@
 STATA = ../misc/statab do
-SUBDIRS =
+SUBDIRS = occupation sindustries OES ACS \
+	ATUS DingelNeiman SHED merges
 TEMPDIRS =
-SUBS = occupations industries oes acs sipp \
-	atus dingelneiman shed merges
 
-.PHONY : clean all $(SUBS)
+.PHONY : clean all cleanmks cleanlogs
 	
 all : $(SUBS)
 
@@ -23,6 +22,8 @@ include merges/merges.make
 
 TEMPDIRS = $(foreach dir, $(OBJDIRS), $(dir)/temp)
 OUTDIRS = $(foreach dir, $(OBJDIRS), $(dir)/output)
+
+cleanup : cleanmks cleanlogs
 
 cleanmks :
 	rm -f $(foreach dir, $(OBJDIRS), $(wildcard $(dir)/*.mk))

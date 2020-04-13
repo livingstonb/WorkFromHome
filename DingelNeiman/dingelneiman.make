@@ -1,4 +1,3 @@
-SUBDIRS += DingelNeiman
 OBJDIRS += DingelNeiman/build
 
 sources = build/build.do build/aggregate_occs.do
@@ -7,6 +6,6 @@ includes = $(sources:%.do=%.mk)
 
 targets = DingelNeiman/build/output/DN_aggregated.dta
 
-dingelneiman : $(includes) $(targets)
+DingelNeiman : $(includes) $(targets)
 
 -include $(includes)

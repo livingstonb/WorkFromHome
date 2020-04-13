@@ -1,4 +1,3 @@
-SUBDIRS += occupations
 OBJDIRS += occupations/build
 
 types = 2010 2018 SIPP
