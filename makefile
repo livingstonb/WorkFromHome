@@ -13,17 +13,22 @@ ifeq (, $(findstring clean, $(MAKECMDGOALS)))
 include $(addsuffix /module.make, $(MODULES))
 endif
 
-.PHONY : clean all
+.PHONY : clean clean_mk clean_temp clean_output all
 
-clean :
+clean : clean_mk clean_temp clean_output
+
+clean_mk :
 	rm -f $(shell find . -name "*.mk")
+
+clean_logs :
 	rm -f $(shell find . -name "*.log")
+	rm -rf $(shell find . -depth -name "logs")
 
-%/temp :
-	mkdir -p $@
+clean_temp :
+	rm -rf $(shell find . -depth -name "temp")
 
-%/output :
-	mkdir -p $@
+clean_output :
+	rm -rf $(shell find . -depth -name "output")
 
-%/logs :
+%/temp %/output %/logs:
 	mkdir -p $@

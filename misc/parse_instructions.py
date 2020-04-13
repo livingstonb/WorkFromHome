@@ -14,11 +14,6 @@ def parse_path(fpath):
 
 	return paths
 
-def extract_name(line):
-	matches = re.findall(r'"(.*?)"', line)
-	if len(matches) > 0:
-		return matches[0]
-
 def extract_mk(filepath, prefix):
 	mk = {	"#DOFILE": [filepath],
 			"#PREREQ": [],
@@ -28,9 +23,9 @@ def extract_mk(filepath, prefix):
 		for line in fobj:
 			for key in mk.keys():
 				if key in line:
-					cleaned = extract_name(line)
-					if cleaned is not None:
-						mk[key].append(cleaned)
+					matches = re.findall(r'"(.*?)"', line)
+					if len(matches) > 0:
+						mk[key].append(matches[0])
 						break
 
 	for vlist in [mk["#PREREQ"], mk["#TARGET"]]:

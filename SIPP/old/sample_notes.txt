@@ -1,9 +1,0 @@
-Home equity is the main variable provided at the household level rather than the individual level.
-To split this up between members of the household, dropping some observations was necessary to
-discard unstable households. I took the reference member of every household and paired him/her up
-with spouse, when present. If there was no spouse the full year, then the reference member
-was attributed the full share of home equity. If there was a spouse for the full year, then the
-share was split 50/50. I dropped any household heads that had a non-constant marriage status, and
-I dropped the individual who was--at some point--the spouse of such an individual. Overall,
-the final sample size was 31,270, which represents 95% of all individuals in the original sample
-that were at least 15 years old and had data for all 12 months of the survey.
