@@ -4,7 +4,7 @@ and resaves.
 */
 
 args digit
-import excel "build/input/nat`digit'd_M2017_dl.xlsx", clear firstrow
+`#PREREQ' import excel "build/input/nat`digit'd_M2017_dl.xlsx", clear firstrow
 
 compress
-save "build/output/oes`digit'd.dta", replace
+`#TARGET' save "build/output/oes`digit'd.dta", replace

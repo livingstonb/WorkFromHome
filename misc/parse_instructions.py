@@ -18,14 +18,25 @@ def extract_mk(filepath, prefix):
 	mk = {	"#DOFILE": [filepath],
 			"#PREREQ": [],
 			"#TARGET": [],
+			"argName": None,
 		}
 	with open(filepath, 'r') as fobj:
 		for line in fobj:
+			if line.startswith("args"):
+				mk["argName"] = line.split(" ")[1].strip()
+				mk["argName"] = "`" + mk["argName"] + "'"
+				continue
+
 			for key in mk.keys():
 				if key in line:
 					matches = re.findall(r'"(.*?)"', line)
 					if len(matches) > 0:
-						mk[key].append(matches[0])
+						match = matches[0]
+						if mk["argName"] is None:
+							mk[key].append(match)
+						else:
+							match = match.replace(mk["argName"], "%")
+							mk[key].append(match)
 						break
 
 	for vlist in [mk["#PREREQ"], mk["#TARGET"]]:
@@ -38,6 +49,8 @@ def extract_mk(filepath, prefix):
 	
 def write_mk(mk, paths):
 	do = paths['relative']
+	if mk["argName"] is not None:
+		do += " $*"
 
 	logname = paths['basename'].replace(".do", ".log")
 	loginitial = os.path.join(paths['module'], logname)
@@ -53,7 +66,7 @@ def write_mk(mk, paths):
 	with open(mkname, 'w') as fobj:
 		fobj.write(body + '\n')
 		fobj.write("$(targets) : $(dofiles) $(objects)\n")
-		fobj.write(f"\t@cd {paths['module']} && $(STATA) {do}\n")
+		fobj.write(f"\tcd {paths['module']} && $(STATA) {do}\n")
 		fobj.write(f"\t@-mv {loginitial} {logfinal}")
 
 filepath = sys.argv[1]
