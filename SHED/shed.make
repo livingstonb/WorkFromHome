@@ -1,11 +1,9 @@
-OBJDIRS += SHED/build SHED/stats
-sources = build/clean_shed.do build/read_shed.do
-sources := $(addprefix SHED/, $(sources))
-includes = $(sources:%.do=%.mk)
+subdir = SHED
+objdirs = build stats
 
-targets = SHED/stats/output/SHED_HtM.xlsx \
-	SHED/build/output/shed_cleaned.dta
+sources = clean_shed.do read_shed.do
 
-SHED : $(includes) $(targets)
+targets = stats/output/SHED_HtM.xlsx \
+	build/output/shed_cleaned.dta
 
--include $(includes)
+include misc/includes.make

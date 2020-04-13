@@ -1,14 +1,10 @@
-OBJDIRS += SIPP/build SIPP/stats
-sources = build/clean_annual.do build/clean_monthly.do \
-	build/combine_waves.do stats/stats.do
+subdir = SIPP
+objdirs = build stats
 
-sources := $(addprefix SIPP/, $(sources))
-includes = $(sources:%.do=%.mk)
+sources = clean_annual.do clean_monthly.do \
+	combine_waves.do stats.do
 
 targets = build/output/sipp_cleaned.dta \
 	stats/output/SIPPwfh.dta
-targets := $(addprefix SIPP/, $(targets))
 
-SIPP : $(includes) $(targets)
-
--include $(includes)
+include misc/includes.make

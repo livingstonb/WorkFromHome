@@ -1,15 +1,13 @@
 STATA = ../misc/statab do
-SUBDIRS = occupation sindustries OES ACS \
-	ATUS DingelNeiman SHED merges
-TEMPDIRS =
+SUBDIRS = occupations industries OES ACS \
+	ATUS DingelNeiman SHED SIPP merges
 
-.PHONY : clean all cleanmks cleanlogs
-	
-all : $(SUBS)
+all : $(SUBDIRS)
 
 %.mk : %.do misc/parse_instructions.py
 	python misc/parse_instructions.py $< $*
 
+ifeq (, $(findstring clean, $(MAKECMDGOALS)))
 include occupations/occupations.make
 include industries/industries.make
 include OES/oes.make
@@ -19,14 +17,10 @@ include ATUS/atus.make
 include DingelNeiman/dingelneiman.make
 include SHED/shed.make
 include merges/merges.make
+endif
 
-TEMPDIRS = $(foreach dir, $(OBJDIRS), $(dir)/temp)
-OUTDIRS = $(foreach dir, $(OBJDIRS), $(dir)/output)
+.PHONY : clean all
 
-cleanup : cleanmks cleanlogs
-
-cleanmks :
-	rm -f $(foreach dir, $(OBJDIRS), $(wildcard $(dir)/*.mk))
-
-cleanlogs :
-	rm -f $(foreach dir, $(SUBDIRS), $(wildcard $(dir)/*.log))
+clean :
+	rm -f $(shell find . -name "*.mk")
+	rm -f $(shell find . -name "*.log")

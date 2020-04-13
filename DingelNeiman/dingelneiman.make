@@ -1,11 +1,8 @@
-OBJDIRS += DingelNeiman/build
+subdir = DingelNeiman
+objdirs = build
 
-sources = build/build.do build/aggregate_occs.do
-sources := $(addprefix DingelNeiman/, $(sources))
-includes = $(sources:%.do=%.mk)
+sources = build.do aggregate_occs.do
 
-targets = DingelNeiman/build/output/DN_aggregated.dta
+targets = build/output/DN_aggregated.dta
 
-DingelNeiman : $(includes) $(targets)
-
--include $(includes)
+include misc/includes.make
