@@ -1,4 +1,5 @@
 subdir = ATUS
+
 objdirs = build stats
 
 sources = clean_atus.do read_atus.do \

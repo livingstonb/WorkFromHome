@@ -1,4 +1,5 @@
 subdir = merges
+
 objdirs = build
 
 sources = merge_wfh.do make_wide.do

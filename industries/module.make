@@ -1,5 +1,7 @@
 subdir = industries
+
 objdirs = build
+
 sources = essential_industries1.do \
 	essential_industries2.do \
 	industry_crosswalk1.do \

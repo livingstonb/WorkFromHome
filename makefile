@@ -1,22 +1,14 @@
 STATA = ../misc/statab do
 SUBDIRS = occupations industries OES ACS \
-	ATUS DingelNeiman SHED SIPP merges
+	SIPP ATUS DingelNeiman SHED merges
 
 all : $(SUBDIRS)
 
 %.mk : %.do misc/parse_instructions.py
-	python misc/parse_instructions.py $< $*
+	@python misc/parse_instructions.py $< $*
 
 ifeq (, $(findstring clean, $(MAKECMDGOALS)))
-include occupations/occupations.make
-include industries/industries.make
-include OES/oes.make
-include ACS/acs.make
-include SIPP/sipp.make
-include ATUS/atus.make
-include DingelNeiman/dingelneiman.make
-include SHED/shed.make
-include merges/merges.make
+include $(addsuffix /module.make, $(SUBDIRS))
 endif
 
 .PHONY : clean all

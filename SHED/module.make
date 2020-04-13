@@ -1,4 +1,5 @@
 subdir = SHED
+
 objdirs = build stats
 
 sources = clean_shed.do read_shed.do

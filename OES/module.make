@@ -1,5 +1,7 @@
 subdir = OES
+
 objdirs = build stats
+
 sources = clean_oes3d.do stats.do
 
 targets = build/output/oes3d.dta \

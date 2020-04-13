@@ -1,4 +1,5 @@
 subdir = DingelNeiman
+
 objdirs = build
 
 sources = build.do aggregate_occs.do

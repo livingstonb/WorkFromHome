@@ -1,4 +1,5 @@
 subdir = SIPP
+
 objdirs = build stats
 
 sources = clean_annual.do clean_monthly.do \
