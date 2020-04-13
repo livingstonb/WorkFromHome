@@ -14,6 +14,5 @@ includes := $(sources:%.do=%.mk)
 targets := $(addprefix $(subdir)/, $(targets))
 
 $(subdir) : $(includes) $(targets)
-	mkdir -p $(newdirs)
 
 -include $(includes)

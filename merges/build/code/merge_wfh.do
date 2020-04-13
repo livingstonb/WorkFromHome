@@ -6,7 +6,7 @@ statistics by occupation.
 clear
 
 tempfile oestmp
-`#PREREQ' use "../OES/build/output/OESstats.dta", clear
+`#PREREQ' use "../OES/stats/output/OESstats.dta", clear
 rename meanwage oes_meanwage
 rename nworkers_wt oes_employment
 save `oestmp'
