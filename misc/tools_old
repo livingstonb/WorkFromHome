@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# --- CLEAN ---
+if [ "$1" == "clean" ]
+then
+  if [ "$2" == "logs" ]
+  then
+    python misc/clean.py . .log
+  elif [ "$2" == "mk" ]
+  then
+    python misc/clean.py . .mk
+  else
+  	 echo "Unknown command :" "$2"
+  fi
+# --- BACKUP ---
+elif [ "$1" == "backup" ]
+then
+  if [ "2" == "old" ]
+    OLD_DIRS=$(find . )
+  fi
+fi

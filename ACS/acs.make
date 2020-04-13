@@ -1,9 +1,9 @@
 OBJDIRS += ACS/build ACS/stats
 
-sources = build/clean_acs.do \
-	build/read_acs.do \
-	stats/stats_for_shed.do \
-	stats/wfh_by_occupation.do
+sources = build/code/clean_acs.do \
+	build/code/read_acs.do \
+	stats/code/stats_for_shed.do \
+	stats/code/wfh_by_occupation.do
 
 sources := $(addprefix ACS/, $(sources))
 includes = $(sources:%.do=%.mk)

@@ -10,6 +10,6 @@ includes = $(sources:%.do=%.mk)
 targets = build/output/atus_cleaned.dta stats/output/ATUSwfh.dta
 targets := $(addprefix ATUS/, $(targets))
 
-atus : $(includes) $(targets)
+ATUS : $(includes) $(targets)
 
 -include $(includes)

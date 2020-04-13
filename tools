@@ -1,17 +1,27 @@
 #!/bin/bash
 
-if [ $# -ge 2 ]
-then
-  if [ "$1" == "clean" ]
-  then
-    if [ "$2" == "logs" ]
-    then
-      python misc/clean.py . .log
-    elif [ "$2" == "mk" ]
-    then
-      python misc/clean.py . .mk
+# --- CLEAN ---
+if [ "$1" == "clean" ]; then
+  if [ "$2" == "log" ]; then
+    FINDS=$(find . -name "*.log")
+    if [ ! -z "$FINDS" ]; then
+      rm -f $FINDS
     else
-  	  echo "Unknown command :" "$2"
+      echo "No '.log' files found"
     fi
+  elif [ "$2" == "mk" ]; then
+    FINDS=$(find . -name "*.mk")
+    if [ ! -z "$FINDS" ]; then
+      rm -f $FINDS
+    else
+      echo "No '.mk' files found"
+    fi
+  else
+  	 echo "Unknown command :" "$2"
+  fi
+# --- BACKUP ---
+elif [ "$1" == "backup" ]; then
+  if [ "2" == "old" ]; then
+    true
   fi
 fi
