@@ -1,3 +1,14 @@
+"""
+Parses do-files for prerequisites and targets of the given
+source file. Writes a file with extension .mk for the do-file
+passed, creating and rule for associated with the do-file that
+can then be included in a makefile.
+
+Each line is searched for the presence of #PREREQ or #TARGET,
+and the first filename surrounded by double quotes is included
+as a prerequisite or target.
+"""
+
 import sys
 import os
 import re
@@ -57,7 +68,7 @@ def write_mk(mk, paths):
 	logfinal = os.path.join(paths['subdir'], "logs", logname)
 
 	doline = "dofiles = " + " \\\n\t".join(mk["#DOFILE"])
-	prereqline = "objects = " + " \\\n\t".join(mk["#PREREQ"])
+	prereqline = "prereqs = " + " \\\n\t".join(mk["#PREREQ"])
 	targetline = "targets = " + " \\\n\t".join(mk["#TARGET"])
 
 	mkname = paths['full'].replace(".do", ".mk")
@@ -65,7 +76,7 @@ def write_mk(mk, paths):
 	body = "\n".join([doline, prereqline, targetline])
 	with open(mkname, 'w') as fobj:
 		fobj.write(body + '\n')
-		fobj.write("$(targets) : $(dofiles) $(objects)\n")
+		fobj.write("$(targets) : $(dofiles) $(prereqs)\n")
 		fobj.write(f"\tcd {paths['module']} && $(STATA) {do}\n")
 		fobj.write(f"\t@-mv {loginitial} {logfinal}")
 

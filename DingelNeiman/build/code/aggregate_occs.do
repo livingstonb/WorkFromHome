@@ -4,7 +4,7 @@ Dingel and Neiman, and aggregates it up to the 3-digit level.
 */
 
 // Prepare OES 6-digit occs for merge
-`#PREREQ' use "../OES/build/output/oes_cleaned.dta", clear
+`#PREREQ' use "../OES/build/output/oes3d_cleaned.dta", clear
 rename OCC_CODE soc2010
 
 `#PREREQ' local naics "../industries/build/output/naicsindex2017.dta"
