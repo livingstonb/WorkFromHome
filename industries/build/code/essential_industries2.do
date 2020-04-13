@@ -13,7 +13,7 @@ tempfile essential_tmp
 save `essential_tmp', replace
 
 // MERGE WITH OES
-`#PREREQ' use "../OES/build/output/oes4d.dta", clear
+`#PREREQ' use "../OES/build/output/oes4d2017.dta", clear
 keep if OCC_GROUP == "total"
 keep NAICS NAICS_TITLE TOT_EMP A_MEAN OCC_CODE
 

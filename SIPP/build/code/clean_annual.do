@@ -1,9 +1,10 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+This script aggregates to the annual frequency by summing earnings over
+the year and using assets reported in the last month.
 */
 
-/* Dataset: SIPP */
-/* This script aggregates to the annual frequency by summing earnings over
-the year and using assets reported in the last month. */
+local cash_multiplier = 1.05
+
 `#PREREQ' use "build/temp/sipp_monthly2.dta", clear
 
 // EARNINGS
@@ -36,8 +37,11 @@ label variable pbonds "government and corporate bonds"
 egen pliqequity = rowtotal(val_st val_mf)
 label variable pliqequity "stocks and mutual funds"
 
-egen liquid = rowtotal(pdeposits pbonds pliqequity)
-label variable liquid "liquid assets"
+egen liquid_nocash = rowtotal(pdeposits pbonds pliqequity)
+label variable liquid_nocash "liquid assets, assuming no cash"
+
+gen liquid_wcash = liquid_nocash * `cash_multiplier'
+label variable liquid_wcash "liquid assets, with assumed cash"
 
 * Liquid liabilities
 gen ccdebt = liab_ccdebt
@@ -54,7 +58,7 @@ egen netilliquid = rowtotal(phomeequity pretirement val_cd val_life)
 label variable netilliquid "net illiquid assets"
 
 // OTHER VARIABLES
-gen netliquid = liquid - ccdebt
+gen netliquid = liquid_wcash - ccdebt
 label variable netliquid "net liquid assets"
 
 gen netliq_earnings_ratio = netliquid / earnings if (earnings > 1000)
@@ -81,14 +85,22 @@ label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >=
 gen whtm_annearn = (netliquid < earnings) * (netilliquid >= 5000)
 label variable whtm_monthlyearn "Share WHtM (NLIQ < annual earnings and NILLIQ >= $5000)"
 
-gen phtm_biweeklyearn = (nla_lt_biweeklyearn == 1) & (whtm_biweeklyearn == 0)
+gen phtm_biweeklyearn = (nla_lt_biweeklyearn == 1) * (whtm_biweeklyearn == 0)
 replace phtm_biweeklyearn = . if missing(nla_lt_biweeklyearn, whtm_biweeklyearn)
 
-gen phtm_monthlyearn = (nla_lt_monthlyearn == 1) & (whtm_monthlyearn == 0)
+gen phtm_monthlyearn = (nla_lt_monthlyearn == 1) * (whtm_monthlyearn == 0)
 replace phtm_monthlyearn = . if missing(nla_lt_monthlyearn, whtm_monthlyearn)
 
-gen phtm_annearn = (nla_lt_annearn == 1) & (whtm_annearn == 0)
+gen phtm_annearn = (nla_lt_annearn == 1) * (whtm_annearn == 0)
 replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
+
+foreach x of numlist 500 1000 2000 {
+	gen nla_lt_`x'_nia_any = (netliquid < `x') if !missing(netliquid)
+foreach y of numlist 1000 5000 {
+	gen nla_lt_`x'_nia_gt_`y' = (netliquid < `x') * (netilliquid > `y')
+	replace nla_lt_`x'_nia_gt_`y' = . if missing(netliquid, netilliquid)
+}
+}
 
 drop `earnwk'
 

@@ -13,7 +13,7 @@ adopath + "../ado"
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
-local stats pdeposits pbonds pliqequity liquid ccdebt earnings
+local stats pdeposits pbonds pliqequity liquid_nocash liquid_wcash ccdebt earnings
 	netliquid netliq_earnings_ratio netilliquid;
 #delimit cr
 
@@ -33,7 +33,7 @@ foreach var of local stats {
 	local medianstats `medianstats' (median) median_`var'
 }
 
-foreach var of varlist qualitative_h2m foodinsecure nla_lt* whtm* phtm* {
+foreach var of varlist qualitative_h2m foodinsecure nla* whtm* phtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 

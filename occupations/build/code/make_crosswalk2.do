@@ -7,6 +7,7 @@ This script creates crosswalks for occupation codes.
 #PREREQ "build/output/occ3labels2018.do"
 */
 args crosswalk
+local crosswalk SIPP
 clear
 
 if "`crosswalk'" == "2010" {
@@ -32,6 +33,8 @@ if (`occyear' == 2018) | ("`sipp'" == "1") {
 	rename v1 census
 	rename v2 socstr
 	drop if (_n == 1)
+	replace socstr = strtrim(socstr)
+	replace census = strtrim(census)
 	drop if strlen(socstr) > 7
 	drop if strlen(census) > 4
 	destring census, replace
