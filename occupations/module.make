@@ -1,5 +1,11 @@
-SUBDIRS += occupations
-OBJDIRS += occupations/build
+objdirs = occupations/build
+
+SUBDIRS += $(objdirs)
+
+newdirs = $(addsuffix /temp, $(objdirs))
+newdirs += $(addsuffix /logs, $(objdirs))
+newdirs += $(addsuffix /output, $(objdirs))
+OBJDIRS += $(newdirs)
 
 codedir = occupations/build/code
 src = build/code/occupation_crosswalk.do

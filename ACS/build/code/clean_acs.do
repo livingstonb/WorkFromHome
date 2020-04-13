@@ -209,5 +209,4 @@ merge m:1 ind2012 using "`ind'",
 compress
 
 compress
-capture mkdir "build/output"
 `#TARGET' save "build/output/acs_cleaned.dta", replace

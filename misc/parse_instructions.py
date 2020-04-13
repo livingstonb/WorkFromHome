@@ -53,8 +53,8 @@ def write_mk(mk, paths):
 	with open(mkname, 'w') as fobj:
 		fobj.write(body + '\n')
 		fobj.write("$(targets) : $(dofiles) $(objects)\n")
-		fobj.write(f"\tcd {paths['module']} && $(STATA) {do}\n")
-		fobj.write(f"\t-mv {loginitial} {logfinal}")
+		fobj.write(f"\t@cd {paths['module']} && $(STATA) {do}\n")
+		fobj.write(f"\t@-mv {loginitial} {logfinal}")
 
 filepath = sys.argv[1]
 

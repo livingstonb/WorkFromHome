@@ -8,7 +8,8 @@ targets = build/output/oes3d.dta \
 	build/output/oes4d.dta \
 	stats/output/OESstats.dta
 
-build/output/oes%d.dta : build/read_oes.do build/input/nat%d_M2017_dl.xlsx
-	$(STATA) $< $*
+objects := OES/build/code/read_oes.do OES/build/input/nat%d_M2017_dl.xlsx
+OES/build/output/oes%d.dta : $(objects)
+	cd OES && $(STATA) build/code/read_oes.do $*
 
 include misc/includes.make

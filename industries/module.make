@@ -13,7 +13,6 @@ targets = naicsindex2017.dta \
 	industryindex2012.dta \
 	industryindex2017.dta \
 	industry2017crosswalk.dta \
-	bea_value_added_sector.dta \
 	essential_industries_cleaned.dta \
 	essential_workers.dta
 targets := $(addprefix build/output/, $(targets))

@@ -1,7 +1,7 @@
 objdirs := $(addprefix $(subdir)/, $(objdirs))
 SUBDIRS += $(objdirs)
 
-newdirs = $(addsuffix /temp, $(objdirs))
+newdirs := $(addsuffix /temp, $(objdirs))
 newdirs += $(addsuffix /logs, $(objdirs))
 newdirs += $(addsuffix /output, $(objdirs))
 OBJDIRS += $(newdirs)
@@ -9,7 +9,7 @@ OBJDIRS += $(newdirs)
 sources := $(foreach name, $(sources), \
 	$(shell find $(subdir) -name $(name) ))
 
-includes = $(sources:%.do=%.mk)
+includes := $(sources:%.do=%.mk)
 
 targets := $(addprefix $(subdir)/, $(targets))
 
