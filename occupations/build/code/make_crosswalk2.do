@@ -68,6 +68,7 @@ label variable soc2 "Occupation, 2-digit"
 
 rename soc3 soc3d`occyear'
 rename soc2 soc2d`occyear'
+rename census census2010
 
 `#TARGET' local output "build/output/occindex`crosswalk'.dta"
 save "`output'", replace

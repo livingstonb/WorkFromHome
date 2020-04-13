@@ -73,8 +73,8 @@ def extract_mk(filepath, prefix):
 	with open(filepath, 'r') as fobj:
 		for line in fobj:
 			if line.startswith("args"):
-				mk["argName"] = line.split(" ")[1].strip()
-				mk["argName"] = "`" + mk["argName"] + "'"
+				word = line.split(" ")[1].strip()
+				mk["argName"] = f"`{word}'"
 			else:
 				for key in mk.keys():
 					match = parse_line(key, line, mk["argName"])
@@ -108,6 +108,7 @@ def write_mk(mk, paths):
 	body = "\n".join([doline, prereqline, targetline])
 	with open(mkname, 'w') as fobj:
 		fobj.write(body + '\n')
+		fobj.write(".PRECIOUS : $(targets)\n")
 		fobj.write("$(targets) : $(dofiles) $(prereqs)\n")
 		fobj.write(f"\tcd {paths['module']} && $(STATA) {do}\n")
 		fobj.write(f"\t@-mv {loginitial} {logfinal}")

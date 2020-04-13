@@ -240,13 +240,13 @@ drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
 // RECODE INDUSTRY AND OCCUPATION
 
 * Merge with 3-digit occupation
-rename occcensus census
+rename occcensus census2010
 `#PREREQ' local occsipp "../occupations/build/output/occindexSIPP.dta"
 #delimit ;
 merge m:1 census using "`occsipp'",
 	keepusing(soc3d2010) keep(match master) nogen;
 #delimit cr
-rename census occcensus
+rename census2010 occcensus
 rename soc3d2010 occ3d2010
 drop enjflag ejb*_scrnr
 

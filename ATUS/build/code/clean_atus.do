@@ -56,12 +56,12 @@ rename tuyear year
 
 * 3-digit occupation
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
-rename occcensus census
+rename occcensus census2010
 #delimit ;
 merge m:1 census using "`occ2010'",
 	nogen keep(match master) keepusing(soc3d2010);
 #delimit cr
-rename census occcensus
+rename census2010 occcensus
 rename soc3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
