@@ -13,6 +13,7 @@ foreach var of varlist _all {
 	local newname = lower("`var'")
 	capture rename `var' `newname'
 }
+capture rename naics naicscode
 
 local stringvars occ_code tot_emp a_mean occ_group
 foreach var of local stringvars  {

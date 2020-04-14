@@ -14,27 +14,27 @@ save `essential_tmp', replace
 
 // MERGE WITH OES
 import excel "../OES/build/input/nat4d2017", clear firstrow
-drop if inlist(OCC_GROUP, "major", "total", "detailed")
-gen soc3d2010 = substr(OCC_CODE, 1, 4)
-replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
-destring soc3d2010, replace force
 
-gen occ_broad = OCC_CODE if OCC_GROUP == "broad"
+* Clean
+`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017
 
-gen minors = (OCC_GROUP == "minor")
-bysort soc3d2010: egen minor_present = max(minors)
+* drop if inlist(OCC_GROUP, "major", "total", "detailed")
+* gen soc3d2010 = substr(OCC_CODE, 1, 4)
+* replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
+* destring soc3d2010, replace force
 
-drop if (OCC_GROUP == "broad") & minor_present
-drop minors minor_present
+* gen occ_broad = OCC_CODE if OCC_GROUP == "broad"
 
-keep NAICS NAICS_TITLE TOT_EMP A_MEAN OCC_CODE soc3d2010
+* gen minors = (OCC_GROUP == "minor")
+* bysort soc3d2010: egen minor_present = max(minors)
 
-rename A_MEAN meanwage
-rename NAICS naicscode
-rename TOT_EMP emp_oes
+* drop if (OCC_GROUP == "broad") & minor_present
+* drop minors minor_present
 
-replace emp_oes = "" if inlist(emp_oes, "*", "**", "#")
-destring emp_oes, replace
+* keep NAICS NAICS_TITLE TOT_EMP A_MEAN OCC_CODE soc3d2010
+
+rename a_mean meanwage
+rename tot_emp emp_oes
 
 merge m:1 naicscode using `essential_tmp', nogen
 replace essential = 0 if missing(essential)
@@ -42,15 +42,15 @@ replace essential = 0 if missing(essential)
 destring emp_oes, replace
 destring meanwage, replace
 
-drop dhscategory
-rename NAICS_TITLE title_naics
-rename naicscode naics
-sort naics
+* drop dhscategory
+* rename NAICS_TITLE title_naics
+* rename naicscode naics
+sort naicscode
 
-// GENERATE OCCUPATION CODES
-`#PREREQ' do "../occupations/build/output/occ3labels2010.do"
-label values soc3d2010 soc3d2010_lbl
-drop if missing(soc3d2010)
+* // GENERATE OCCUPATION CODES
+* `#PREREQ' do "../occupations/build/output/occ3labels2010.do"
+* label values soc3d2010 soc3d2010_lbl
+* drop if missing(soc3d2010)
 
 // COLLAPSE
 gen ones = 1
