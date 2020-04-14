@@ -1,10 +1,10 @@
 /* --- HEADER ---
-This do-file reads the OES 2-, 3-, or 4-digit industry data from excel into stata
-and resaves.
+This do-file reads the OES 2-, 3-, or 4-digit industry data from excel into
+Stata.
 */
 
-args DIGITdYR
-import excel "build/input/nat`DIGITdYR'", clear firstrow
+args year
+import excel "build/input/nat`DIGITdYEAR", clear firstrow
 
 compress
-`#TARGET' save "build/output/oes`DIGITdYR'.dta", replace
+save "build/temp/oes`year'.dta", replace

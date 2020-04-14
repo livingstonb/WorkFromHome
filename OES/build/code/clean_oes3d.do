@@ -3,7 +3,7 @@ This do-file cleans the OES dataset at the 3-digit occupation level.
 */
 
 * Read raw data
-`#PREREQ' use "build/output/oes3d2017.dta", clear
+import excel "build/input/nat3d2017", clear firstrow
 
 gen soc3d2010 = substr(OCC_CODE, 1, 4)
 replace soc3d2010 = subinstr(soc3d2010, "-", "", .)

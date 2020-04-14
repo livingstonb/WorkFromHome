@@ -71,6 +71,7 @@ def extract_mk(filepath, prefix):
 			"argName": None,
 		}
 	with open(filepath, 'r') as fobj:
+		noMakeCommands = True
 		for line in fobj:
 			if line.startswith("args"):
 				word = line.split(" ")[1].strip()
@@ -79,8 +80,11 @@ def extract_mk(filepath, prefix):
 				for key in mk.keys():
 					match = parse_line(key, line, mk["argName"])
 					if match is not None:
+						noMakeCommands = False
 						mk[key].append(match)
 						break
+	if noMakeCommands:
+		return None
 
 	for vlist in [mk["#PREREQ"], mk["#TARGET"]]:
 		vlist = adjust_paths(prefix, vlist)
@@ -117,4 +121,6 @@ filepath = sys.argv[1]
 
 paths = parse_path(filepath)
 mk = extract_mk(filepath, paths['module'])
-write_mk(mk, paths)
+
+if mk is not None:
+	write_mk(mk, paths)
