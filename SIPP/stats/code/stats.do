@@ -89,8 +89,6 @@ drop mean_earnings
 drop median_earnings
 gen source = "SIPP"
 
-capture mkdir "stats/output"
-
 `#TARGET' save "stats/output/SIPPwfh.dta", replace
 restore
 

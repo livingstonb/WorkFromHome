@@ -8,6 +8,17 @@ class StataParser:
 		self.parse_do()
 		self.check()
 
+		horzline = ''.join(['-'] * 100)
+		self.header = 	(
+						f'# {horzline}\n'
+						f'# This is an automatically generated file\n'
+						f'# created by make_tools.py.\n'
+						f'#\n'
+						f'# Do-file source:\n'
+						f'#\t{self.full}\n'
+						f'# {horzline}\n\n'
+					)
+
 	def adjust_paths(self):
 		"""
 		Strips ../ if present, otherwise appends the base
@@ -78,14 +89,21 @@ class StataParser:
 		if self.mk["argName"] is not None:
 			do += " $*"
 
+		newdirnames = ['temp', 'output', 'logs']
+		newdirs = [f'{self.subdir}/{x}' for x in newdirnames]
+		newdirlines = '\n'.join([f'\t@mkdir -p {x}' for x in newdirs])
+
 		prereqlines = 'prereqs = ' + ' \\\n\t'.join(self.mk['prereqs'])
 		targetlines = 'targets = ' + ' \\\n\t'.join(self.mk["targets"])
 		with open(self.mkpath, 'w') as fobj:
+			fobj.write(self.header)
 			fobj.write(prereqlines)
 			fobj.write('\n')
 			fobj.write(targetlines)
 			fobj.write("\n.PRECIOUS : $(targets)\n")
 			fobj.write("$(targets) : $(prereqs)\n")
+			fobj.write(newdirlines)
+			fobj.write('\n')
 			fobj.write(f"\tcd {self.module} && $(STATA) {do}\n")
 			fobj.write(f"\t@-mv {self.loginitial} {self.logfinal}")
 

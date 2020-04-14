@@ -4,7 +4,9 @@ MODULES := occupations industries OES ACS \
 SUBDIRS :=
 OBJDIRS :=
 
-all : mkdirs $(MODULES)
+all : $(MODULES)
+
+all_with_procedures : procedures all
 
 %.mk : %.do misc/make_tools.py
 	@python misc/make_tools.py $<
@@ -14,10 +16,11 @@ include $(addsuffix /module.make, $(MODULES))
 endif
 
 .PHONY : clean clean_mk clean_temp clean_output all mkirs \
-	clean_module procedures clean_procedures
+	clean_module procedures clean_procedures \
+	all_with_procedures
 
-mkdirs :
-	@mkdir -p $(OBJDIRS)
+# mkdirs :
+# 	@mkdir -p $(OBJDIRS)
 
 clean : clean_mk clean_temp clean_output clean_procedures
 
@@ -37,15 +40,10 @@ clean_output :
 clean_procedures :
 	rm -rf misc/procedures
 
-%/temp %/output %/logs:
-	mkdir -p $@
-
 procedures = $(addprefix misc/procedures/, $(MODULES))
 procedures := $(addsuffix .txt, $(procedures))
 procedures : clean $(procedures)
 
-misc/procedures/%.txt : misc/procedures
-	$(MAKE) $* --dry-run | python misc/list_do_tasks.py > $@
-
-misc/procedures :
+misc/procedures/%.txt :
 	mkdir -p misc/procedures
+	$(MAKE) $* --dry-run | python misc/list_do_tasks.py > $@

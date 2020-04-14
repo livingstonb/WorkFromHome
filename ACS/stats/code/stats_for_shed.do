@@ -4,7 +4,6 @@ to be used in correspondence with SHED data.
 */
 
 clear
-capture mkdir "stats/output"
 
 local yr1 = 2012
 local yr2 = 2017

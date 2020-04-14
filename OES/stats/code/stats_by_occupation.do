@@ -32,7 +32,7 @@ forvalues year = 2000/2019 {
 	import excel "build/input/nat`digit'd`year'", clear firstrow
 	
 	* Clean
-	`#PREREQ' do "build/code/clean_oes_generic.do" `year'
+	`#PREREQ' do "build/code/clean_oes_generic.do" `year' 1
 	
 	* Collapse
 	gen employment = 1

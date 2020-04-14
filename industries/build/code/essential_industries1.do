@@ -16,7 +16,7 @@ save `essential_tmp', replace
 import excel "../OES/build/input/nat4d2017", clear firstrow
 
 * Clean
-`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017
+`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017 1
 
 * drop if inlist(OCC_GROUP, "major", "total", "detailed")
 * gen soc3d2010 = substr(OCC_CODE, 1, 4)

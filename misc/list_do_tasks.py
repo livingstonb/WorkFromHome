@@ -3,12 +3,17 @@ import re
 
 def parse():
 	currdir = 'WorkFromHome'
-	pat = r'cd\s+?(\w+?)\s+(.*?\s*+.)?(.*\.do)?'
 	pat = r'cd\s+?(\w+).*?do\s+?(.*\.do)?'
 	commands = []
+	dirs_seen = set()
 	for line in sys.stdin:
 		try:
-			matches = re.search(pat, line).groups()
+			reobj = re.search(pat, line)
+			if reobj is None:
+				continue
+			else:
+				matches = reobj.groups()
+
 			if len(matches) >= 2 :
 				basedir = matches[0]
 				dofile = matches[1]
@@ -19,9 +24,16 @@ def parse():
 					commands.append(f'\ncd "{basedir}"')
 				currdir = basedir
 
+				if currdir not in dirs_seen:
+					objdir = dofile.split('/')[0]
+					commands.append(f'mkdir -p {objdir}/output')
+					commands.append(f'mkdir -p {objdir}/temp')
+					dirs_seen.add(currdir)
+
 				commands.append(f'do "{dofile}"')
+
 		except Exception as e:
-			pass
+			print(e)
 
 	print('\n'.join(commands))
 

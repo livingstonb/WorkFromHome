@@ -78,5 +78,4 @@ keep if (age >= 15) & !missing(age)
 keep if (incwage > 0) & !missing(incwage)
 
 compress
-capture mkdir "build/temp"
 `#TARGET' save "build/temp/acs_temp.dta", replace

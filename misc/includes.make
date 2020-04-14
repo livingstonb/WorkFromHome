@@ -13,6 +13,6 @@ includes := $(sources:%.do=%.mk)
 
 targets := $(addprefix $(subdir)/, $(targets))
 
-$(subdir) : mkdirs $(includes) $(targets)
+$(subdir) : $(includes) $(targets)
 
 -include $(includes)

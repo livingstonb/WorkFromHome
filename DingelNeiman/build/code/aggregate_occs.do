@@ -4,62 +4,38 @@ Dingel and Neiman, and aggregates it up to the 3-digit level.
 */
 
 // Prepare OES 6-digit occs for merge
-`#PREREQ' use "../OES/build/output/oes3d_cleaned.dta", clear
-rename OCC_CODE soc2010
+import excel "../OES/build/input/nat3d2017", clear firstrow
 
-`#PREREQ' local naics "../industries/build/output/naicsindex2017.dta"
-* 1-digit first
-rename ind1d naics2017
-#delimit ;
-merge m:1 naics2017 using "`naics'",
-	keepusing(sector) keep(1 3 4) nogen;
-#delimit cr
-rename naics2017 ind1d
+* Clean
+`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017
 
-* 2-digit
-rename ind2d naics2017
-#delimit ;
-merge m:1 naics2017 using "`naics'",
-	keepusing(sector) keep(1 3 4) nogen update;
-#delimit cr
-rename naics2017 ind2d
-
-* 3-digit
-rename ind3d naics2017
-#delimit ;
-merge m:1 naics2017 using "`naics'",
-	keepusing(sector) keep(1 3 4) nogen update;
-#delimit cr
-rename naics2017 ind3d
+* Merge with sector
+`#PREREQ' ``"../industries/build/output/naicsindex2017.dta"''
+`#PREREQ' do "../OES/build/code/merge_with_sector.do"
 
 * Collapse by sector and detailed occupation
-preserve
-keep if OCC_GROUP == "detailed"
-collapse (sum) employment, by(sector soc2010)
+rename occ_code soc2010
+rename tot_emp employment
 
-tempfile oestmp6
-save `oestmp6', replace
-restore
+local digits 3 5 6
+local lvls minor broad detailed
 
-* Collapse by sector and broad occupation
-preserve
-keep if OCC_GROUP == "broad"
-collapse (sum) employment, by(sector soc2010)
-rename soc2010 soc5digit
+forvalues i = 1/3 {
+	local digit: word `i' of `digits'
+	local lvl: word `i' of `lvls'
 
-tempfile oestmp5
-save `oestmp5', replace
-restore
+	preserve
+	keep if occ_group == "`lvl'"
+	collapse (sum) employment, by(sector soc2010)
 
-* Collapse by sector and minor occupation
-preserve
-keep if OCC_GROUP == "minor"
-collapse (sum) employment, by(sector soc2010)
-rename soc2010 soc3digit
+	if `digit' < 6 {
+		rename soc2010 soc`digit'digit
+	}
 
-tempfile oestmp3
-save `oestmp3', replace
-restore
+	tempfile oestmp`digit'
+	save `oestmp`digit'', replace
+	restore
+}
 
 // Load Dingell-Neiman
 `#PREREQ' use "build/temp/DN_temp.dta", clear
