@@ -45,7 +45,7 @@ class StataParser:
 				"argName": None,
 		}
 
-		with open(filepath, 'r') as fobj:
+		with open(self.full, 'r') as fobj:
 			for line in fobj:
 				if line.startswith("args"):
 					word = line.split(" ")[1].strip()
@@ -63,7 +63,7 @@ class StataParser:
 						self.module, mk['#TARGET']),
 					'argName': mk['argName'],
 			}
-		self.mk['prereqs'].insert(self.full, 0)
+		self.mk['prereqs'].insert(0, self.full)
 
 	def check(self):
 		prefix = f'Source file {self.full} warning:\n'
@@ -75,16 +75,16 @@ class StataParser:
 		Writes a .mk file to be included by a makefile.
 		"""
 		do = self.relative
-		if mk["argName"] is not None:
+		if self.mk["argName"] is not None:
 			do += " $*"
 
-		prereqlines = 'prereqs = ' + ' \\\n\t'.join(mk['prereqs'])
-		targetlines = 'targets = ' + ' \\\n\t'.join(mk["targets"])
+		prereqlines = 'prereqs = ' + ' \\\n\t'.join(self.mk['prereqs'])
+		targetlines = 'targets = ' + ' \\\n\t'.join(self.mk["targets"])
 		with open(self.mkpath, 'w') as fobj:
 			fobj.write(prereqlines)
 			fobj.write('\n')
 			fobj.write(targetlines)
-			fobj.write(".PRECIOUS : $(targets)\n")
+			fobj.write("\n.PRECIOUS : $(targets)\n")
 			fobj.write("$(targets) : $(prereqs)\n")
 			fobj.write(f"\tcd {self.module} && $(STATA) {do}\n")
 			fobj.write(f"\t@-mv {self.loginitial} {self.logfinal}")

@@ -1,0 +1,43 @@
+\documentclass{article}
+
+\title{Data appendix}
+\author{}
+\date{}
+
+\usepackage{hyperref}
+\usepackage{breakurl}
+\usepackage{amsmath}
+
+
+\begin{document}
+\maketitle
+
+\section{SIPP}
+\subsection{Classification of worker into occupation category}
+\label{sipp_occupation}
+Respondents to SIPP are allowed to provide up to seven distinct jobs, each of with is reported for the individual months out of the year during which the individual held said occupation.
+For each worker-wave pair, I classify a worker as holding a given occupation by identifying one of the reported occupations as the primary occupation. I enact the following procedure for each worker-wave pair:
+\begin{enumerate}
+\item I make a list of all distinct occupation codes reported.
+\item I compute the number of months for which each distinct occupation code is reported. If the code is repeated for multiple reported jobs in the same month, I count this just once.
+\item I designate the primary occupation as the occupation code reported in the greatest number of months. If there is a tie, I choose among the most frequent codes the occupation code which was reported first.
+\end{enumerate}
+
+\subsection{Classification of worker into industry category}
+For industry classification I use essentially the same procedure as in Section \ref{sipp_occupation}, and I do this separately from occupation.
+
+\subsection{Earnings variable}
+Our measure of earnings is annual earnings, which we set equal to the sum of TPEARN over all twelve months of the year. The description of this variable is the following:
+\begin{quote}
+Income earned from all jobs worked during the month, including wage and salary income, bonus payments, commissions, overtime payments, tips, other income from self-employed businesses, self-employed business profits, and accounting for time spent away from a job without pay.
+\end{quote}
+Souce: \url{https://www.census.gov/programs-surveys/sipp/about/sipp-content-information/components-of-total-income.html}.
+
+\subsection{Wealth variables}
+\subsubsection{Ratio of liquid wealth to earnings}
+This statistic is defined as the following:
+$$
+\frac{\text{liquid assets} - \text{credit card debt}}{\text{annual earnings}}
+$$
+
+\end{document}

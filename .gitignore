@@ -1,5 +1,4 @@
 *.xlsx*
-*.tex
 *.stpr
 *.sublime-workspace
 **/output
@@ -19,4 +18,8 @@
 **.log
 *.mk
 *.fuse_hidden*
-tex
+*.aux
+*.out
+*.pdf
+*.gz
+misc/procedures
