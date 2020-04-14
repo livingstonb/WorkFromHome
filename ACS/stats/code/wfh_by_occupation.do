@@ -15,8 +15,7 @@ adopath + "../ado"
 // WFH BY OCCUPATION, THREE DIGIT
 `#PREREQ' local cleaned "build/output/acs_cleaned.dta"
 use "`cleaned'" if inrange(year, 2010, 2018), clear
-drop if missing(sector)
-drop if missing(occ3d2018) & missing(occ3d2010)
+drop if missing(sector, occ3d2010)
 
 label define bin_lbl 0 "No" 1 "Yes", replace
 label define bin_pct_lbl 0 "No" 100 "Yes", replace
@@ -40,7 +39,7 @@ clear
 
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 save `yrtmp', emptyok
-forvalues yr = 2010(1)2017 {
+forvalues yr = 2010(1)2010 {
 forvalues sval = 0/1 {
 	use soc3d2010 using "`occ2010'", clear
 	rename soc3d2010 occ3d2010
@@ -113,6 +112,10 @@ use `acs2017only'
 append using `acs2015to2017'
 append using `acs2013to2017'
 `#TARGET' save "stats/output/ACSwfh.dta", replace
+exit
+
+
+
 
 restore
 
@@ -175,14 +178,6 @@ createxlsx .descriptions .sheets .xlxnotes using "`yearly'"
 
 .sheets.loop_reset
 forvalues yr = 2010/2018 {
-	if (`yr' == 2018) {
-		local occvar occ3d2018
-	}
-	else {
-		local occvar occ3d2010
-	}
-
-
 forvalues sval = 0/2 {
 	.sheets.loop_next
 	
@@ -201,7 +196,7 @@ forvalues sval = 0/2 {
 		(mean) meanwage
 		[iw=perwt] if `conds'
 		using "`yearly'",
-		by(`occvar') modify sheet("`.sheets.loop_get'");
+		by(occ3d2010) modify sheet("`.sheets.loop_get'");
 	#delimit cr
 }
 }

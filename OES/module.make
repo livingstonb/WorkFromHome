@@ -2,7 +2,7 @@ subdir = OES
 
 objdirs = build stats
 
-sources = clean_oes3d.do stats.do read_oes.do \
+sources = clean_oes3d.do stats2017.do read_oes.do \
 	compute_occupation_stats.do combine_occupation_stats.do
 
 targets = build/output/oes3d_cleaned.dta \

@@ -19,14 +19,17 @@ Computes employment and mean wage by occupation.
 #PREREQ "build/output/oes2d2015.dta"
 #PREREQ "build/output/oes2d2016.dta"
 #PREREQ "build/output/oes2d2017.dta"
+#PREREQ "build/output/oes2d2018.dta"
+#PREREQ "build/output/oes2d2019.dta"
 */
 
 args year
+local year 2019
 
 if (`year' >= 2000) & (`year' < 2010) {
 	local socvar soc3d2000
 }
-else if (`year' >= 2010) & (`year' <= 2017) {
+else {
 	local socvar soc3d2010
 }
 
@@ -43,21 +46,33 @@ else {
 * Read raw data
 if (`year' <= 2002 ) {
 	use "build/output/oes`digit'd`year'.dta", clear
-	rename occ_code OCC_CODE
-	rename tot_emp TOT_EMP
-	rename a_mean A_MEAN
 	
-	replace OCC_CODE = strtrim(OCC_CODE)
-	gen suffix = substr(OCC_CODE, 3, .)
+	capture rename occ_code OCC_CODE
+	capture rename tot_emp TOT_EMP
+	capture rename a_mean A_MEAN
 
-	capture drop group
-	gen OCC_GROUP = ""
-	replace OCC_GROUP = "aggregate" if (suffix == "0000")
+	
+	
 }
 else  {
 	use "build/output/oes`digit'd`year'.dta", clear
+	capture rename occ_code OCC_CODE
+	capture rename tot_emp TOT_EMP
+	capture rename a_mean A_MEAN
+	capture rename occ_group OCC_GROUP
+	capture rename o_group OCC_GROUP
+	capture rename GROUP OCC_GROUP
+	replace OCC_CODE = strtrim(OCC_CODE)
 }
+
+replace OCC_CODE = strtrim(OCC_CODE)
+gen suffix = substr(OCC_CODE, 4, .)
+
+capture drop group
+gen occ_level = ""
 capture rename GROUP OCC_GROUP
+keep if OCC_GROUP == "" | OCC_GROUP == "detailed"
+replace occ_level = "aggregate" if (suffix == "0000")
 
 * Replace ** with missing
 rename TOT_EMP employment
@@ -66,17 +81,8 @@ destring employment, force replace
 destring meanwage, force replace
 drop if missing(employment, meanwage)
 
-if (`year' <= 2011) {
-	drop if OCC_GROUP != ""
-}
-else {
-	keep if OCC_GROUP == "minor"
-}
+drop if occ_level == "aggregate"
 keep employment OCC_CODE meanwage
-
-gen `socvar' = substr(OCC_CODE, 1, 4)
-replace `socvar' = subinstr(`socvar', "-", "", .)
-destring `socvar', replace
 
 if (`year' >= 2000) & (`year' < 2010) {
 	rename OCC_CODE soc2000
@@ -85,7 +91,19 @@ if (`year' >= 2000) & (`year' < 2010) {
 		"../occupations/build/output/soc3d_2000_to_2010_crosswalk.dta",
 		keepusing(soc3d2010) nogen keep(1 3);
 	#delimit cr
-	drop `socvar'
+	drop soc2000
+}
+else if (`year' < 2018) {
+	gen `socvar' = substr(OCC_CODE, 1, 4)
+	replace `socvar' = subinstr(`socvar', "-", "", .)
+	destring `socvar', replace
+}
+else {
+	gen `socvar' = substr(OCC_CODE, 1, 4)
+	replace `socvar' = subinstr(`socvar', "-", "", .)
+	destring `socvar', replace
+	
+	replace `socvar' = 299 if (`socvar' == 195)
 }
 drop if missing(soc3d2010)
 

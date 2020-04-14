@@ -183,21 +183,22 @@ replace occyear = 2018 if (year == 2018)
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 rename occn census2010
 #delimit ;
-merge m:1 census occyear using "`occ2010'",
+merge m:1 census2010 occyear using "`occ2010'",
 	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
 #delimit cr
 rename soc3d2010 occ3d2010
 
 * 2018
 `#PREREQ' local occ2018 "../occupations/build/output/occindex2018.dta"
+rename census2010 census2018
 #delimit ;
-merge m:1 census2010 occyear using "`occ2018'",
-	keepusing(soc3d2018) keep(1 3 4) nogen update;
+merge m:1 census2018 occyear using "`occ2018'",
+	keepusing(soc3d2010) keep(1 3 4) nogen update;
 #delimit cr
-rename soc3d2018 occ3d2018
+replace occ3d2010 = soc3d2010 if year == 2018
 
-drop occyear
-rename census2010 occn
+drop occyear soc3d2010
+rename census2018 occn
 
 * Industry coding
 `#PREREQ' local ind "../industries/build/output/industryindex2012.dta"

@@ -1,5 +1,5 @@
 /* --- HEADER ---
-This do-file reads the OES 3- or 4-digit industry data from excel into stata
+This do-file reads the OES 2-, 3-, or 4-digit industry data from excel into stata
 and resaves.
 */
 
