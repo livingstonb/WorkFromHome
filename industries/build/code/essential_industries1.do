@@ -13,9 +13,21 @@ tempfile essential_tmp
 save `essential_tmp', replace
 
 // MERGE WITH OES
-`#PREREQ' use "../OES/build/output/oes4d2017.dta", clear
-keep if OCC_GROUP == "minor"
-keep NAICS NAICS_TITLE TOT_EMP A_MEAN OCC_CODE
+import excel "../OES/build/input/nat4d2017", clear firstrow
+drop if inlist(OCC_GROUP, "major", "total", "detailed")
+gen soc3d2010 = substr(OCC_CODE, 1, 4)
+replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
+destring soc3d2010, replace force
+
+gen occ_broad = OCC_CODE if OCC_GROUP == "broad"
+
+gen minors = (OCC_GROUP == "minor")
+bysort soc3d2010: egen minor_present = max(minors)
+
+drop if (OCC_GROUP == "broad") & minor_present
+drop minors minor_present
+
+keep NAICS NAICS_TITLE TOT_EMP A_MEAN OCC_CODE soc3d2010
 
 rename A_MEAN meanwage
 rename NAICS naicscode
@@ -36,10 +48,6 @@ rename naicscode naics
 sort naics
 
 // GENERATE OCCUPATION CODES
-gen soc3d2010 = substr(OCC_CODE, 1, 4)
-replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
-destring soc3d2010, replace
-
 `#PREREQ' do "../occupations/build/output/occ3labels2010.do"
 label values soc3d2010 soc3d2010_lbl
 drop if missing(soc3d2010)

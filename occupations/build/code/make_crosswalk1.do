@@ -54,7 +54,7 @@ sort socstr
 if "`sipp'" != "1" {
 	#delimit ;
 	label save soc3d`occyear'_lbl
-`#TARGET'		using "build/output/occ3labels`occyear'.do", replace;
+`#TARGET' using "build/output/occ3labels`occyear'.do", replace;
 	#delimit cr
 }
 

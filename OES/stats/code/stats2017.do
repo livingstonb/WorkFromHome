@@ -25,8 +25,6 @@ forvalues sval = 0/1 {
 `#PREREQ' use "build/output/oes3d_cleaned.dta", clear
 
 * Housekeeping
-keep if OCC_GROUP == "minor"
-
 rename soc3d2010 occ3d2010
 #delimit ;
 keep NAICS NAICS_TITLE occ3d2010 OCC_GROUP

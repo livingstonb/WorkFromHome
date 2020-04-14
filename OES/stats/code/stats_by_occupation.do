@@ -51,7 +51,7 @@ forvalues year = 2000/2019 {
 		rename occ_code soc2000
 		#delimit ;
 		merge m:1 soc2000 using 
-			"../occupations/build/output/soc3d_2000_to_2010_crosswalk.dta",
+`#PREREQ'		"../occupations/build/output/soc3d_2000_to_2010_crosswalk.dta",
 			keepusing(soc3d2010) nogen keep(1 3);
 		#delimit cr
 	}
