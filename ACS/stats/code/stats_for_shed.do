@@ -19,9 +19,7 @@ keep if inrange(year, `yr1', `yr2')
 gen wfh2digit = 100 * workfromhome
 
 #delimit ;
-collapse
-	(mean) wfh2digit
-	[iw=perwt], by(soc2d2010) fast;
+collapse (mean) wfh2digit [iw=perwt], by(soc2d2010) fast;
 #delimit cr
 
 gen wfhflex = (wfh2digit > 3.5)

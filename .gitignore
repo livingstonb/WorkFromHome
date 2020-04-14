@@ -23,3 +23,8 @@
 *.pdf
 *.gz
 misc/procedures
+*.aux
+*.bbl
+*.blg
+*.out
+*.html

@@ -48,7 +48,7 @@ class StataParser:
 
 		logname = self.basename.replace('.do', '.log')
 		self.loginitial = os.path.join(self.module, logname)
-		self.logfinal = os.path.join(self.objdir, logname)
+		self.logfinal = os.path.join(self.subdir, 'logs', logname)
 
 	def parse_do(self):
 		mk = {	"#PREREQ": [],

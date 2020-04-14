@@ -7,10 +7,71 @@
 \usepackage{hyperref}
 \usepackage{breakurl}
 \usepackage{amsmath}
-
+\usepackage{cite}
 
 \begin{document}
 \maketitle
+
+\section{TODO}
+\begin{itemize}
+\item Industry crosswalks, provide spreadsheets
+\item Occupation crosswalks, provide spreadsheets
+\item Provide code
+\end{itemize}
+
+\section{Classification of workers by industry and/or occupation}
+For mapping Census occupation and industry codes to SOC and NAICS codes, respectively, I rely on crosswalks provided by \cite{crosswalks}.
+
+\subsection{Occupation classification}
+We use a total of 94 occupation categories, consisting of all three-digit (aka minor) groups in the 2010 SOC system, with the exclusion of major group 55 known as \emph{Military Specific Occupations}. For cases in which the data are based on other classification systems, e.g. 2018 SOC or 2010 Census, we use crosswalks to reclassify workers into a 2010 minor group.
+
+\subsection{Sector classification}
+To identify a worker as belonging to sector C or sector S, we go by 2017 NAICS codes. For datasets using 2012 NAICS codes, we map 2012 industry codes into roughtly equivalent 2017 industry codes.
+
+\section{BLS Occupational Employment Statistics}
+\subsection{Data}
+We use industry-specific, cross-ownership OES data downloaded from the BLS website (See \cite{OES}). For most years, separate datasets are available for different levels of industry aggregation. Depending on the context, we use the broadest level of industry aggregation possible, to reduce the likelihood of our estimates being affected by rounding error or missing values present at very fine levels of industry aggregation. 
+
+\subsection{Aggregating occupation to 2010 SOC minor groups}
+\label{OES: aggregation}
+We use OES data on employment and mean wage by occupation and industry.
+Depending on the year and occupation in question, OES datasets in some cases provide employment and mean wage at multiple levels of occupation aggregation, and sometimes our desired minor groups are omitted.
+When estimating employment for each of our occupation categories, we first use the employment figures provided at the 2010 SOC minor level, if available. Where they are not provided, we aggregate from finer occupation groups. We do the same for the mean wage, except we take employment-weighted means as we aggregate up rather than sums.
+
+\subsection{Aggregating by both industry and occupation}
+In some cases we aggregate by both industry and occupation. We do this by separately identifying each worker with a minor 2010 SOC code and and a code for industry, with the latter depending on our desired level of industry aggregation for a given estimator. Then we aggregate up as described in Section \ref{OES: aggregation}, with the change that we compute estimates conditional on both occupation and industry rather than occupation alone.
+
+\section{ACS}
+\subsection{Sample}
+We use an individual-level sample restricted to observations satisfying the following:
+\begin{itemize}
+\item At least 15 years of age
+\item In the labor force
+\item Annual earnings last year were at least \$1000
+\item Worked at least 27 weeks of the previous year
+\end{itemize}
+
+\subsection{Variables}
+\subsubsection{Weights}
+For weighting, we use the PERWT variable in all estimation.
+
+\subsubsection{WFH}
+We classify an individual as having worked from home based on the response to the question: ``How did this person usually get to work LAST WEEK?''
+Each observation was classified as WFH if the response was ``Worked at home,'' otherwise the observation was classified as not a WFH worker.
+We use the ACS variable called TRANWORK.
+
+\section{ATUS}
+
+\subsection{Sample}
+Our sample consists of respondents to the 2017-2018 ATUS Leave Module. This module by construction excludes all non-workers and all self-employed workers.
+
+\subsection{Variables}
+
+\subsubsection{Weights}
+All estimates are weighted using the ATUS variable \emph{lufinlwgt}.
+
+\subsubsection{WFH}
+We base our WFH statistics on the variables \emph{lejf\_11} and \emph{lujf\_10}, which correspond to actual WFH and the ability to WFH in one's job, respectively.
 
 \section{SIPP}
 \subsection{Classification of worker into occupation category}
@@ -39,5 +100,9 @@ This statistic is defined as the following:
 $$
 \frac{\text{liquid assets} - \text{credit card debt}}{\text{annual earnings}}
 $$
+
+
+\bibliography{bibliography}
+\bibliographystyle{plain}
 
 \end{document}

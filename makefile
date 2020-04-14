@@ -4,7 +4,7 @@ MODULES := occupations industries OES ACS \
 SUBDIRS :=
 OBJDIRS :=
 
-all : $(MODULES)
+all : $(MODULES) readme
 
 all_with_procedures : procedures all
 
@@ -17,10 +17,19 @@ endif
 
 .PHONY : clean clean_mk clean_temp clean_output all mkirs \
 	clean_module procedures clean_procedures \
-	all_with_procedures
+	all_with_procedures readme tex
 
-# mkdirs :
-# 	@mkdir -p $(OBJDIRS)
+tex :
+	rm -f tex/data_methods/data_methods.aux
+	rm -f tex/data_methods/data_methods.bbl
+	rm -f tex/data_methods/data_methods.blg
+	rm -f tex/data_methods/data_methods.log
+	rm -f tex/data_methods/data_methods.out
+	rm -f tex/data_methods/data_methods.pdf
+	cd tex/data_methods && pdflatex data_methods
+	cd tex/data_methods && bibtex data_methods
+	cd tex/data_methods && pdflatex data_methods
+	cd tex/data_methods && pdflatex data_methods
 
 clean : clean_mk clean_temp clean_output clean_procedures
 
@@ -47,3 +56,6 @@ procedures : clean $(procedures)
 misc/procedures/%.txt :
 	mkdir -p misc/procedures
 	$(MAKE) $* --dry-run | python misc/list_do_tasks.py > $@
+
+readme :
+	pandoc readme.md -o readme.pdf
