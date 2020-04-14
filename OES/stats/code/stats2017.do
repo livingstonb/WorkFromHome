@@ -27,7 +27,7 @@ forvalues sval = 0/1 {
 * Housekeeping
 rename soc3d2010 occ3d2010
 #delimit ;
-keep NAICS NAICS_TITLE occ3d2010 OCC_GROUP
+keep occ3d2010 occ_group
 	employment occshare_industry
 	meanwage medianwage sector;
 #delimit cr
