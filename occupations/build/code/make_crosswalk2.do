@@ -17,7 +17,6 @@ else if "`crosswalk'" == "SIPP" {
 	local sipp 1
 }
 
-
 // USE CENSUS-SOC CROSSWALK
 clear
 `#PREREQ' local fname "build/input/census_soc_crosswalk_`crosswalk'.csv"

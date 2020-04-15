@@ -39,7 +39,7 @@ clear
 
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 save `yrtmp', emptyok
-forvalues yr = 2010(1)2010 {
+forvalues yr = 2010(1)2017 {
 forvalues sval = 0/1 {
 	use soc3d2010 using "`occ2010'", clear
 	rename soc3d2010 occ3d2010
@@ -63,7 +63,7 @@ label variable blankobs "Empty category"
 
 // PRODUCE STATA FILE
 tempfile acs2017only
-
+preserve
 #delimit ;
 collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
@@ -74,11 +74,10 @@ collapse
 gen source = "ACS2017only"
 save `acs2017only', replace
 
-restore
-preserve
-
 tempfile acs2015to2017
+restore
 
+preserve
 #delimit ;
 collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw

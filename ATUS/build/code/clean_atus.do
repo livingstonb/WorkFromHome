@@ -69,7 +69,7 @@ label variable occ3digit "Occupation, 3 digit"
 `#PREREQ' local ind12 "../industries/build/output/cwalk_census2012_to_sector.dta"
 rename inddetailed ind2012
 #delimit ;
-merge m:1 ind2012 using "`ind2012'",
+merge m:1 ind2012 using "`ind12'",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 
