@@ -19,13 +19,11 @@ endif
 	clean_module procedures clean_procedures \
 	all_with_procedures readme tex
 
+texloc = tex/data_methods/data_methods
+texexts = .aux .bbl .blg .log .out .pdf
+texfiles := $(addprefix $(texloc), texexts)
 tex :
-	rm -f tex/data_methods/data_methods.aux
-	rm -f tex/data_methods/data_methods.bbl
-	rm -f tex/data_methods/data_methods.blg
-	rm -f tex/data_methods/data_methods.log
-	rm -f tex/data_methods/data_methods.out
-	rm -f tex/data_methods/data_methods.pdf
+	rm -f $(texfiles)
 	cd tex/data_methods && pdflatex data_methods
 	cd tex/data_methods && bibtex data_methods
 	cd tex/data_methods && pdflatex data_methods

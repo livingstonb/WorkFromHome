@@ -20,5 +20,4 @@ when found in a given line, will tell python to look for a filename enclosed in 
 ### Preparing the raw data
 ACS data can be pulled from IPUMS. To view the variables needed from IPUMS,
 see the variables listed under the `keep` command in *ACS/build/code/read_acs.do*.
-The raw data is expected to be a single Stata file with the path and filename
-*ACS/build/input/acs_raw.dta*.
+The raw data is expected to be a single Stata file: *ACS/build/input/acs_raw.dta*.

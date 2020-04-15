@@ -62,8 +62,6 @@ replace nworkers_unw = 0 if (blankobs == 1)
 label variable blankobs "Empty category"
 
 // PRODUCE STATA FILE
-preserve
-
 tempfile acs2017only
 
 #delimit ;
@@ -112,93 +110,3 @@ use `acs2017only'
 append using `acs2015to2017'
 append using `acs2013to2017'
 `#TARGET' save "stats/output/ACSwfh.dta", replace
-exit
-
-
-
-
-restore
-
-// POOLED YEARS
-.xlxnotes = .statalist.new
-.xlxnotes.append "Dataset: ACS"
-.xlxnotes.append "Sample: 2010-2017 pooled"
-.xlxnotes.append "Description: WFH statistics by 3-digit occupation"
-
-`#TARGET' local pooledxlx "stats/output/ACS_wfh_pooled.xlsx"
-
-.descriptions = .statalist.new
-.descriptions.append "Sector S"
-.descriptions.append "Sector C"
-.descriptions.append "Both sectors"
-.sheets = .descriptions.copy
-
-#delimit ;
-createxlsx .descriptions .sheets .xlxnotes
-	using "`pooledxlx'";
-#delimit cr
-
-.sheets.loop_reset
-forvalues sval = 0/2 {
-	.sheets.loop_next
-	
-	if `sval' < 2 {
-		local conds (sector == `sval') & inrange(year, 2010, 2017)
-	}
-	else {
-		local conds inrange(year, 2010, 2017)
-	}
-	
-	#delimit ;
-	collapse2excel
-		(sum) nworkers_wt (rawsum) nworkers_unw
-		(mean) pct_workfromhome (mean) meanwage
-		(min) blankobs
-		[iw=perwt] if `conds' using "`pooledxlx'",
-		by(occ3d2010) modify sheet("`.sheets.loop_get'");
-	#delimit cr
-}
-
-// YEARLY
-.xlxnotes = .statalist.new
-.xlxnotes.append "Dataset: ACS"
-.xlxnotes.append "Sample: 2010-2018, separated by year"
-.xlxnotes.append "Description: WFH statistics by 3-digit occupation"
-
-`#TARGET' local yearly "stats/output/ACS_wfh_yearly.xlsx"
-
-.descriptions = .statalist.new
-forvalues yr = 2010/2018 {
-	.descriptions.append "`yr', Sector C"
-	.descriptions.append "`yr', Sector S"
-	.descriptions.append "`yr', Both sectors"
-}
-.sheets = .descriptions.copy
-createxlsx .descriptions .sheets .xlxnotes using "`yearly'"
-
-.sheets.loop_reset
-forvalues yr = 2010/2018 {
-forvalues sval = 0/2 {
-	.sheets.loop_next
-	
-	if `sval' < 2 {
-		local conds (sector == `sval') & (year == `yr')
-	}
-	else {
-		local conds (year == `yr')
-	}
-	
-	#delimit ;
-	collapse2excel
-		(sum) nworkers_wt
-		(rawsum) nworkers_unw
-		(mean) pct_workfromhome
-		(mean) meanwage
-		[iw=perwt] if `conds'
-		using "`yearly'",
-		by(occ3d2010) modify sheet("`.sheets.loop_get'");
-	#delimit cr
-}
-}
-
-drop nworkers_unw nworkers_wt meanwage
