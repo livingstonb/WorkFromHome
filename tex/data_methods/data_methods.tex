@@ -12,12 +12,7 @@
 \begin{document}
 \maketitle
 
-\section{TODO}
-\begin{itemize}
-\item Industry crosswalks, provide spreadsheets
-\item Occupation crosswalks, provide spreadsheets
-\item Provide code
-\end{itemize}
+\tableofcontents
 
 \section{Classification of workers by industry and/or occupation}
 For mapping Census occupation and industry codes to SOC and NAICS codes, respectively, I rely on crosswalks provided by \cite{crosswalks}.
@@ -39,9 +34,11 @@ Depending on the year and occupation in question, OES datasets in some cases pro
 When estimating employment for each of our occupation categories, we first use the employment figures provided at the 2010 SOC minor level, if available. Where they are not provided, we aggregate from finer occupation groups. We do the same for the mean wage, except we take employment-weighted means as we aggregate up rather than sums.
 
 \subsection{Aggregating by both industry and occupation}
-In some cases we aggregate by both industry and occupation. We do this by separately identifying each worker with a minor 2010 SOC code and and a code for industry, with the latter depending on our desired level of industry aggregation for a given estimator. Then we aggregate up as described in Section \ref{OES: aggregation}, with the change that we compute estimates conditional on both occupation and industry rather than occupation alone.
+In some cases we aggregate by both industry and occupation. We do this by separately identifying each worker with a minor 2010 SOC code and a code for industry, with the latter depending on our desired level of industry aggregation for a given estimator. Then we aggregate up as described in Section \ref{OES: aggregation}, with the change that we compute estimates conditional on both occupation and industry rather than occupation alone.
 
 \section{ACS}
+Our source for the ACS is \cite{ACS}, provided by \cite{IPUMS}.
+
 \subsection{Sample}
 We use an individual-level sample restricted to observations satisfying the following:
 \begin{itemize}
@@ -63,7 +60,7 @@ We use the ACS variable called TRANWORK.
 \section{ATUS}
 
 \subsection{Sample}
-Our sample consists of respondents to the 2017-2018 ATUS Leave Module. This module by construction excludes all non-workers and all self-employed workers.
+Our sample consists of respondents to the 2017-2018 ATUS Leave Module. This module by construction excludes all non-workers and all self-employed workers. I do not impose any sample restrictions.
 
 \subsection{Variables}
 
@@ -74,6 +71,9 @@ All estimates are weighted using the ATUS variable \emph{lufinlwgt}.
 We base our WFH statistics on the variables \emph{lejf\_11} and \emph{lujf\_10}, which correspond to actual WFH and the ability to WFH in one's job, respectively.
 
 \section{SIPP}
+\subsection{Sample}
+We use waves 1-4 of the 2014 SIPP. For each wave, we use all individuals of age 15 or older who were present in all 12 months of the wave. The waves are treated separately when computing all intermediate variables, and then pooled prior to final estimation. We do not link individuals across waves in any way.
+
 \subsection{Classification of worker into occupation category}
 \label{sipp_occupation}
 Respondents to SIPP are allowed to provide up to seven distinct jobs, each of with is reported for the individual months out of the year during which the individual held said occupation.
@@ -87,19 +87,60 @@ For each worker-wave pair, I classify a worker as holding a given occupation by 
 \subsection{Classification of worker into industry category}
 For industry classification I use essentially the same procedure as in Section \ref{sipp_occupation}, and I do this separately from occupation.
 
-\subsection{Earnings variable}
-Our measure of earnings is annual earnings, which we set equal to the sum of TPEARN over all twelve months of the year. The description of this variable is the following:
+\subsection{Variables}
+
+\subsubsection{Weights}
+All estimates are computed based on the provided person-level weight variable for the 2014 SIPP, which is identified as WPFINWGT.
+
+\subsubsection{Assets and liabilities}
+We use the following definitions:
+\begin{align*}
+\text{deposits} &= \text{saving accts} + \text{checking accts} + \text{money market funds} \\
+\text{bonds} &= \text{gov bonds} + \text{municipal and corporate bonds} \\
+\text{liquid assets} &= 1.05 \times (\text{deposits} + \text{bonds} + \text{stocks} + \text{mutual funds}) \\
+\text{net liquid assets} &= \text{liquid assets} - \text{cc debt} \\
+\text{net illiquid assets} &= \text{home equity} + \text{IRA} + \text{Keogh} + \text{CDs} + \text{life insurance}
+\end{align*}
+Home equity is surveyed at the household-level but SIPP provides an individual-level recode. The rest of the above variables are provided at the individual level.
+
+\subsubsection{Earnings}
+Our measure of earnings is annual earnings, which we set equal to the sum of TPEARN over all twelve months of the year. We take weekly earnings to be annual earnings divided by 52. The description of this variable, taken from \cite{tpearn}, is the following:
 \begin{quote}
 Income earned from all jobs worked during the month, including wage and salary income, bonus payments, commissions, overtime payments, tips, other income from self-employed businesses, self-employed business profits, and accounting for time spent away from a job without pay.
 \end{quote}
-Souce: \url{https://www.census.gov/programs-surveys/sipp/about/sipp-content-information/components-of-total-income.html}.
 
-\subsection{Wealth variables}
 \subsubsection{Ratio of liquid wealth to earnings}
-This statistic is defined as the following:
-$$
-\frac{\text{liquid assets} - \text{credit card debt}}{\text{annual earnings}}
-$$
+This statistic is just net liquid assets divided by annual earnings, conditional on annual earnings being at least \$1000.
+
+\subsubsection{HtM in terms of earnings}
+For various $x$ and $y$ in the expressions below, we compute binary indicators for HtM status for each observation. Let $b$ be net liquid assets and let $a$ be net illiquid assets.
+\begin{align*}
+\text{HtM} &= (a < x) \\
+\text{WHtM} &= (a < x) * (b \geq y) \\
+\text{PHtM} &= (a < x) * (b < y)
+\end{align*}
+To compute shares of individuals falling into these categories, we take weighted means of these indicators.
+
+\section{Essential workers by occupation}
+\subsection{Data}
+Here we use a combination of data from \cite{OES} and \cite{brookings}. The appendix to \cite{brookings} provides 4-digit industry codes deemed to be essential. The OES sample used was the four-digit employment-by-industry dataset for May 2017.
+
+\subsection{Methods}
+First, each OES occupation code was mapped to a 2010 SOC minor category. Second, each four-digit industry was either mapped to the essential workers data, in which case the industry was deemed essential, or not, and the industry was classified as non-essential.
+At this point we had employment, mean wage, and a binary indicator for essential industries, at the occupation-industry level. We then computed employment-weighted means to aggregate over all industries and estimate the share of each occupation in essential industries.
+
+
+\section{A teleworkable index using data from Dingel and Neiman}
+
+\subsection{Data}
+Using a binary indicator of whether an occupation is \emph{teleworkable} from \cite{DN}, we aggregate up to 2010 SOC minor occupation categories.
+
+\subsection{Methods}
+Note that for some six-digit occupations, the teleworkable indicator was not provided. In these cases, the occupations with a missing indicator were ignored and we proceeded with aggregation.
+
+We aggregated upwards starting from the finest categories possible. We took employment-weighted averages when each of the occupations listed in Dingel-Neiman had a non-missing employment estimate in OES for the given sector. Elsewhere, we took arithmetic means. 
+
+This means that, for example, once we averaged out the SOC-O*NET occupations to 6-digit SOC codes, we might run into a case where two of the three 6-digit occupations in Dingel-Neiman for a given 5-digit occupation category have nonmissing employment estimates in OES, but one is missing in OES. In that case, we took another arithmetic mean over the teleworkable variable for these three occupations to aggregate to the 5-digit level. From there, we would then do the same thing: if all occupations in SOC at the given 5-digit category had nonmissing employment estimates in OES, we would use an employment-weighted mean of teleworkable at the current aggregation level to aggregate upward, and if not, we would use an arithmetic mean, etc...
 
 
 \bibliography{bibliography}
