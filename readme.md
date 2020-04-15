@@ -17,7 +17,24 @@ In most Stata do-files, I include commands which have no effect in Stata but can
 when found in a given line, will tell python to look for a filename enclosed in double quotes on the same line. These filenames are then used to create a .mk file corresponding with the do-file which contains rules for make. I create these files dynamically and include them in the makefile.
 
 ## ACS
+
 ### Preparing the raw data
 ACS data can be pulled from IPUMS. To view the variables needed from IPUMS,
 see the variables listed under the `keep` command in *ACS/build/code/read_acs.do*.
 The raw data is expected to be a single Stata file: *ACS/build/input/acs_raw.dta*.
+
+## ATUS
+
+### Preparing the raw data
+ATUS data can be downloaded from BLS. You should be able to download all the files used
+in *ATUS/build/code/read_atus.do* and place them directly in *ATUS/build/input*, after
+changing the import lines in the downloaded do-files.
+
+## industries
+
+### Preparing the data
+This module requires OES data, which can be downloaded from the BLS. I rename the cross-ownership employment-by-industry files as *nat#d####*, where the first
+\# symbol is the digit at which industries are aggregated and the four symbols
+at the end represent year.
+
+### Crosswalks

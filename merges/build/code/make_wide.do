@@ -35,9 +35,9 @@ drop oes_employment_d* oes_meanwage_d* oes_occshare_d*
 order occ3d2010 oes*
 
 * Merge in essential workers data
-`#PREREQ' local essential "../industries/build/output/essential_workers.dta"
+`#PREREQ' local ess "../industries/build/output/essential_share_by_occ.dta"
 rename occ3d2010 soc3d2010
-merge 1:1 soc3d2010 using "`essential'", nogen keep(1 3) keepusing(essential)
+merge 1:1 soc3d2010 using "`ess'", nogen keep(1 3) keepusing(essential)
 rename soc3d2010 occ3d2010
 
 `#TARGET' save "build/output/wfh_merged_wide.dta", replace

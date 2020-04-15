@@ -9,8 +9,7 @@ clear
 import delimited "`ind12codes'", bindquotes(strict) varname(1)
 
 replace ind2012 = strtrim(ind2012)
-drop if strpos(ind2012, "-") > 1
-destring ind2012, replace
+destring ind2012, force replace
 
 * Map to 2017 codes
 gen ind2017 = ind2012
@@ -20,7 +19,7 @@ recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
 recode ind2017 (8190 = 8191) (8560 = 8563)
 recode ind2017 (8880 8890 = 8891)
 
-`#PREREQ' local ind17 "build/output/industryindex2017.dta"
+local ind17 "build/input/cwalk_census2017_to_sector.dta"
 #delimit ;
 merge m:m ind2017 using "`ind17'",
 	keepusing(sector) keep(match) nogen;
@@ -30,5 +29,5 @@ drop ind2017
 duplicates drop ind2012, force
 order ind2012 sector
 
-`#TARGET' local ind12 "build/output/industryindex2012.dta"
+`#TARGET' local ind12 "build/output/cwalk_census2012_to_sector.dta"
 save "`ind12'", replace

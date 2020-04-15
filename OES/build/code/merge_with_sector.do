@@ -1,34 +1,38 @@
 
-gen naicsnum = subinstr(naicscode, "-", "", .)
-destring naicsnum, replace force
+tempvar naicsnumeric
+gen `naicsnumeric' = subinstr(naicscode, "-", "", .)
+destring `naicsnumeric', force replace
 
-gen int ind3d = naicsnum / 1000
-gen int ind2d = floor(ind3d / 10)
-gen int ind1d = floor(ind3d / 100)
-drop naicsnum
+tempvar ind1d ind2d ind3d
+gen int `ind3d' = `naicsnumeric' / 1000
+gen int `ind2d' = floor(`ind3d' / 10)
+gen int `ind1d' = floor(`ind3d' / 100)
 
-local naicsdta "../industries/build/output/naicsindex2017.dta"
+#delimit ;
+local naicsdta
+	"../industries/build/input/cwalk_naics2017_to_sector.dta";
+#delimit cr
 
 * 1-digit first
-rename ind1d naics2017
+rename `ind1d' naics2017
 #delimit ;
 merge m:1 naics2017 using "`naicsdta'",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
-rename naics2017 ind1d
+drop naics2017
 
 * 2-digit
-rename ind2d naics2017
+rename `ind2d' naics2017
 #delimit ;
 merge m:1 naics2017 using "`naicsdta'",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
-rename naics2017 ind2d
+drop naics2017
 
 * 3-digit
-rename ind3d naics2017
+rename `ind3d' naics2017
 #delimit ;
 merge m:1 naics2017 using "`naicsdta'",
 	keepusing(sector) keep(1 3 4) nogen update;
 #delimit cr
-rename naics2017 ind3d
+drop naics2017

@@ -35,4 +35,4 @@ drop employment
 rename emp_oes employment
 collapse (mean) essential (sum) employment=ones [iw=employment], by(soc3d2010)
 
-`#TARGET' save "build/output/essential_workers.dta", replace
+`#TARGET' save "build/output/essential_share_by_occ.dta", replace

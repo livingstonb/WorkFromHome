@@ -10,7 +10,6 @@ import excel "../OES/build/input/nat3d2017", clear firstrow
 `#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017
 
 * Merge with sector
-`#PREREQ' ``"../industries/build/output/naicsindex2017.dta"''
 `#PREREQ' do "../OES/build/code/merge_with_sector.do"
 
 * Collapse by sector and detailed occupation

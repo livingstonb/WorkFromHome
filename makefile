@@ -29,7 +29,8 @@ tex :
 	cd tex/data_methods && pdflatex data_methods
 	cd tex/data_methods && pdflatex data_methods
 
-clean : clean_mk clean_temp clean_output clean_procedures
+clean : clean_logs clean_mk clean_temp \
+	clean_output clean_procedures
 
 clean_mk :
 	rm -f $(shell find . -name "*.mk")

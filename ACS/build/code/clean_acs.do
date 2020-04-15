@@ -201,13 +201,20 @@ drop occyear soc3d2010
 rename census2018 occn
 
 * Industry coding
-`#PREREQ' local ind "../industries/build/output/industryindex2012.dta"
-rename industry ind2012
+`#PREREQ'  local c12 "../industries/build/output/cwalk_census2012_to_sector.dta"
+gen ind2012 = industry if inrange(year, 2013, 2017)
 #delimit ;
-merge m:1 ind2012 using "`ind'",
-	keepusing(sector) keep(1 3 4) nogen;
+merge m:1 ind2012 using "`c12'",
+	keepusing(sector) keep(1 3) nogen;
 #delimit cr
-compress
+
+gen ind2017 = industry if (year > 2017)
+local c17 "../industries/build/input/cwalk_census2017_to_sector.dta"
+#delimit ;
+merge m:1 ind2017 using "`c17'",
+	keepusing(sector) keep(1 3 4) nogen replace;
+#delimit cr
+drop ind2012 ind2017
 
 compress
 `#TARGET' save "build/output/acs_cleaned.dta", replace

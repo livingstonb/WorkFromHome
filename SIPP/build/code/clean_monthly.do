@@ -252,9 +252,9 @@ drop enjflag ejb*_scrnr
 
 * Map industry to C/S sector
 rename indcensus ind2012
-`#PREREQ' local inc2012dta "../industries/build/output/industryindex2012.dta"
+`#PREREQ' local cwlk "../industries/build/output/cwalk_census2012_to_sector.dta"
 #delimit ;
-merge m:1 ind2012 using "`inc2012dta'",
+merge m:1 ind2012 using "`cwlk'",
 	nogen keep(match master) keepusing(sector);
 #delimit cr
 

@@ -32,4 +32,4 @@ rename NAICS_TITLE title_naics
 rename naicscode naics
 sort naics
 
-`#TARGET' save "build/output/essential_industries_cleaned.dta", replace
+`#TARGET' save "build/output/essential_industries_table.dta", replace

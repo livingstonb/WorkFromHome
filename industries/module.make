@@ -2,19 +2,13 @@ subdir = industries
 
 objdirs = build
 
-sources = essential_industries1.do \
-	essential_industries2.do \
-	industry_crosswalk1.do \
-	industry_crosswalk2.do \
-	industry_crosswalk3.do \
-	industry_crosswalk4.do
+sources = compute_essential_by_occupation.do \
+	produce_essential_industry_list.do \
+	crosswalk_census2012_to_sector.do
 
-targets = naicsindex2017.dta \
-	industryindex2012.dta \
-	industryindex2017.dta \
-	industry2017crosswalk.dta \
-	essential_industries_cleaned.dta \
-	essential_workers.dta
+targets = essential_industries_table.dta \
+	essential_share_by_occ.dta \
+	cwalk_census2012_to_sector.dta
 targets := $(addprefix build/output/, $(targets))
 
 include misc/includes.make

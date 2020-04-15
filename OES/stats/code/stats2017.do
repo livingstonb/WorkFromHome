@@ -29,7 +29,6 @@ import excel "build/input/nat3d2017", clear firstrow
 `#PREREQ' do "build/code/clean_oes_generic.do" 2017 1
 
 // MERGE WITH SECTOR
-`#PREREQ' ``"../industries/build/output/naicsindex2017.dta"''
 `#PREREQ' do "build/code/merge_with_sector.do"
 
 rename a_mean meanwage

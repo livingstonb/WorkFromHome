@@ -35,7 +35,8 @@ tempfile cwalk
 save `cwalk', replace
 
 * Prepare sector crosswalk
-`#PREREQ' use "../industries/build/output/naicsindex2017.dta", clear
+local naicswalk "cwalk_naics2017_to_sector.dta"
+use "../industries/build/input/`naicswalk'", clear
 rename sector cvsector
 
 tempfile naics
