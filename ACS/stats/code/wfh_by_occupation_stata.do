@@ -23,10 +23,10 @@ label define bin_pct_lbl 0 "No" 100 "Yes", replace
 gen pct_workfromhome = workfromhome * 100
 label variable pct_workfromhome "% WFH"
 
-gen nworkers_unw = 1
+gen nworkers_unw = !missing(workfromhome)
 label variable nworkers_unw "n, unwtd"
 
-gen nworkers_wt = 1
+gen nworkers_wt = !missing(workfromhome)
 label variable nworkers_wt "Total workers in group"
 
 gen meanwage = incwage

@@ -8,6 +8,8 @@
 \usepackage{breakurl}
 \usepackage{amsmath}
 \usepackage{cite}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 
 \begin{document}
 \maketitle
@@ -48,31 +50,82 @@ We use an individual-level sample restricted to observations satisfying the foll
 \item Worked at least 27 weeks of the previous year
 \end{itemize}
 
+\subsubsection{Sample size}
+For each year between 2013 and 2017 we have roughly 1.2 million observations with a non-missing response to the WFH question, after making the restrictions above and dropping workers in occupations or industries outside of our classifications:
+
+\begin{table}[ht]
+\caption{ACS sample sizes}
+\centering
+\begin{tabular}{c | c}
+\hline%inserts double horizontal lines
+Survey Year & n \\
+%heading
+\hline % inserts single horizontal line
+2013 & 1,140,183  \\ % inserting body of the table
+2014 & 1,149,987 \\
+2015 & 1,172,018 \\
+2016 & 1,189,541 \\
+2017 & 1,217,299 \\ [1ex] % [1ex] adds vertical space
+\end{tabular}
+\label{table:ACS sample size} % is used to refer this table in the text
+\end{table}
+
 \subsection{Variables}
 \subsubsection{Weights}
 For weighting, we use the PERWT variable in all estimation.
 
-\subsubsection{WFH}
-We classify an individual as having worked from home based on the response to the question: ``How did this person usually get to work LAST WEEK?''
-Each observation was classified as WFH if the response was ``Worked at home,'' otherwise the observation was classified as not a WFH worker.
-We use the ACS variable called TRANWORK.
+\subsubsection{WFH Question}
+We classify an individual as having worked from home based on the response to the question:
+\begin{quote}
+How did this person usually get to work LAST WEEK?
+\end{quote}
+Each observation was classified as WFH if the response was:
+\begin{quote}
+Worked at home
+\end{quote}
+Otherwise the observation was classified as not a WFH worker.
+These responses are provided in the variable TRANWORK.
+See Figure \ref{ACS-WFH} for an example from the 2017 questionnaire.\footnote{\url{https://www2.census.gov/programs-surveys/acs/methodology/questionnaires/2017/quest17.pdf}}
+
+\begin{figure}
+\centering
+\label{ACS-WFH}
+\includegraphics[width=0.5\linewidth]{ACS_workfromhome.png}
+\caption{WFH in the 2017 ACS questionnaire}
+\end{figure}
 
 \section{ATUS}
 
 \subsection{Sample}
 Our sample consists of respondents to the 2017-2018 ATUS Leave Module. This module by construction excludes all non-workers and all self-employed workers. I do not impose any sample restrictions.
 
+\subsubsection{Sample size}
+Our final sample size after dropping workers outside of our industry or sector classifications or for whom WFH answers were missing is 9,456.
+
 \subsection{Variables}
 
 \subsubsection{Weights}
-All estimates are weighted using the ATUS variable \emph{lufinlwgt}.
+All estimates are weighted using the ATUS Leave Module variable LUFINLWGT.
 
-\subsubsection{WFH}
-We base our WFH statistics on the variables \emph{lejf\_11} and \emph{lujf\_10}, which correspond to actual WFH and the ability to WFH in one's job, respectively.
+\subsubsection{WFH Question}
+We base our WFH statistics on the variables LUJF\_10 and LEJF\_11, which correspond to the ability to WFH in one's job, and actual WFH in one's job, respectively. These questions are as follows, with possible responses of ``Yes,'' ``No,'' and ``Don't Know'', the last of which I discard when estimating means over the given variable:
+\begin{quote}
+JF\_10: \\
+As part of your (main) job, can you work at home?
+\end{quote}
+\begin{quote}
+JF\_11: \\
+Do you ever work at home?
+\end{quote}
+
+The prefixes LE and LU denote an edited variable and an unedited variable, respectively. ATUS provides one question as edited and the other as unedited, hence the different prefixes. Since the universe of LEJF\_11 is restricted to observations with a ``Yes'' response to LUJF\_10, we recoded LEJF\_11 to imply no work from home if the value of LUJF\_10 implied being unable to work from home.
 
 \section{SIPP}
 \subsection{Sample}
 We use waves 1-4 of the 2014 SIPP. For each wave, we use all individuals of age 15 or older who were present in all 12 months of the wave. The waves are treated separately when computing all intermediate variables, and then pooled prior to final estimation. We do not link individuals across waves in any way.
+
+\subsubsection{Sample size}
+For computing \%WFH by occupation, we use 98,597 observations across four waves, with each observation representing one respondent-year pair. Since the source data is a panel, this amounts to 42,170 distinct individuals. These figures reflect both attrition and new entrants into existing SIPP sample units. 
 
 \subsection{Classification of worker into occupation category}
 \label{sipp_occupation}
@@ -103,6 +156,26 @@ We use the following definitions:
 \end{align*}
 Home equity is surveyed at the household-level but SIPP provides an individual-level recode. The rest of the above variables are provided at the individual level.
 
+\newcommand{\eqindent}{\\ \indent \hspace{4pt} = }
+\newcommand{\listassets}[1]{sum(TJS{#1}VAL TJO{#1}VAL TO{#1}VAL)}
+
+The variables we use are as follows:
+\begin{itemize}
+\item Saving accounts \eqindent \listassets{SAV}
+\item Interest-bearing checking accounts\eqindent  \listassets{ICHK}
+\item Non-interest-bearing checking accounts\eqindent  \listassets{CHK}
+\item Money market funds\eqindent  \listassets{MM}
+\item Government bonds\eqindent  \listassets{GOVS}
+\item Municipal and corporate bonds\eqindent  \listassets{MCBD}
+\item Stocks\eqindent  \listassets{ST}
+\item Mutual funds\eqindent  \listassets{MF}
+\item Credit card debt = TDEBT\_CC
+\item Home equity = TEQ\_HOME
+\item IRA and Keogh = TIRAKEOVAL
+\item CDs = \listassets{CD}
+\item Life insurance = TLIFE\_CVAL
+\end{itemize}
+
 \subsubsection{Earnings}
 Our measure of earnings is annual earnings, which we set equal to the sum of TPEARN over all twelve months of the year. We take weekly earnings to be annual earnings divided by 52. The description of this variable, taken from \cite{tpearn}, is the following:
 \begin{quote}
@@ -121,6 +194,27 @@ For various $x$ and $y$ in the expressions below, we compute binary indicators f
 \end{align*}
 To compute shares of individuals falling into these categories, we take weighted means of these indicators.
 
+\subsubsection{WFH Question}
+The variables we use for WFH status in SIPP are labeled EJB\#\_WSHMWRK,
+where the \# represents the number of the reported job.
+Each of these variables is reported for each month separately, and is reported with ``Yes'' or ``No'' responses.
+The question is worded as follows\footnote{This comes from direct correspondence with the SIPP Survey Team.}:
+\begin{quote}
+As part of (your/name) typical work schedule for (employer name), (are/were) there any days when (you/name) (work, works, worked) only at home?
+\end{quote}
+
+\if The codebook describes this variable as the following:
+\begin{quote}
+Were there any days when \ldots worked only from home?
+\end{quote}
+and provides additional notes:
+\begin{quote}
+Respondents who reported days working only at home or reported working from home in combination with another form of transportation to work.
+\end{quote}
+\fi
+To aggregate to the annual frequency, I code an individual as having worked from home if EJB\#\_WSHMWRK contains a ``Yes'' response in any job for that individual, within any of the 12 months of the year. If all responses were ``No'' then the individual is assumed to not have worked from home.
+Note that this variable is based on all jobs held; some jobs may not coincide with what we designate as the primary occupation for a given worker. I did (rather quickly) look at the \%WFH-by-occupation figures when defining WFH based only on the values of EJB\#\_WSHMWR coinciding with the designated primary occupation. I didn't see large differences.
+
 \section{Essential workers by occupation}
 \subsection{Data}
 Here we use a combination of data from \cite{OES} and \cite{brookings}. The appendix to \cite{brookings} provides 4-digit industry codes deemed to be essential. The OES sample used was the four-digit employment-by-industry dataset for May 2017.
@@ -128,7 +222,6 @@ Here we use a combination of data from \cite{OES} and \cite{brookings}. The appe
 \subsection{Methods}
 First, each OES occupation code was mapped to a 2010 SOC minor category. Second, each four-digit industry was either mapped to the essential workers data, in which case the industry was deemed essential, or not, and the industry was classified as non-essential.
 At this point we had employment, mean wage, and a binary indicator for essential industries, at the occupation-industry level. We then computed employment-weighted means to aggregate over all industries and estimate the share of each occupation in essential industries.
-
 
 \section{A teleworkable index using data from Dingel and Neiman}
 

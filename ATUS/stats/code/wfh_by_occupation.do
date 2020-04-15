@@ -17,10 +17,10 @@ label variable pct_canwfh "% can WFH"
 gen pct_doeswfh = 100 * doeswfh
 label variable pct_doeswfh "% does WFH"
 
-gen nworkers_unw = 1
+gen nworkers_unw = !missing(canwfh, doeswfh)
 label variable nworkers_unw "n, unwtd"
 
-gen nworkers_wt = 1
+gen nworkers_wt = !missing(canwfh, doeswfh)
 label variable nworkers_wt "Total workers in group"
 
 gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
@@ -28,6 +28,7 @@ label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders 
 
 * Add blanks
 preserve
+clear
 
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 tempfile yrtmp
@@ -38,6 +39,9 @@ forvalues sval = 0/1 {
 	gen sector = `sval'
 	gen normwt = 1
 	gen blankobs = 1
+	gen nworkers_wt = 0
+	gen nworkers_unw = 0
+	duplicates drop occ3digit, force
 	
 	append using `yrtmp'
 	save `yrtmp', replace
@@ -47,8 +51,8 @@ append using `yrtmp'
 drop if (occ3digit >= 550) & !missing(occ3digit)
 
 replace blankobs = 0 if missing(blankobs)
-replace nworkers_wt = 0 if (blankobs == 1)
-replace nworkers_unw = 0 if (blankobs == 1)
+// drop if !missing(can))
+
 label variable blankobs "Empty category"
 
 foreach var of varlist nworkers_unw nworkers_wt {

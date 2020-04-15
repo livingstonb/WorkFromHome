@@ -283,9 +283,13 @@ label define soc3d2010_lbl -2
 
 // WORK FROM HOME
 * Worked from home in any occupation
-egen workfromhome = anymatch(ejb*_wshmwrk), values(1)
+egen yeswfh = anymatch(ejb*_wshmwrk), values(1)
+egen nm_wfh = rownonmiss(ejb*_wshmwrk)
+gen workfromhome = (yeswfh == 1)
+replace workfromhome = . if (nm_wfh == 0)
 label variable workfromhome "Any days the respondent only worked from home"
 label values workfromhome bin_lbl
+drop nm_wfh yeswfh
 
 * Worked from home in main occupation
 forvalues j = 1/7 {

@@ -33,7 +33,7 @@ local keepvars
 	tage eeduc eorigin ems erace esex efindjob
 	rged pnum spanel ssuid wpfinwgt tage_ehc
 	eown_anntr ejb*_wshmwrk ejb1_clwrk ghlfsam
-	rfamnum rfamkind monthcode swave
+	rfamnum rfamkind monthcode swave ejb*_pvwktr9
 	
 /* Employment and income variables */
 	tjb*_occ tpearn
@@ -79,16 +79,15 @@ local keepvars
 ;
 #delimit cr
 
+tempfile rawdata
+save `rawdata', emptyok
+
 local conds (tage > 15) & !missing(tage)
 forvalues i = 1/4 {
 	tempfile raw`i'
 	use `keepvars' if `conds' using "build/input/sipp_raw_w`i'.dta", clear
-	save `raw`i''
-}
-
-clear
-forvalues i = 1/4 {
-	append using `raw`i''
+	append using `rawdata'
+	save `rawdata', replace
 }
 
 * NOTE: families uniquely identified by ssuid & eresidenceid & rfamnum
