@@ -28,8 +28,11 @@ forvalues i = 1/3 {
 	keep if occ_group == "`lvl'"
 	collapse (sum) employment, by(sector soc2010)
 
-	if `digit' < 6 {
-		rename soc2010 soc`digit'digit
+	if `digit' == 3 {
+		rename soc2010 soc3digit
+	}
+	else if `digit' == 5 {
+		rename soc2010 soc5digit
 	}
 
 	tempfile oestmp`digit'
@@ -60,47 +63,25 @@ replace soc3digit = "51-5100" if soc3digit == "51-5000"
 * Merge at 6 digit level, where possible
 merge m:1 soc2010 sector using `oestmp6', keep(1 3) keepusing(employment) nogen
 
-* Aggregate to 5 digit level
-gen missings = missing(employment)
-bysort soc5digit sector: egen missing_employment = max(missings)
-bysort soc5digit sector: egen agg_employment = total(employment)
-replace agg_employment = . if (missing_employment == 1)
-
-* Use weighted mean if employment was present
-gen tele_weighted = teleworkable * employment / agg_employment
-bysort soc5digit sector: egen agg_teleworkable = total(tele_weighted), missing
-
-* Take mean if employment was missing
-bysort soc5digit sector: egen mean_teleworkable = mean(teleworkable)
-replace teleworkable = agg_teleworkable
-replace teleworkable = mean_teleworkable if (missing_employment == 1)
-
-drop tele_weighted employment *_teleworkable agg_employment miss*
-duplicates drop soc5digit sector, force
+* Aggregate up to the 5-digit level
+`#PREREQ' do "build/code/aggregate.do" soc5digit
 
 * Merge at 5 digit level
-merge m:1 soc5digit sector using `oestmp5', keep(1 3) update keepusing(employment) nogen
+#delimit ;
+merge m:1 soc5digit sector using `oestmp5',
+	keep(1 3) update keepusing(employment) nogen;
+#delimit cr
 
-* Aggregate to 3 digit level
-gen missings = missing(employment)
-bysort soc3d2010 sector: egen missing_employment = max(missings)
-bysort soc3d2010 sector: egen agg_employment = total(employment)
-replace agg_employment = . if (missing_employment == 1)
+* Aggregate up to the 3-digit level
+do "build/code/aggregate.do" soc3d2010
 
-* Use weighted mean if employment was present
-gen tele_weighted = teleworkable * employment / agg_employment
-bysort soc3d2010 sector: egen agg_teleworkable = total(tele_weighted), missing
+* Merge at 3 digit level
+#delimit ;
+merge m:1 soc3digit sector using `oestmp3',
+	keep(1 3) update keepusing(employment) nogen;
+#delimit cr
 
-* Take mean if employment was missing
-bysort soc3d2010 sector: egen mean_teleworkable = mean(teleworkable)
-replace teleworkable = agg_teleworkable
-replace teleworkable = mean_teleworkable if (missing_employment == 1)
-
-drop tele_weighted employment *_teleworkable agg_employment miss*
-duplicates drop soc3d2010 sector, force
-
-* Merge again, this time to recover full employment statistics
-merge m:1 soc3digit sector using `oestmp3', keep(1 3) keepusing(employment) nogen
+* Drop duplicates and save
 drop soc5digit soc3digit soc2010
 duplicates drop soc3d2010 sector, force
 drop if missing(sector, soc3d2010)
