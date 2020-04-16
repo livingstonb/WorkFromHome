@@ -37,10 +37,10 @@ foreach var of varlist qualitative_h2m foodinsecure nla* whtm* phtm* {
 	local meanstats `meanstats' (mean) `var'
 }
 
-gen nworkers_unw = !missing(pct_workfromhome)
+gen nworkers_unw = !missing(workfromhome)
 label variable nworkers_unw "n, unwtd"
 
-gen nworkers_wt = !missing(pct_workfromhome)
+gen nworkers_wt = !missing(workfromhome)
 label variable nworkers_wt "Total"
 
 * Add blanks

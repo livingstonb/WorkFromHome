@@ -28,19 +28,22 @@ foreach var of local assetvars {
 	local asset_valvars `asset_valvars' tjs`var'val tjo`var'val to`var'val
 }
 
+/* Possible variables of interest
+eeduc eorigin ems erace esex efindjob
+rged eown_anntr rfamkind ejb*_pvwktr9
+*/
+
 #delimit ;
 local keepvars
-	tage eeduc eorigin ems erace esex efindjob
-	rged pnum spanel ssuid wpfinwgt tage_ehc
-	eown_anntr ejb*_wshmwrk ejb1_clwrk ghlfsam
-	rfamnum rfamkind monthcode swave ejb*_pvwktr9
+	tage pnum spanel ssuid wpfinwgt tage_ehc
+	ejb*_wshmwrk ejb1_clwrk 
+	rfamnum monthcode swave
 	
 /* Employment and income variables */
 	tjb*_occ tpearn
 	tjb*_ind
 	ejb*_scrnr
 	tptotinc thtotinc
-	enjflag
 	rmesr
 
 /* Asset variables, person-level */

@@ -248,7 +248,7 @@ merge m:1 census using "`occsipp'",
 #delimit cr
 rename census2010 occcensus
 rename soc3d2010 occ3d2010
-drop enjflag ejb*_scrnr
+drop ejb*_scrnr
 
 * Map industry to C/S sector
 rename indcensus ind2012

@@ -6,8 +6,6 @@ OBJDIRS :=
 
 all : $(MODULES) readme
 
-all_with_procedures : procedures all
-
 %.mk : %.do misc/make_tools.py
 	@python misc/make_tools.py $<
 
@@ -18,16 +16,6 @@ endif
 .PHONY : clean clean_mk clean_temp clean_output all mkirs \
 	clean_module procedures clean_procedures \
 	all_with_procedures readme tex
-
-texloc = tex/data_methods/data_methods
-texexts = .aux .bbl .blg .log .out .pdf
-texfiles := $(addprefix $(texloc), texexts)
-tex :
-	rm -f $(texfiles)
-	cd tex/data_methods && pdflatex data_methods
-	cd tex/data_methods && bibtex data_methods
-	cd tex/data_methods && pdflatex data_methods
-	cd tex/data_methods && pdflatex data_methods
 
 clean : clean_logs clean_mk clean_temp \
 	clean_output clean_procedures
@@ -58,3 +46,5 @@ misc/procedures/%.txt :
 
 readme :
 	pandoc readme.md -o readme.pdf
+
+include tex/module.make
