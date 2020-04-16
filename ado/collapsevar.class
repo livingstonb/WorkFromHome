@@ -11,11 +11,11 @@ class collapsevar {
 	string countvar
 	string excelname
 }
-program .set
+program .new
 	#delimit ;
 	syntax varname
 		[, NOTES(string)] [, LABEL(string)] [, CMD(string)]
-		[, COUNTS];
+		[, COUNTS] [, KEEPLABEL] [, COLNAME(string)];
 	#delimit cr
 	
 	.varname = "`varlist'"
@@ -25,10 +25,13 @@ program .set
 	if "`label'" == "" {
 		local lab: variable label `varlist'
 		.vlabel = "`lab'"
-		
 	}
 	else {
-	.vlabel = "`label'"
+		.vlabel = "`label'"
+	}
+
+	if "`colname'" != "" {
+		.excelname = stritrim("`colname'")
 	}
 	
 	if "`counts'" != "" {

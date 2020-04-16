@@ -151,14 +151,10 @@ forvalues sval = 0/2 {
 	.sheets.loop_next
 	#delimit ;
 	collapse2excel
-		(sum) nworkers_wt
-		(rawsum) nworkers_unw
-		(mean) workfromhome
-		(mean) mworkfromhome
-		`meanstats'
-		`medianstats'
-		(min) blankobs
-		[iw=wpfinwgt] `restrictions'
+		(sum) nworkers_wt (rawsum) nworkers_unw
+		(mean) workfromhome (mean) mworkfromhome
+		`meanstats' `medianstats'
+		(min) blankobs [iw=wpfinwgt] `restrictions'
 		using "`xlxname'",
 		by(`byvar') modify sheet("`.sheets.loop_get'");
 	#delimit cr
