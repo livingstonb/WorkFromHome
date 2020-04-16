@@ -23,8 +23,6 @@ keep if (age >= 15)
 // TABLES
 drop havemoney_h2m ccunpaid_h2m
 
-set trace on
-set tracedepth 2
 #delimit ;
 * Unable to pay bills;
 .paybills_h2m = .collapsevar.new paybills_h2m, cmd(mean) counts

@@ -1,10 +1,6 @@
 /* --- HEADER ---
 This script computes WFH and other statistics by occupation
 and sector.
-
-#PREREQ ../ado/statalist.class
-#PREREQ ../ado/createxlsx.ado
-#PREREQ ../ado/collapse2excel.ado
 */
 
 `#PREREQ' use "build/output/atus_cleaned.dta", clear
@@ -27,39 +23,17 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add blanks
-preserve
-clear
-
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
-tempfile yrtmp
-save `yrtmp', emptyok
-forvalues sval = 0/1 {
-	use soc3d2010 using "`occ2010'", clear
-	rename soc3d2010 occ3digit
-	gen sector = `sval'
-	gen normwt = 1
-	gen blankobs = 1
-	gen nworkers_wt = 0
-	gen nworkers_unw = 0
-	duplicates drop occ3digit, force
-	
-	append using `yrtmp'
-	save `yrtmp', replace
-}
-restore
-append using `yrtmp'
+#delimit ;
+appendblanks soc3d2010 using "`occ2010'",
+	gen(blankobs) over(sector) values(0 1) rename(occ3digit);
+#delimit cr
+
+replace nworkers_unw = 0 if blankobs
+replace normwt = 1 if blankobs
+replace nworkers_wt = 0 if blankobs
 drop if (occ3digit >= 550) & !missing(occ3digit)
 
-replace blankobs = 0 if missing(blankobs)
-// drop if !missing(can))
-
-label variable blankobs "Empty category"
-
-foreach var of varlist nworkers_unw nworkers_wt {
-	replace `var' = 0 if (blankobs == 1)
-}
-
-replace blankobs = 0 if missing(blankobs)
 label variable blankobs "Empty category"
 
 * Collapse and make .dta file
@@ -80,7 +54,6 @@ collapse (sum) nworkers_wt
 
 gen source = "ATUS"
 `#TARGET' save "stats/output/ATUSwfh.dta", replace
-
 restore
 
 * Collapse and make spreadsheet
