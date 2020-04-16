@@ -6,18 +6,12 @@ and sector.
 `#PREREQ' use "build/output/atus_cleaned.dta", clear
 adopath + "../ado"
 
+rename occ3digit occ3d2010
+
 * Gen new variables
 gen pct_canwfh = 100 * canwfh
-label variable pct_canwfh "% can WFH"
-
 gen pct_doeswfh = 100 * doeswfh
-label variable pct_doeswfh "% does WFH"
-
-gen nworkers_unw = !missing(canwfh, doeswfh)
-label variable nworkers_unw "n, unwtd"
-
 gen nworkers_wt = !missing(canwfh, doeswfh)
-label variable nworkers_wt "Total workers in group"
 
 gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
@@ -26,22 +20,40 @@ label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders 
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	gen(blankobs) over1(sector) values1(0 1) rename(occ3digit);
+	gen(blankobs) over1(sector) values1(0 1) rename(occ3d2010);
 #delimit cr
 
-replace nworkers_unw = 0 if blankobs
 replace normwt = 1 if blankobs
 replace nworkers_wt = 0 if blankobs
-drop if (occ3digit >= 550) & !missing(occ3digit)
+drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
-label variable blankobs "Empty category"
+* Set collapse variables
+#delimit ;
+.nworkers_wt = .collapsevar.new nworkers_wt,
+	cmd(sum) colname("Total workers in group");
+.pct_canwfh = .collapsevar.new pct_canwfh,
+	cmd(mean) counts colname("% can WFH");
+.pct_doeswfh = .collapsevar.new pct_doeswfh,
+	cmd(mean) counts colname("% does WFH");
+.meanwage = .collapsevar.new meanwage,
+	cmd(mean) counts colname(
+		"Mean of wkly earnings * 52,
+		full-time single jobholders only");
+.blankobs = .collapsevar.new blankobs,
+	cmd(min) colname("Empty category");
+.occ3d2010 = .collapsevar.new occ3d2010,
+	colname("Occupation");
+
+local cvars .nworkers_wt .pct_canwfh .pct_doeswfh
+	.meanwage .blankobs;
+#delimit cr
 
 * Collapse and make .dta file
 preserve
 rename pct_doeswfh pct_workfromhome
-rename occ3digit occ3d2010
 drop if missing(occ3d2010, sector)
 
+gen nworkers_unw = 1 if !blankobs
 #delimit ;
 collapse (sum) nworkers_wt
 		(rawsum) nworkers_unw
@@ -74,15 +86,22 @@ createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 forvalues sval = 0/1 {
 	.sheets.loop_next
 
+
+
 	#delimit ;
-	collapse2excel
-		(sum) nworkers_wt
-		(rawsum) nworkers_unw
-		(mean) pct_canwfh
-		(mean) pct_doeswfh
-		(mean) meanwage
-		(min) blankobs
-		[iw=normwt] if (sector == `sval')
-		using "`xlxname'", by(occ3digit) modify sheet("`.sheets.loop_get'");
+	collapsecustom `cvars' [iw=normwt] if (sector == `sval')
+		using "`xlxname'", by(.occ3d2010)
+		modify sheet("`.sheets.loop_get'");
 	#delimit cr
 }
+	* #delimit ;
+	* collapse2excel
+	* 	(sum) nworkers_wt
+	* 	(rawsum) nworkers_unw
+	* 	(mean) pct_canwfh
+	* 	(mean) pct_doeswfh
+	* 	(mean) meanwage
+	* 	(min) blankobs
+	* 	[iw=normwt] if (sector == `sval')
+	* 	using "`xlxname'", by(occ3d2010) modify sheet("`.sheets.loop_get'");
+	* #delimit cr

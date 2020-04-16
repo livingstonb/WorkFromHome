@@ -3,6 +3,7 @@ cd "$ATUSdir"
 use "$ATUSdata/cleaned/ATUS_cleaned.dta", clear
 
 gen nworkers = 1
+replace normwt = normwt / 1000
 
 gen pct_canwfh = 100 * canwfh
 gen pct_doeswfh = 100 * doeswfh

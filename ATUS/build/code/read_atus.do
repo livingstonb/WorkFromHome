@@ -61,10 +61,10 @@ save "build/temp/sum2018.dta", replace
 * Merge files
 use "build/temp/leave.dta", clear
 
-merge 1:1 tucaseid using "build/temp/cps2017.dta", keep(1 3 4) nogen update
-merge 1:1 tucaseid using "build/temp/cps2018.dta",  keep(1 3 4) nogen update
 merge 1:1 tucaseid using "build/temp/respondents2017.dta", keep(1 3 4) nogen update
 merge 1:1 tucaseid using "build/temp/respondents2018.dta", keep(1 3 4) nogen update
 merge 1:1 tucaseid using "build/temp/sum2017.dta", keep(1 3 4) nogen update
 merge 1:1 tucaseid using "build/temp/sum2018.dta",keep(1 3 4) nogen update
+merge 1:1 tucaseid using "build/temp/cps2017.dta", keep(1 3 4) nogen update
+merge 1:1 tucaseid using "build/temp/cps2018.dta",  keep(1 3 4) nogen update
 `#TARGET' save "build/temp/atus_combined.dta", replace

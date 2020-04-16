@@ -152,7 +152,6 @@ label values flexhours flexhours_lbl
 
 * Adjust Leave module weights to produce annual figures
 gen normwt = leavewt / (365 * 2)
-replace normwt = normwt / 1000
 label variable normwt "Leave module weights for annual estimates"
 
 * Other new variables
