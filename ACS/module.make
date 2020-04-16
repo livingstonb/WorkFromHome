@@ -9,6 +9,7 @@ sources = clean_acs.do \
 	wfh_by_occupation_excel.do
 
 targets = build/output/acs_cleaned.dta \
-	stats/output/ACSwfh.dta
+	stats/output/ACSwfh.dta \
+	stats/output/ACS_wfh_yearly.xlsx
 
 include misc/includes.make
