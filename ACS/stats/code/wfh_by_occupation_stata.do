@@ -14,7 +14,7 @@ adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
 `#PREREQ' local cleaned "build/output/acs_cleaned.dta"
-use "`cleaned'" if inrange(year, 2010, 2018), clear
+use "`cleaned'" if inrange(year, 2013, 2018), clear
 drop if missing(sector, occ3d2010)
 
 label define bin_lbl 0 "No" 1 "Yes", replace
@@ -33,33 +33,19 @@ gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
 * Add blanks
-tempfile yrtmp
-preserve
-clear
-
 `#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
-save `yrtmp', emptyok
-forvalues yr = 2010(1)2017 {
-forvalues sval = 0/1 {
-	use soc3d2010 using "`occ2010'", clear
-	rename soc3d2010 occ3d2010
-	gen year = `yr'
-	gen sector = `sval'
-	gen perwt = 1
-	gen blankobs = 1
-	
-	append using `yrtmp'
-	save `yrtmp', replace
-}
-}
-restore
-append using `yrtmp'
+#delimit ;
+appendblanks soc3d2010 using "`occ2010'",
+	gen(blankobs) rename(occ3d2010)
+	over1(sector) values1(0 1)
+	over2(year) values2(2013 2014 2015 2016 2017 2018);
+#delimit cr
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
-replace blankobs = 0 if missing(blankobs)
-replace nworkers_wt = 0 if (blankobs == 1)
-replace nworkers_unw = 0 if (blankobs == 1)
+replace nworkers_wt = 0 if blankobs
+replace nworkers_unw = 0 if blankobs
 label variable blankobs "Empty category"
+
 
 // PRODUCE STATA FILE
 tempfile acs2017only

@@ -15,9 +15,20 @@ drop if missing(sector, occ3d2010)
 capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 
-gen pct_workfromhome = workfromhome * 100
+* Add blanks
 gen nworkers_wt = 1
-gen blankobs = 0
+
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+#delimit ;
+appendblanks soc3d2010 using "`occ2010'",
+	gen(blankobs) rename(occ3d2010)
+	over1(sector) values1(0 1)
+	over2(year) values2(2013 2014 2015 2016 2017 2018);
+#delimit cr
+drop if (occ3d2010 >= 550) & !missing(occ3d2010)
+
+gen pct_workfromhome = workfromhome * 100
+replace nworkers_wt = 0 if blankobs
 
 * Collapse variables
 #delimit ;
@@ -32,30 +43,6 @@ gen blankobs = 0
 .occ3d2010 = .collapsevar.new occ3d2010,
 	colname("Occupation");
 #delimit cr
-
-* Add blanks
-tempfile yrtmp
-preserve
-clear
-
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
-save `yrtmp', emptyok
-forvalues yr = 2013(1)2018 {
-forvalues sval = 0/1 {
-	use soc3d2010 using "`occ2010'", clear
-	rename soc3d2010 occ3d2010
-	gen year = `yr'
-	gen sector = `sval'
-	gen perwt = 1
-	gen blankobs = 1
-	
-	append using `yrtmp'
-	save `yrtmp', replace
-}
-}
-restore
-append using `yrtmp'
-drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
 * Local containing collapse variables
 local cvars .nworkers_wt .pct_workfromhome .incwage .blankobs
