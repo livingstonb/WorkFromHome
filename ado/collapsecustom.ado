@@ -48,46 +48,26 @@ program collapsecustom
 	putexcel set "`using'", modify sheet("`sheet'")
 
 	// OVERRIDE COLUMN LABELS
-	tokenize `variables'
-	local icol_alpha = `n_byvars' + 1
-	local jcol_alpha = 0
 
-	local kvar = 1
 	* Loop over variables
-	while "``kvar''" != "" {
+	local icol = `n_byvars'
+	foreach var of local variables {
+
 		* Loop over sub-variables
-		local subv = 0
-		while (`subv' < ```kvar''.cmd.n') {
-			local ++subv
-			if (`jcol_alpha' > 0) {
-				local prefix: word `jcol_alpha' of `c(ALPHA)'
-			}
-			else {
-				local prefix
-			}
+		forvalues subv = 1/``var'.cmd.n' {
+			local iletter1 = floor(`icol' / 26)
+			local iletter2 = mod(`icol', 26) + 1
+			capture local letter1: word `iletter1' of `c(ALPHA)'
+			local letter2: word `iletter2' of `c(ALPHA)'
+			putexcel `letter1'`letter2'3 = ("``var'.getexcelname `subv''")
 
-			local col: word `icol_alpha' of `c(ALPHA)'
-			putexcel `prefix'`col'3 = ("```kvar''.getexcelname `subv''")
-
-			local ++icol_alpha
-			if (`icol_alpha' > 26) {
-				local icol_alpha = 1
-				local ++jcol_alpha
-			}
-
+			local ++icol
 		}
 
-		if "```kvar''.countvar'" != "" {
-			local ++icol_alpha
-
-			if (`icol_alpha' > 26) {
-				local icol_alpha = 1
-				local ++jcol_alpha
-			}
+		if "``var'.countvar'" != "" {
+			local ++icol
 		}
-
-		local ++kvar
 	}
 
 	restore
-end	
+end
