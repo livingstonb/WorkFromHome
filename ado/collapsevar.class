@@ -7,9 +7,9 @@ class collapsevar {
 	string varname
 	string vnotes
 	string vlabel
-	string cmd
+	statalist cmd
 	string countvar
-	string excelname
+	statalist excelname
 }
 program .new
 	#delimit ;
@@ -20,18 +20,35 @@ program .new
 	
 	.varname = "`varlist'"
 	.vnotes = "`notes'"
-	.cmd = "`cmd'"
+
+	tokenize `cmd'
+	while ("`1'" != "") {
+		.cmd.append "`1'"
+		macro shift
+	}
+	// .cmd = "`cmd'"
 	
 	if "`label'" == "" {
 		local lab: variable label `varlist'
-		.vlabel = "`lab'"
+		if "`lab'" != "" {
+			.vlabel = "`lab'"
+		}
+		else {
+			.vlabel = "`varlist'"
+		}
 	}
 	else {
 		.vlabel = "`label'"
 	}
 
 	if "`colname'" != "" {
-		.excelname = stritrim("`colname'")
+		tokenize `"`colname'"', parse("|")
+		local i = 1
+		while ("``i''" != "") {
+			local nametmp = stritrim("``i''")
+			.excelname.append "`nametmp'"
+			local i = `i' + 2
+		}
 	}
 	
 	if "`counts'" != "" {
@@ -44,28 +61,54 @@ program .dropmissing
 	quietly drop if missing(`.varname')
 end
 program .collapse
-	local cstring "(`.cmd') `.varname'"
-	
-	if "`.countvar'" != "" {
-		local cstring `cstring' (rawsum) `.countvar'
+	.cmd.loop_reset
+	if (`.cmd.n' == 1) {
+		.cmd.loop_next
+		local prefix `.cmd.loop_get'
+		local cstring (`prefix') `.varname'
+
+		if "`.countvar'" != "" {
+			local cstring `cstring' (rawsum) `.countvar'
+		}
 	}
+	else if (`.cmd.n' > 1) {
+		.cmd.loop_reset
+		while (`.cmd.loop_next') {
+			local prefix `.cmd.loop_get'
+			local cstring `cstring' (`prefix') `prefix'_`.varname'
+
+			if "`.countvar'" != "" {
+				local cstring `cstring' (rawsum) `.countvar'
+			}
+		}
+	}
+	
 	class exit "`cstring'"
 end
 program .relabel
-	label variable `.varname' "`.vlabel'"
-	
-	if "`.countvar'" != "" {
-		label variable `.countvar' "# non-missing for prev col"
+	if (`.cmd.n' == 1) {
+		label variable `.varname' "`.vlabel'"
+		
+		if "`.countvar'" != "" {
+			label variable `.countvar' "# non-missing for prev col"
+		}
 	}
 end
 program .getnotes
 	class exit "`.vnotes'"
 end
 program .getexcelname
-	if "`.excelname'" == "" {
+	args num
+	if "`num'" == "" {
+		local num 1
+	}
+
+	local lab = "`.excelname.get `num''"
+
+	if "`lab'" == "" {
 		class exit "`.vlabel'"
 	}
 	else {
-		class exit "`.excelname'"
+		class exit "`lab'"
 	}
 end

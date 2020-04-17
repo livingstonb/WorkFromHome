@@ -8,66 +8,85 @@ program collapsecustom
 	#delimit cr
 
 	preserve
-	
-	tokenize `variables'
+
 	local collapse_commands
-	while "`1'" != "" {
-		local collapse_commands `collapse_commands' ``1'.collapse'
-		macro shift
+	foreach var of local variables {
+		local collapse_commands `collapse_commands' ``var'.collapse'
 	}
 	
-	tokenize `by'
-	local byvars
 	local n_byvars = 0
-	while "`1'" != "" {
-		local byvars `byvars' ``1'.varname'
-		`1'.dropmissing
-		macro shift
+	local byvars
+	foreach byvar of local by {
+		local byvars `byvars' ``byvar'.varname'
+		`byvar'.dropmissing
 		local ++n_byvars
 	}
 
 	marksample touse
-	collapse `collapse_commands' [`weight'`exp'] if `touse', by(`byvars') fast `cw'
-	
-	tokenize `variables'
-	while ("`1'" != "") {
-		`1'.relabel
-		macro shift
+	#delimit ;
+	collapse `collapse_commands' [`weight'`exp'] if `touse',
+		by(`byvars') fast `cw';
+	#delimit cr
+
+	foreach var of local variables {
+		`var'.relabel
 	}
 
 	// ADD TO SPREADSHEET
 	if "`modify'" == "" {
-		#delimit ;
-		export excel using "`using'", keepcellfmt
-			cell(A3) firstrow(varlabels) sheet("`sheet'", replace);
-		#delimit cr
-		
-		* Add title
-		putexcel set "`using'", modify sheet("`sheet'")
-		putexcel A1 = ("`title'")
+		local xopt replace
 	}
 	else {
-		#delimit ;
-		export excel using "`using'", keepcellfmt
-			cell(A3) firstrow(varlabels) sheet("`sheet'", modify);
-		#delimit cr
-
-		putexcel set "`using'", modify sheet("`sheet'")
+		local xopt modify
 	}
+
+	#delimit ;
+	export excel using "`using'", keepcellfmt
+		cell(A3) firstrow(varlabels) sheet("`sheet'", `xopt');
+	#delimit cr
+
+	putexcel set "`using'", modify sheet("`sheet'")
 
 	// OVERRIDE COLUMN LABELS
 	tokenize `variables'
-	local i = `n_byvars' + 1
-	while "`1'" != "" {
-		local col: word `i' of `c(ALPHA)'
-		putexcel `col'3 = ("``1'.getexcelname'")
+	local icol_alpha = `n_byvars' + 1
+	local jcol_alpha = 0
 
-		if "``1'.countvar'" != "" {
-			local ++i
+	local kvar = 1
+	* Loop over variables
+	while "``kvar''" != "" {
+		* Loop over sub-variables
+		local subv = 0
+		while (`subv' < ```kvar''.cmd.n') {
+			local ++subv
+			if (`jcol_alpha' > 0) {
+				local prefix: word `jcol_alpha' of `c(ALPHA)'
+			}
+			else {
+				local prefix
+			}
+
+			local col: word `icol_alpha' of `c(ALPHA)'
+			putexcel `prefix'`col'3 = ("```kvar''.getexcelname `subv''")
+
+			local ++icol_alpha
+			if (`icol_alpha' > 26) {
+				local icol_alpha = 1
+				local ++jcol_alpha
+			}
+
 		}
 
-		macro shift
-		local ++i
+		if "```kvar''.countvar'" != "" {
+			local ++icol_alpha
+
+			if (`icol_alpha' > 26) {
+				local icol_alpha = 1
+				local ++jcol_alpha
+			}
+		}
+
+		local ++kvar
 	}
 
 	restore
