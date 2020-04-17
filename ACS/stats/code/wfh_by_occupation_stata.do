@@ -1,13 +1,8 @@
 /* --- HEADER ---
-#PREREQ "../ado/createxlsx.ado"
-#PREREQ "../ado/collapse2excel.ado"
-#PREREQ "../ado/statalist.class"
-*/
-
-/* Dataset: ACS */
-/* This script computes WFH and other statistics for the ACS.
+This script computes WFH and other statistics for the ACS.
 Statistics are computed separately for different occupations
-and sectors. Assumes the cwd is ACS. */
+and sectors. Assumes the cwd is ACS.
+*/
 
 clear
 adopath + "../ado"

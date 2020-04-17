@@ -69,14 +69,13 @@ label variable blankobs "Empty category"
 // COLLAPSE TO EXCEL
 foreach wave of numlist 1 2 3 4 0 {
 if `wave' == 0 {
-	local wlab "pooled"
+`#TARGET' local xlxname "stats/output/SIPP_wfh_pooled.xlsx"
 	local samples "Waves 1-4"
 }
 else {
 	local wlab "w`wave'"
 	local samples "Wave `wave'"
 }
-local xlxname "stats/output/SIPP_wfh_`wlab'.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: SIPP"
@@ -123,15 +122,6 @@ forvalues sval = 0/2 {
 	}
 		
 	.sheets.loop_next
-// 	#delimit ;
-// 	collapse2excel
-// 		(sum) nworkers_wt (rawsum) nworkers_unw
-// 		(mean) workfromhome (mean) mworkfromhome
-// 		`meanstats' `medianstats'
-// 		(min) blankobs [iw=wpfinwgt] `restrictions'
-// 		using "`xlxname'",
-// 		by(`byvar') modify sheet("`.sheets.loop_get'");
-// 	#delimit cr
 
 	#delimit ;
 	collapsecustom `cvars' [iw=wpfinwgt] `restrictions'
