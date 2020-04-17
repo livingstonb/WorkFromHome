@@ -20,7 +20,7 @@ local meanstats
 local medianstats
 foreach var of local stats {
 	local varlab: variable label `var'
-	
+
 	gen mean_`var' = `var'
 	gen median_`var' = `var'
 	label variable mean_`var' "Mean `varlab'"
@@ -51,7 +51,6 @@ replace nworkers_wt = 0 if blankobs
 replace nworkers_unw = 0 if blankobs
 label variable blankobs "Empty category"
 
-
 drop if missing(sector, occ3d2010)
 rename workfromhome pct_workfromhome
 rename earnings meanwage
@@ -70,4 +69,5 @@ drop mean_earnings
 drop median_earnings
 gen source = "SIPP"
 
+drop blankobs
 `#TARGET' save "stats/output/SIPPwfh.dta", replace

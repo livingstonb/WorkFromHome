@@ -35,7 +35,7 @@ foreach var of local stats {
 foreach var of varlist qualitative_h2m foodinsecure nla* whtm* phtm* {
 	#delimit ;
 	.`var' = .collapsevar.new `var',
-		cmd(mean) colname("");
+		cmd(mean);
 	#delimit cr
 	
 	local cvars `cvars' .`var'
