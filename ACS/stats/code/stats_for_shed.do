@@ -5,7 +5,7 @@ to be used in correspondence with SHED data.
 
 clear
 
-local yr1 = 2012
+local yr1 = 2013
 local yr2 = 2017
 
 capture label define bin_lbl 0 "No" 1 "Yes"

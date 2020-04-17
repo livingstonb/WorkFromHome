@@ -11,6 +11,13 @@ program appendblanks
 	tempfile blanks
 	save `blanks', emptyok
 
+	if ("`over1'" == "") {
+		local loop1 NONE
+	}
+	else {
+		local loop2 `values1'
+	}
+
 	if ("`over2'" == "") {
 		local loop2 NONE
 	}
@@ -19,7 +26,7 @@ program appendblanks
 	}
 
 	foreach val2 of local loop2 {
-	foreach val1 of local values1 {
+	foreach val1 of local loop1 {
 		use `namelist' using "`using'", clear
 		duplicates drop `namelist', force
 
@@ -27,7 +34,9 @@ program appendblanks
 			rename `namelist' `rename'
 		}
 
-		gen `over1' = `val1'
+		if ("`over1'" != "") {
+			gen `over1' = `val1'
+		}
 
 		if ("`over2'" != "") {
 			gen `over2' = `val2'

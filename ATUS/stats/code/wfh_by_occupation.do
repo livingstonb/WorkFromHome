@@ -86,22 +86,9 @@ createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 forvalues sval = 0/1 {
 	.sheets.loop_next
 
-
-
 	#delimit ;
 	collapsecustom `cvars' [iw=normwt] if (sector == `sval')
 		using "`xlxname'", by(.occ3d2010)
 		modify sheet("`.sheets.loop_get'");
 	#delimit cr
 }
-	* #delimit ;
-	* collapse2excel
-	* 	(sum) nworkers_wt
-	* 	(rawsum) nworkers_unw
-	* 	(mean) pct_canwfh
-	* 	(mean) pct_doeswfh
-	* 	(mean) meanwage
-	* 	(min) blankobs
-	* 	[iw=normwt] if (sector == `sval')
-	* 	using "`xlxname'", by(occ3d2010) modify sheet("`.sheets.loop_get'");
-	* #delimit cr

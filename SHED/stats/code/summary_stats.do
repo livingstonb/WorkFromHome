@@ -21,8 +21,16 @@ replace wgt = wgt * `wgt2016' / `wgt2014' if year == 2014
 keep if (age >= 15)
 
 // TABLES
-drop havemoney_h2m ccunpaid_h2m
 
+* Add blanks
+`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+#delimit ;
+appendblanks soc2d2010 using "`occ2010'",
+	gen(blankobs);
+#delimit cr
+replace wgt = 1 if blankobs
+
+* Collect variables for collapse
 #delimit ;
 * Unable to pay bills;
 .paybills_h2m = .collapsevar.new paybills_h2m, cmd(mean) counts
@@ -69,10 +77,13 @@ drop havemoney_h2m ccunpaid_h2m
 		"Could not cover a $400 expense
 		right now (by essentially any means)");
 
+.blankobs = .collapsevar.new blankobs,
+	cmd(min) colname("Empty category");
+
 * Collect variables;
 local cvars .paybills_h2m .paybills400_h2m
 	.ccmin_h2m .rainyday_h2m .coverexpenses_h2m
-	.emerg_h2m;
+	.emerg_h2m .blankobs;
 #delimit cr
 
 label variable wfhflex "Occupation"
