@@ -27,11 +27,50 @@ foreach var of local stringvars {
 
 if "`aggregate_occs'" == "1" {
 	capture drop if inlist(occ_group, "total", "major")
-	if (`year' >= 2000) & (`year' < 2010) {
+	
+	if (`year' == 1998) {
+		local cw98 "../occupations/build/output/cwalk_occsoc_soc3d2010.dta"
+		
+		tempfile cwalkadj
+		preserve
+		use "`cw98'", clear
+		
+
+		replace occ_code = occ_code + "0" if strlen(occ_code) == 5
+		replace occ_code = occ_code + "0000" if strlen(occ_code) == 2
+
+		drop occ_first2 occ_last4
+	}
+	else if (`year' == 1999) {
+		
+		drop if strpos(occ_code, "0000") > 0
+		
+		* First merge as many as possible with OES-SOC crosswalk
+		local cw98 "../occupations/build/output/oes99_to_soc3d2010.dta"
+		rename occ_code oes99code
+		merge m:1 oes99code using "`cw98'", keepusing(soc3d2010) nogen
+		rename oes99code occ_code
+		
+		local cw98 "../occupations/build/output/soc98_to_soc3d2010.dta"
+		gen soc6d = subinstr(occ_code, "-", "", .)
+		gen soc3d = substr(soc6d, 1, 3)
+		gen soc4d = substr(soc6d, 1, 4)
+		gen soc5d = substr(soc6d, 1, 5)
+
+		forvalues d = 6(-1)3 {
+			destring soc`d'd, force replace
+			rename soc`d'd occsoc
+			merge m:1 occsoc using "`cw98'", nogen keepusing(soc3d2010) keep(1 3 4) update
+			drop occsoc
+		}
+		
+		replace soc3d2010 = 119 if occ_code == "13-1061" & missing(soc3d2010)	
+	}
+	else if (`year' >= 2000) & (`year' < 2010) {
 		rename occ_code soc2000
 		#delimit ;
 		merge m:1 soc2000 using 
-			"../occupations/build/output/soc3d_2000_to_2010_crosswalk.dta",
+			"../occupations/build/output/soc2000_to_soc3d2010.dta",
 			keepusing(soc3d2010) nogen keep(1 3);
 		#delimit cr
 	}

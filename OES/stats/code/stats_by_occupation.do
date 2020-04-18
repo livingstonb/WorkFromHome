@@ -1,7 +1,8 @@
 /* --- HEADER ---
 Aggregates OES data to the level of 3-digit occupation level.
 
-#PREREQ "../occupations/build/output/soc3d_2000_to_2010_crosswalk.dta"
+#PREREQ "../occupations/build/output/soc2000_to_soc3d2010.dta"
+#PREREQ "../occupations/build/output/oes99_to_soc3d2010.dta"
 #PREREQ "../occupations/build/output/occ3labels2010.do"
 */
 
@@ -18,7 +19,7 @@ save `dups'
 clear
 tempfile out
 save `out', emptyok
-forvalues year = 2000/2019 {
+forvalues year = 1999/2019 {
 	if (`year' == 2002) {
 		local digit = 4
 	}

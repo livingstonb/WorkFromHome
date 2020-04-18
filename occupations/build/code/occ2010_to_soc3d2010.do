@@ -3,7 +3,7 @@ Creates a crosswalk from OCC2010 to soc3d2010 for the ACS.
 */
 
 clear
-`#PREREQ' import excel "build/input/acs_occ2010_occ_crosswalk", firstrow
+`#PREREQ' import excel "build/input/occ2010_to_occ.xlsx", firstrow
 keep occ2010 census2010
 
 replace occ2010 = strtrim(occ2010)
@@ -38,4 +38,5 @@ drop if (occ2010 == 3950) & (soc3d2010 == 339)
 drop if (occ2010 == 4000) & (soc3d2010 == 351)
 drop if (occ2010 == 9050) & (soc3d2010 == 536)
 
-`#TARGET' save "build/output/cwalk_acs_occ2010_soc3d2010.dta", replace
+label data "Crosswalk from OCC2010 to SOC2010-3"
+`#TARGET' save "build/output/occ2010_to_soc3d2010.dta", replace

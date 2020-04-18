@@ -32,4 +32,5 @@ foreach yr of numlist 2000 2010 {
 }
 keep soc*
 
-`#TARGET' save "build/output/soc3d_2000_to_2010_crosswalk.dta", replace
+label data "Crosswalk from SOC2000-3 to SOC2010-3"
+`#TARGET' save "build/output/soc2000_to_soc3d2010.dta", replace

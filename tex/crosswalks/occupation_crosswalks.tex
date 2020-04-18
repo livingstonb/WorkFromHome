@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+\usepackage{breakurl}
+
+\title{Occupation crosswalks}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{1999 OES to 2010 SOC-3}
+\subsection{1999 OES to 1998 SOC}
+\subsubsection{Source}
+\begin{quote}
+\url{http://data.widcenter.org/download/soc1998/}
+\end{quote}
+
+\subsection{1998 SOC to OCC2010}
+\subsubsection{Source}
+I use the 2000 ACS.
+
+\subsubsection{Procedure}
+Since the OCCSOC variable in 2000 is coded to align with 1998 SOC, I create a mapping from OCCSOC to OCC2010 based on the implicit correspondence between the two, which can be inferred directly from the 2000 ACS data.
+
+\subsection{OCC2010 to 2010 SOC-3}
+\subsubsection{Source}
+\label{cwalk_occ2010_occ}
+I start with a mapping from OCC2010 to OCC (ACS variables) for the ACS years post-2010 from the following source:
+\begin{quote}
+\url{https://usa.ipums.org/usa/volii/occ_ind.shtml}
+\end{quote}
+
+\subsubsection{Procedure}
+The crosswalk from Section \ref{cwalk_occ2010_occ} is used to map OCC2010 to recent OCC codes, which are then mapped to 2010 SOC-3 using our usual crosswalk from OCC to 2010 SOC-3. 
+
+\end{document}
