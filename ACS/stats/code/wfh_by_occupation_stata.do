@@ -28,7 +28,7 @@ gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
 	gen(blankobs) rename(occ3d2010)

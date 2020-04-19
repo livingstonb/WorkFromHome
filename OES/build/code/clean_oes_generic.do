@@ -97,6 +97,6 @@ if "`aggregate_occs'" == "1" {
 		recode soc3d2010 (195 = 299)
 	}
 
-	do "../occupations/build/output/occ3labels2010.do"
+	do "../occupations/build/output/soc3dlabels2010.do"
 	label values soc3d2010 soc3d2010_lbl
 }

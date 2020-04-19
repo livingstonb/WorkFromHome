@@ -82,7 +82,7 @@ gen census2010 = occn if inrange(year, 2000, 2017)
 gen census2018 = occn if (year > 2017)
 
 * 2012 - 2017
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 merge m:1 census2010 using "`occ2010'",
 	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
@@ -90,14 +90,15 @@ merge m:1 census2010 using "`occ2010'",
 rename soc3d2010 occ3d2010
 
 * 2018
-`#PREREQ' local occ2018 "../occupations/build/output/occindex2018.dta"
-#delimit ;
-merge m:1 census2018 using "`occ2018'",
-	keepusing(soc3d2010) keep(1 3) nogen;
-#delimit cr
-replace occ3d2010 = soc3d2010 if (year > 2017)
+* local occ2018 "../occupations/build/output/census2010_to_soc2010.dta"
+* #delimit ;
+* merge m:1 census2018 using "`occ2018'",
+* 	keepusing(soc3d2010) keep(1 3) nogen;
+* #delimit cr
+* replace occ3d2010 = soc3d2010 if (year > 2017)
+* drop census2018
 
-drop soc3d2010 census2010 census2018
+drop census2010
 
 * Industry coding
 gen ind2012 = industry if inrange(year, 2013, 2017)

@@ -19,7 +19,7 @@ replace census2010 = 3955 if (census2010 == 3950)
 replace census2010 = 9050 if (census2010 == 4550)
 drop if census2010 >= 9800
 
-`#PREREQ' merge m:1 census2010 using "build/output/occindex2010.dta"
+`#PREREQ' merge m:1 census2010 using "build/output/census2010_to_soc2010.dta"
 
 * Some occ2010 codes correspond with multiple census2010 codes
 * and some census2010 codes are not used for ACS < 2012

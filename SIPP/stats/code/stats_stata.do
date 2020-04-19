@@ -40,7 +40,7 @@ gen nworkers_wt = !missing(workfromhome)
 label variable nworkers_wt "Total"
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/occindexSIPP.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
 	gen(blankobs) over1(sector) values1(0 1)

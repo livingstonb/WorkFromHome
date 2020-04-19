@@ -6,7 +6,7 @@ occupation from OES data.
 clear
 
 // PREPARE BLANK OCCUPATION ENTRIES
-`#PREREQ' local occ2010dta "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010dta "../occupations/build/output/census2010_to_soc2010.dta"
 tempfile yrtmp
 save `yrtmp', emptyok
 forvalues sval = 0/1 {

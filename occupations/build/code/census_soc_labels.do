@@ -5,10 +5,8 @@ args occyear
 
 clear
 
-#delimit ;
-infix str socstr 1-7 str slabel 8-100
-`#PREREQ'	using "build/input/occ_soc_`occyear'.txt";
-#delimit cr
+`#PREREQ' local socpath "build/input/soc`occyear'.txt"
+infix str socstr 1-7 str slabel 8-100 using "`socpath'"
 
 replace slabel = strtrim(slabel)
 replace socstr = strtrim(socstr)
@@ -51,14 +49,11 @@ replace soc3 = . if header2
 keep soc*
 
 sort socstr
-if "`sipp'" != "1" {
+
+`#TARGET' local lab3d "build/output/soc3dlabels`occyear'.do"
+`#TARGET' local lab2d "build/output/soc2dlabels`occyear'.do"
+forvalues d = 2/3 {
 	#delimit ;
-	label save soc3d`occyear'_lbl
-`#TARGET' using "build/output/occ3labels`occyear'.do", replace;
+	label save soc`d'd`occyear'_lbl using "`lab`d'd'", replace;
 	#delimit cr
 }
-
-keep soc2 soc3
-duplicates drop soc3, force
-drop if missing(soc3)
-`#TARGET' save "build/temp/occ_soc_`occyear'.dta", replace

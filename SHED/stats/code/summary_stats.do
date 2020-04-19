@@ -23,7 +23,7 @@ keep if (age >= 15)
 // TABLES
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc2d2010 using "`occ2010'",
 	gen(blankobs);

@@ -3,13 +3,13 @@ Aggregates OES data to the level of 3-digit occupation level.
 
 #PREREQ "../occupations/build/output/soc2000_to_soc3d2010.dta"
 #PREREQ "../occupations/build/output/oes99_to_soc3d2010.dta"
-#PREREQ "../occupations/build/output/occ3labels2010.do"
+#PREREQ "../occupations/build/output/soc3dlabels2010.do"
 */
 
 clear
 
 * Prepare blank occupation categories
-`#PREREQ' use "../occupations/build/output/occindex2010.dta"
+`#PREREQ' use "../occupations/build/output/census2010_to_soc2010.dta"
 duplicates drop soc3d2010, force
 keep soc3d2010
 

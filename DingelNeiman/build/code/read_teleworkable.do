@@ -12,7 +12,7 @@ replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
 destring soc3d2010, replace
 
 // Label 3-digit categories
-`#PREREQ' do "../occupations/build/output/occ3labels2010.do"
+`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
 label values soc3d2010 soc3d2010_lbl
 
 * Save

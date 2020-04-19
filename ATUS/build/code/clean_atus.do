@@ -55,10 +55,10 @@ rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 rename occcensus census2010
 #delimit ;
-merge m:1 census using "`occ2010'",
+merge m:1 census2010 using "`occ2010'",
 	nogen keep(match master) keepusing(soc3d2010);
 #delimit cr
 rename census2010 occcensus

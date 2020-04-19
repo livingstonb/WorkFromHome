@@ -1,6 +1,6 @@
 
 // 2010 OCC INDEX
-use "$WFHshared/occ2010/output/occindex2010new.dta", clear
+use "$WFHshared/occ2010/output/census2010_to_soc2010.dta", clear
 drop occyear
 label variable soc2010 "SOC 2010 fine occupation category"
 label variable soc3d2010 "SOC 2010 minor occupation category"

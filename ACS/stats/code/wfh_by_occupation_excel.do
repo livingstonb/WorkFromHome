@@ -9,7 +9,7 @@ adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
 `#PREREQ' local cleaned "build/output/acs_cleaned.dta"
-use "`cleaned'" if inrange(year, 2013, 2018), clear
+use "`cleaned'" if inrange(year, 2013, 2017), clear
 drop if missing(sector, occ3d2010)
 
 capture label define bin_lbl 0 "No" 1 "Yes"
@@ -18,12 +18,12 @@ capture label define bin_pct_lbl 0 "No" 100 "Yes"
 * Add blanks
 gen nworkers_wt = 1
 
-`#PREREQ' local occ2010 "../occupations/build/output/occindex2010.dta"
+`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
 	gen(blankobs) rename(occ3d2010)
 	over1(sector) values1(0 1)
-	over2(year) values2(2013 2014 2015 2016 2017 2018);
+	over2(year) values2(2013 2014 2015 2016 2017);
 #delimit cr
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
@@ -87,13 +87,13 @@ forvalues sval = 0/2 {
 // YEARLY
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ACS"
-.xlxnotes.append "Sample: 2013-2018, separated by year"
+.xlxnotes.append "Sample: 2013-2017, separated by year"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
 `#TARGET' local yearly "stats/output/ACS_wfh_yearly.xlsx"
 
 .descriptions = .statalist.new
-forvalues yr = 2013/2018 {
+forvalues yr = 2013/2017 {
 	.descriptions.append "`yr', Sector C"
 	.descriptions.append "`yr', Sector S"
 	.descriptions.append "`yr', Both sectors"
@@ -102,7 +102,7 @@ forvalues yr = 2013/2018 {
 createxlsx .descriptions .sheets .xlxnotes using "`yearly'"
 
 .sheets.loop_reset
-forvalues yr = 2013/2018 {
+forvalues yr = 2013/2017 {
 forvalues sval = 0/2 {
 	.sheets.loop_next
 	

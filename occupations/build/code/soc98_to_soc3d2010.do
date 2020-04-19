@@ -15,8 +15,9 @@ drop if occsoc == ""
 recode occ2010 (1230 = 1240)
 
 * Check mapping between occsoc and soc3d2010
-`#PREREQ' local cwalk "build/output/occ2010_to_soc3d2010.dta"
-merge m:1 occ2010 using "`cwalk'", keepusing(soc3d2010) keep(1 3)
+`#PREREQ' local cwalk "build/output/census2010_to_soc2010.dta"
+rename occ2010 census2010
+merge m:1 census2010 using "`cwalk'", keepusing(soc3d2010) keep(1 3)
 
 * Check uniformity of soc3d2010 within occsoc
 bysort occsoc: egen soc3dmin = min(soc3d2010)
