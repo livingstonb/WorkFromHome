@@ -26,8 +26,8 @@ def parse():
 
 				if currdir not in dirs_seen:
 					objdir = dofile.split('/')[0]
-					commands.append(f'mkdir -p {objdir}/output')
-					commands.append(f'mkdir -p {objdir}/temp')
+					commands.append(f'capture mkdir {objdir}/output')
+					commands.append(f'capture mkdir {objdir}/temp')
 					dirs_seen.add(currdir)
 
 				commands.append(f'do "{dofile}"')
