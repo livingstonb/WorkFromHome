@@ -104,13 +104,13 @@ drop census2010
 gen ind2012 = industry if inrange(year, 2013, 2017)
 gen ind2017 = industry if (year > 2017)
 
-`#PREREQ'  local c12 "../industries/build/output/cwalk_census2012_to_sector.dta"
+`#PREREQ'  local c12 "../industries/build/output/census2012_to_sector.dta"
 #delimit ;
 merge m:1 ind2012 using "`c12'",
 	keepusing(sector) keep(1 3) nogen;
 #delimit cr
 
-local c17 "../industries/build/input/cwalk_census2017_to_sector.dta"
+local c17 "../industries/build/input/census2017_to_sector.dta"
 #delimit ;
 merge m:1 ind2017 using "`c17'",
 	keepusing(sector) keep(1 3 4) nogen update;

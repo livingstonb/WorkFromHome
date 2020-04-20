@@ -1,6 +1,8 @@
 /* --- HEADER ---
-This script creates crosswalks for occupation codes.
+This script creates do-files with value labels for SOC
+occupation categories at the 2- and 3-digit level.
 */
+
 args occyear
 
 clear

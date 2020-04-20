@@ -66,7 +66,7 @@ rename soc3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
 * Sector
-`#PREREQ' local ind12 "../industries/build/output/cwalk_census2012_to_sector.dta"
+`#PREREQ' local ind12 "../industries/build/output/census2012_to_sector.dta"
 rename inddetailed ind2012
 #delimit ;
 merge m:1 ind2012 using "`ind12'",

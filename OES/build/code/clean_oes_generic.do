@@ -29,17 +29,17 @@ if "`aggregate_occs'" == "1" {
 	capture drop if inlist(occ_group, "total", "major")
 	
 	if (`year' == 1998) {
-		local cw98 "../occupations/build/output/cwalk_occsoc_soc3d2010.dta"
+		* local cw98 "../occupations/build/output/occsoc_soc3d2010.dta"
 		
-		tempfile cwalkadj
-		preserve
-		use "`cw98'", clear
+		* tempfile cwalkadj
+		* preserve
+		* use "`cw98'", clear
 		
 
-		replace occ_code = occ_code + "0" if strlen(occ_code) == 5
-		replace occ_code = occ_code + "0000" if strlen(occ_code) == 2
+		* replace occ_code = occ_code + "0" if strlen(occ_code) == 5
+		* replace occ_code = occ_code + "0000" if strlen(occ_code) == 2
 
-		drop occ_first2 occ_last4
+		* drop occ_first2 occ_last4
 	}
 	else if (`year' == 1999) {
 		

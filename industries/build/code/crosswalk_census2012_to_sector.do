@@ -19,7 +19,7 @@ recode ind2017 (6990 = 6991) (7070 = 7071) (7170 7180 = 7181)
 recode ind2017 (8190 = 8191) (8560 = 8563)
 recode ind2017 (8880 8890 = 8891)
 
-local ind17 "build/input/cwalk_census2017_to_sector.dta"
+local ind17 "build/input/census2017_to_sector.dta"
 #delimit ;
 merge m:m ind2017 using "`ind17'",
 	keepusing(sector) keep(match) nogen;
@@ -29,5 +29,5 @@ drop ind2017
 duplicates drop ind2012, force
 order ind2012 sector
 
-`#TARGET' local ind12 "build/output/cwalk_census2012_to_sector.dta"
+`#TARGET' local ind12 "build/output/census2012_to_sector.dta"
 save "`ind12'", replace

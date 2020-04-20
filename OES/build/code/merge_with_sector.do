@@ -10,7 +10,7 @@ gen int `ind1d' = floor(`ind3d' / 100)
 
 #delimit ;
 local naicsdta
-	"../industries/build/input/cwalk_naics2017_to_sector.dta";
+	"../industries/build/input/naics2017_to_sector.dta";
 #delimit cr
 
 * 1-digit first
