@@ -1,14 +1,20 @@
-
+% Reads and creates figures for OpenTable reservation data
 
 clear
 close all
 addpath('build/code')
 
+% Read raw data
 filepath = 'build/input/state_of_industry.csv';
 data = readcell(filepath);
+
+% Reshape into long time series
 data = reshape_long(data);
+
+% Isolate city-level data
 data = data(strcmp(data.('type'), 'city'),:);
 
+% Structure with city-specific variables
 convertdate = @(x) datetime(x, 'InputFormat', 'MM/dd');
 top10cities(1) = struct(...
     'name', 'New York', 'shutdown', '3/17');
@@ -41,9 +47,7 @@ for j = 1:numel(top10cities)
     top10cities(j).fig_path = fullfile(outdir, filename);
 end
 
-% data = data(ismember(data.name, {top10cities.name}),:);
-% data.type = [];
-
+% Create plots
 for j = 1:numel(top10cities)
     plotobjs = plot_city(top10cities(j));
     saveas(gcf, top10cities(j).fig_path);
