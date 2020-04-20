@@ -10,6 +10,9 @@ function plotobjs = plot_city(city)
     % Scatter plot
     plotobjs.scatter = scatter(data.date, data.change, 'filled');
     
+    % Add vertical line for first death
+    plotobjs.first_death = plot_firstdeath(city.first_death);
+    
     % Add vertical line for federal travel ban
     plotobjs.travel_ban = plot_travel_ban(city.travel_ban);
     
@@ -19,6 +22,13 @@ function plotobjs = plot_city(city)
     % Other formatting
     title(city.name)
     format_figure(plotobjs)
+end
+
+function firstdeath_obj = plot_firstdeath(first_death)
+    firstdeath_obj = xline(first_death);
+    
+    txt = '\leftarrow First death';
+    text(first_death, -80, txt);
 end
 
 function ban_obj = plot_travel_ban(ban_date)

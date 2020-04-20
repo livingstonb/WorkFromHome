@@ -4,7 +4,7 @@ clear
 close all
 addpath('build/code')
 
-% Read raw data
+% Read raw OpenTable data
 filepath = 'build/input/state_of_industry.csv';
 data = readcell(filepath);
 
@@ -13,6 +13,16 @@ data = reshape_long(data);
 
 % Isolate city-level data
 data = data(strcmp(data.('type'), 'city'),:);
+
+% Read population ranks
+filepath = 'build/input/city_pop_ranks.csv';
+popranks = readtable(filepath);
+popranks = sortrows(popranks, 2);
+us_cities = table2cell(popranks(:,1));
+
+
+% Isolate US cities
+data = data(ismember(data.('name'), us_cities),:);
 
 % Structure with city-specific variables
 convertdate = @(x) datetime(x, 'InputFormat', 'MM/dd');
@@ -42,10 +52,37 @@ for j = 1:numel(top10cities)
     top10cities(j).shutdown = convertdate(top10cities(j).shutdown);
     top10cities(j).data = data(strcmp(data.('name'), top10cities(j).name),:);
     top10cities(j).travel_ban = convertdate('3/14');
+    top10cities(j).first_death = convertdate('2/29');
     
-    filename = strcat(strrep(top10cities(j).name, ' ', '_'), '.png');
+    filename = strcat(strrep(top10cities(j).name, ' ', '_'), '.pdf');
     top10cities(j).fig_path = fullfile(outdir, filename);
 end
+
+% Compute averages between Feb 18 and Feb 28, and values before bans
+stats = table();
+trange = timerange('2020-02-18', '2020-02-28');
+for j = 1:numel(us_cities)
+    city = us_cities{j};
+    citydata = data(strcmp(data.('name'), city),:);
+
+    cityname = {city};
+    citystats = struct();
+    citystats.City = {city};
+    citystats.Mean_YoY_Change_Feb18_to_Feb28 = mean(citydata(trange,:).('change'));
+    citystats.Population_Rank = table2array(popranks(j,2));
+    
+    citytable = struct2table(citystats);
+    stats = [stats; citytable];
+end
+
+% Add US-wide average
+tmp = mean(stats.('Mean_YoY_Change_Feb18_to_Feb28'));
+citystats = struct();
+citystats.City = {'All US cities available'};
+citystats.Mean_YoY_Change_Feb18_to_Feb28 = tmp;
+citystats.Population_Rank = NaN;
+citytable = struct2table(citystats);
+stats = [stats; citytable];
 
 % Create plots
 for j = 1:numel(top10cities)

@@ -79,4 +79,11 @@ Otherwise, various other years are required, which can be downloaded from the BL
 * *build/input/nat2d2018.xlsx*
 * *build/input/nat2d2019.xlsx*
 
-### Crosswalks
+## OpenTable
+
+### Required inputs
+We use a dataset provided by OpenTable, accessed from <https://www.opentable.com/state-of-industry>.
+
+* *build/input/state_of_industry.csv*
+
+## Crosswalks
