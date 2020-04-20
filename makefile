@@ -1,6 +1,6 @@
 STATA = ../misc/statab do
 MODULES := occupations industries OES ACS \
-	SIPP ATUS DingelNeiman SHED merges
+	SIPP ATUS DingelNeiman SHED merges BEA
 SUBDIRS :=
 OBJDIRS :=
 

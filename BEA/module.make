@@ -2,8 +2,10 @@ subdir = BEA
 
 objdirs = build
 
-sources = build.do
+sources = value_added_long.do \
+	price_indexes_long.do \
+	tornquist.do
 
-targets = build/output/value_added_long.dta
+targets = build/output/tornquist_series.dta
 
 include misc/includes.make

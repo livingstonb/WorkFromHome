@@ -1,8 +1,7 @@
+clear
 
 * 1947 - 1997
-tempfile dataset1
-
-clear
+tempfile value_added1947
 `#PREREQ 'import excel "build/input/value_added_1947_1997.xls", firstrow
 drop if missing(sector)
 
@@ -14,7 +13,11 @@ foreach var of varlist * {
 		rename `var' value_added`lab'
 	}
 }
-save `dataset1', replace
+save `value_added1947', replace
+
+/* --- HEADER ---
+Cleans industry-level value-added from BEA.
+*/
 
 * 1998 - 2019
 clear
@@ -31,7 +34,7 @@ foreach var of varlist * {
 destring value_added2019, force replace
 
 * Merge years
-merge 1:1 title using `dataset1', nogen
+merge 1:1 title using `value_added1947', nogen
 
 label define sector_lbl 0 "C" 1 "S"
 label values sector sector_lbl
@@ -50,4 +53,5 @@ replace title = title + " (2)" if iexpand
 drop iexpand
 
 * Save
-`#TARGET' save "build/output/value_added_long.dta"
+rename title industry
+`#TARGET' save "build/temp/value_added_long.dta", replace
