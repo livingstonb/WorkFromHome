@@ -90,15 +90,13 @@ merge m:1 census2010 using "`occ2010'",
 rename soc3d2010 occ3d2010
 
 * 2018
-* local occ2018 "../occupations/build/output/census2010_to_soc2010.dta"
-* #delimit ;
-* merge m:1 census2018 using "`occ2018'",
-* 	keepusing(soc3d2010) keep(1 3) nogen;
-* #delimit cr
-* replace occ3d2010 = soc3d2010 if (year > 2017)
-* drop census2018
-
-drop census2010
+`#PREREQ' local occ2018 "../occupations/build/output/census2018_to_soc2010.dta"
+#delimit ;
+merge m:1 census2018 using "`occ2018'",
+	keepusing(soc3d2010) keep(1 3) nogen;
+#delimit cr
+replace occ3d2010 = soc3d2010 if (year > 2017)
+drop census2010 census2018
 
 * Industry coding
 gen ind2012 = industry if inrange(year, 2013, 2017)
