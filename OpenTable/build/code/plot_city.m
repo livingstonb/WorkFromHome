@@ -1,26 +1,24 @@
 function plotobjs = plot_city(city)
-    % Plots OpenTable data for a given city. Should be passed a structure
+    % Plots OpenTable data for a given city. Should be passed a table
     % with the necessary fields.
-
-    data = city.data;
     
     plotobjs.fig = figure();
     plotobjs.ax = gca();
     
     % Scatter plot
-    plotobjs.scatter = scatter(data.date, data.change, 'filled');
+    plotobjs.scatter = scatter(city.date, city.change, 'filled');
     
     % Add vertical line for first death
-    plotobjs.first_death = plot_firstdeath(city.first_death);
+    plotobjs.first_death = plot_firstdeath(city.first_death(1));
     
     % Add vertical line for federal travel ban
-    plotobjs.travel_ban = plot_travel_ban(city.travel_ban);
+    plotobjs.travel_ban = plot_travel_ban(city.travel_ban(1));
     
     % Add vertical line for city-wide dine-in ban
-    plotobjs.shutdown = plot_shutdown(city.shutdown);
+    plotobjs.shutdown = plot_shutdown(city.city_ban(1));
     
     % Other formatting
-    title(city.name)
+    title(city.city(1))
     format_figure(plotobjs)
 end
 
