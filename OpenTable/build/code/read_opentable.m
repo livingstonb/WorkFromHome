@@ -73,17 +73,46 @@ change_before_city_ban.('day_before_city_ban') = change_before_city_ban.('change
 change_before_city_ban.('change') = [];
 
 stats = join(stats, change_before_city_ban, 'Keys', 'city');
+stats = join(stats, city_data, 'Keys', 'city', 'RightVariables', 'rank');
+stats.('population_rank') = stats.('rank');
+stats.('rank') = [];
+stats = sortrows(stats, 'population_rank');
+stats.('population_rank') = (1:numel(us_cities))';
 
 allcities = struct();
 allcities.city = 'All';
 allcities.mean_before_feb29 = mean(stats.('mean_before_feb29'));
 allcities.day_before_travel_ban = mean(stats.('day_before_travel_ban'));
 allcities.day_before_city_ban = mean(stats.('day_before_city_ban'));
+allcities.('population_rank') = NaN;
 stats = [stats; struct2table(allcities)];
 
-% Create plots
+% Related statistics
+stats.('drop_travel_ban') = stats.('day_before_travel_ban') - stats.('mean_before_feb29');
+stats.('drop_city_ban') = stats.('day_before_city_ban') - stats.('mean_before_feb29');
+
+% Save table to excel
 outdir = 'build/output';
+filename = 'opentable_statistics.xlsx';
+filepath = fullfile(outdir, filename);
+writetable(stats, filepath);
+
+% Create plots
+outdir = 'build/output/top10';
+mkdir(outdir);
 for j = ranks_top10
+    city = data(data.('rank')==j,:);
+    plot_city(city);
+    
+    cityname = strrep(city.city(1), ' ', '_');
+    filename = strcat(cityname{1}, '.pdf');
+    saveas(gcf, fullfile(outdir, filename));
+    close all
+end
+
+outdir = 'build/output/bottom10';
+mkdir(outdir);
+for j = ranks_bottom10
     city = data(data.('rank')==j,:);
     plot_city(city);
     
