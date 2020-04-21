@@ -2,7 +2,19 @@
 
 clear
 close all
+
+cd '/media/hdd/GitHub/WorkFromHome/OpenTable'
+
 addpath('build/code')
+outdir = 'build/output';
+mkdir(outdir)
+
+%% ---------------------- OPTIONS -----------------------------------------
+
+COMPUTATIONS = true;
+PLOTS = true;
+
+%% ---------------------- READ AND CLEAN DATA -----------------------------
 
 % Read raw OpenTable data
 filepath = 'build/input/state_of_industry.csv';
@@ -32,79 +44,85 @@ city_data.('travel_ban') = repmat(convertdate('3/14'), ncities, 1);
 city_data.('first_death') = repmat(convertdate('2/29'), ncities, 1);
 
 % Merge OT and city
-data = join(ot_data, city_data, 'Keys', 'city');
-data = sortrows(data, 'rank');
+merged_series = join(ot_data, city_data, 'Keys', 'city');
+merged_series = sortrows(merged_series, 'rank');
 
-% Top 10 cities
-ranks = unique(data.('rank'));
+% Top/bottom 10 cities
+ranks = unique(merged_series.('rank'));
 ranks_top10 = ranks(1:10)';
 ranks_bottom10 = ranks(end-9:end)';
 
-% Compute averages between Feb 18 and Feb 28
-label = 'mean_before_feb29';
-stats = compute_mean_change(...
-    data, '2020-02-18', '2020-02-28', label);
+%% ---------------------- COMPUTATIONS ------------------------------------
 
-% Value before travel ban
-restricted_series = data(datetime('2020-03-13'),{'city','change'});
-label = 'day_before_travel_ban';
-before_travel_ban = get_values(restricted_series, label);
-stats = join(stats, before_travel_ban, 'Keys', 'city');
-
-% Value before city ban
-day_before_city_ban = data.('city_ban') - caldays(1);
-restricted_series = data(data.('date') == day_before_city_ban,{'city','change'});
-label = 'day_before_city_ban';
-change_before_city_ban = get_values(restricted_series, label);
-stats = join(stats, change_before_city_ban, 'Keys', 'city');
-
-% Merge with population rank
-stats = join(stats, city_data, 'Keys', 'city', 'RightVariables', 'rank');
-stats = change_label(stats, 'rank', 'population_rank');
-stats = sortrows(stats, 'population_rank');
-stats.('population_rank') = (1:numel(us_cities))';
-
-allcities = struct();
-allcities.city = 'All';
-allcities.mean_before_feb29 = mean(stats.('mean_before_feb29'));
-allcities.day_before_travel_ban = mean(stats.('day_before_travel_ban'));
-allcities.day_before_city_ban = mean(stats.('day_before_city_ban'));
-allcities.('population_rank') = NaN;
-stats = [stats; struct2table(allcities)];
-
-% Related statistics
-stats.('drop_travel_ban') = stats.('day_before_travel_ban') - stats.('mean_before_feb29');
-stats.('drop_city_ban') = stats.('day_before_city_ban') - stats.('mean_before_feb29');
-
-% Save table to excel
-outdir = 'build/output';
-filename = 'opentable_statistics.xlsx';
-filepath = fullfile(outdir, filename);
-writetable(stats, filepath);
-
-% Create plots
-outdir = 'build/output/top10';
-mkdir(outdir);
-for j = ranks_top10
-    city = data(data.('rank')==j,:);
-    plot_city(city);
-    
-    cityname = strrep(city.city(1), ' ', '_');
-    filename = strcat(cityname{1}, '.pdf');
-    saveas(gcf, fullfile(outdir, filename));
-    close all
+if COMPUTATIONS
+    stats = compute_statistics(merged_series, city_data);
+    filename = 'opentable_statistics.xlsx';
+    filepath = fullfile(outdir, filename);
+    writetable(stats, filepath);
 end
 
-outdir = 'build/output/bottom10';
-mkdir(outdir);
-for j = ranks_bottom10
-    city = data(data.('rank')==j,:);
-    plot_city(city);
-    
-    cityname = strrep(city.city(1), ' ', '_');
-    filename = strcat(cityname{1}, '.pdf');
-    saveas(gcf, fullfile(outdir, filename));
-    close all
+%% ---------------------- PLOTS -------------------------------------------
+
+if PLOTS
+    % Create plots
+    top10dir = fullfile(outdir, 'top10');
+    bottom10dir = fullfile(outdir, 'bottom10');
+
+    mkdir(top10dir);
+    for j = [ranks_top10 ranks_bottom10]
+        city = merged_series(merged_series.('rank')==j,:);
+        plot_city(city);
+
+        cityname = strrep(city.city(1), ' ', '_');
+        filename = strcat(cityname{1}, '.pdf');
+        
+        if ismember(j, ranks_top10)
+            saveas(gcf, fullfile(top10dir, filename));
+        elseif ismember(j, ranks_bottom10)
+            saveas(gcf, fullfile(bottom10dir, filename));
+        end
+        close all
+    end
+end
+
+%% ---------------------- FUNCTIONS ---------------------------------------
+
+function stats = compute_statistics(merged_series, city_data)
+    % Compute averages between Feb 18 and Feb 28
+    label = 'mean_before_feb29';
+    stats = compute_mean_change(...
+        merged_series, '2020-02-18', '2020-02-28', label);
+
+    % Value before travel ban
+    restricted_series = merged_series(datetime('2020-03-13'),{'city','change'});
+    label = 'day_before_travel_ban';
+    before_travel_ban = get_values(restricted_series, label);
+    stats = join(stats, before_travel_ban, 'Keys', 'city');
+
+    % Value before city ban
+    day_before_city_ban = merged_series.('city_ban') - caldays(1);
+    restricted_series = merged_series(merged_series.('date') == day_before_city_ban,{'city','change'});
+    label = 'day_before_city_ban';
+    change_before_city_ban = get_values(restricted_series, label);
+    stats = join(stats, change_before_city_ban, 'Keys', 'city');
+
+    % Merge with population rank
+    stats = join(stats, city_data, 'Keys', 'city', 'RightVariables', 'rank');
+    stats = change_label(stats, 'rank', 'population_rank');
+    stats = sortrows(stats, 'population_rank');
+    stats.('population_rank') = (1:size(city_data, 1))';
+
+    allcities = struct();
+    allcities.city = 'All';
+    allcities.mean_before_feb29 = mean(stats.('mean_before_feb29'));
+    allcities.day_before_travel_ban = mean(stats.('day_before_travel_ban'));
+    allcities.day_before_city_ban = mean(stats.('day_before_city_ban'));
+    allcities.('population_rank') = NaN;
+    stats = [stats; struct2table(allcities)];
+
+    % Related statistics
+    stats.('drop_travel_ban') = stats.('day_before_travel_ban') - stats.('mean_before_feb29');
+    stats.('drop_city_ban') = stats.('day_before_city_ban') - stats.('mean_before_feb29');
 end
 
 function table_out = change_label(table_in, old_label, new_label)
@@ -123,7 +141,6 @@ function results = compute_mean_change(data, date1, date2, label)
     results = varfun(@mean, restricted, 'InputVariables', 'change',...
         'GroupingVariables', 'city');
     results = timetable2table(results(:,{'city', 'mean_change'}));
-    results.(label) = results.('mean_change');
     results = change_label(results, 'mean_change', label);
     results.('date') = [];
 end
