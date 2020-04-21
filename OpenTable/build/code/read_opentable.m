@@ -22,11 +22,9 @@ city_data = convertvars(city_data, 'city_ban', convertdate);
 city_data = sortrows(city_data, 3);
 us_cities = table2cell(city_data(:,2));
 
-
 % Isolate US cities
 ot_data = ot_data(ismember(ot_data.('name'), us_cities),:);
-ot_data.('city') = ot_data.('name');
-ot_data.('name') = [];
+ot_data = change_label(ot_data, 'name', 'city');
 
 % Add variables
 ncities = numel(us_cities);
@@ -43,39 +41,26 @@ ranks_top10 = ranks(1:10)';
 ranks_bottom10 = ranks(end-9:end)';
 
 % Compute averages between Feb 18 and Feb 28
-trange = timerange('2020-02-18', '2020-02-28');
-
-restricted = data(trange,{'city', 'change'});
-restricted = restricted(:,{'city', 'change'});
-
-stats = varfun(@mean, restricted, 'InputVariables', 'change',...
-    'GroupingVariables', 'city');
-stats = timetable2table(stats(:,{'city', 'mean_change'}));
-stats.('mean_before_feb29') = stats.('mean_change');
-stats.('mean_change') = [];
-stats.('date') = [];
+label = 'mean_before_feb29';
+stats = compute_mean_change(...
+    data, '2020-02-18', '2020-02-28', label);
 
 % Value before travel ban
-before_travel_ban = data(datetime('2020-03-13'),{'city','change'});
-before_travel_ban = timetable2table(before_travel_ban);
-before_travel_ban.('date') = [];
-before_travel_ban.('day_before_travel_ban') = before_travel_ban.('change');
-before_travel_ban.('change') = [];
-
+restricted_series = data(datetime('2020-03-13'),{'city','change'});
+label = 'day_before_travel_ban';
+before_travel_ban = get_values(restricted_series, label);
 stats = join(stats, before_travel_ban, 'Keys', 'city');
 
 % Value before city ban
 day_before_city_ban = data.('city_ban') - caldays(1);
-
-restricted = data(data.('date') == day_before_city_ban,:);
-change_before_city_ban = restricted(:, {'city', 'change'});
-change_before_city_ban.('day_before_city_ban') = change_before_city_ban.('change');
-change_before_city_ban.('change') = [];
-
+restricted_series = data(data.('date') == day_before_city_ban,{'city','change'});
+label = 'day_before_city_ban';
+change_before_city_ban = get_values(restricted_series, label);
 stats = join(stats, change_before_city_ban, 'Keys', 'city');
+
+% Merge with population rank
 stats = join(stats, city_data, 'Keys', 'city', 'RightVariables', 'rank');
-stats.('population_rank') = stats.('rank');
-stats.('rank') = [];
+stats = change_label(stats, 'rank', 'population_rank');
 stats = sortrows(stats, 'population_rank');
 stats.('population_rank') = (1:numel(us_cities))';
 
@@ -120,4 +105,32 @@ for j = ranks_bottom10
     filename = strcat(cityname{1}, '.pdf');
     saveas(gcf, fullfile(outdir, filename));
     close all
+end
+
+function table_out = change_label(table_in, old_label, new_label)
+    table_out = table_in;
+    table_out.(new_label) = table_out.(old_label);
+    table_out.(old_label) = [];
+end
+
+function results = compute_mean_change(data, date1, date2, label)
+    % Computes average YoY change between two dates
+
+    trange = timerange(date1, date2);
+    restricted = data(trange,{'city', 'change'});
+    restricted = restricted(:,{'city', 'change'});
+
+    results = varfun(@mean, restricted, 'InputVariables', 'change',...
+        'GroupingVariables', 'city');
+    results = timetable2table(results(:,{'city', 'mean_change'}));
+    results.(label) = results.('mean_change');
+    results = change_label(results, 'mean_change', label);
+    results.('date') = [];
+end
+
+function data_out = get_values(restricted_series, label)
+    data_out = timetable2table(restricted_series);
+    data_out.(label) = data_out.('change');
+    data_out.('date') = [];
+    data_out.('change') = [];
 end
