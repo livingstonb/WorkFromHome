@@ -1,10 +1,9 @@
-% Reads and creates figures for OpenTable reservation data
+% Creates figures and statistics from OpenTable reservation data.
 
 clear
 close all
 
 cd '/media/hdd/GitHub/WorkFromHome/OpenTable'
-
 addpath('build/code')
 outdir = 'build/output';
 mkdir(outdir)
@@ -96,14 +95,14 @@ function stats = compute_statistics(merged_series, city_data)
     % Value before travel ban
     restricted_series = merged_series(datetime('2020-03-13'),{'city','change'});
     label = 'day_before_travel_ban';
-    before_travel_ban = get_values(restricted_series, label);
+    before_travel_ban = clean_timetable(restricted_series, label);
     stats = join(stats, before_travel_ban, 'Keys', 'city');
 
     % Value before city ban
     day_before_city_ban = merged_series.('city_ban') - caldays(1);
     restricted_series = merged_series(merged_series.('date') == day_before_city_ban,{'city','change'});
     label = 'day_before_city_ban';
-    change_before_city_ban = get_values(restricted_series, label);
+    change_before_city_ban = clean_timetable(restricted_series, label);
     stats = join(stats, change_before_city_ban, 'Keys', 'city');
 
     % Merge with population rank
@@ -117,7 +116,7 @@ function stats = compute_statistics(merged_series, city_data)
     allcities.mean_before_feb29 = mean(stats.('mean_before_feb29'));
     allcities.day_before_travel_ban = mean(stats.('day_before_travel_ban'));
     allcities.day_before_city_ban = mean(stats.('day_before_city_ban'));
-    allcities.('population_rank') = NaN;
+    allcities.population_rank = NaN;
     stats = [stats; struct2table(allcities)];
 
     % Related statistics
@@ -145,9 +144,8 @@ function results = compute_mean_change(data, date1, date2, label)
     results.('date') = [];
 end
 
-function data_out = get_values(restricted_series, label)
+function data_out = clean_timetable(restricted_series, label)
     data_out = timetable2table(restricted_series);
-    data_out.(label) = data_out.('change');
+    data_out = change_label(data_out, 'change', label);
     data_out.('date') = [];
-    data_out.('change') = [];
 end
