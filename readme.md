@@ -7,6 +7,10 @@ Within each of these modules are directories, typically
 a subdirectory for the code and may or may not contain
 directories for the input, output, logs, and intermediate files.
 
+## The current working directory
+
+Code in each module expects the current working directory to be the module directory. E.g. to run code in the ACS module, first cd into *WorkFromHome/ACS*.
+
 ## Make
 
 ### Interdependencies
@@ -79,11 +83,34 @@ Otherwise, various other years are required, which can be downloaded from the BL
 * *build/input/nat2d2018.xlsx*
 * *build/input/nat2d2019.xlsx*
 
+## SIPP
+
+### Required inputs
+We use waves 1-4 of the 2014 SIPP. These are large files named *pu2014w#.dta*, which can be split into chunks and compressed with the *build/code/read_sipp.do* do-file. This do-file should be passed the wave number of the raw dataset to be processed, e.g. `do "build/code/do/read_sipp.do" 2` for wave 2.
+
+* *build/input/pu2014w1.dta*
+* *build/input/pu2014w2.dta*
+* *build/input/pu2014w3.dta*
+* *build/input/pu2014w4.dta*
+
+The raw datasets can then be deleted and one can use the following files, produced with the command described above:
+
+* *build/input/sipp_raw_w1.dta*
+* *build/input/sipp_raw_w2.dta*
+* *build/input/sipp_raw_w3.dta*
+* *build/input/sipp_raw_w4.dta*
+
 ## OpenTable
 
 ### Required inputs
-We use a dataset provided by OpenTable, accessed from <https://www.opentable.com/state-of-industry>.
+We use a dataset provided by OpenTable, downloaded from <https://www.opentable.com/state-of-industry>.
 
 * *build/input/state_of_industry.csv*
+
+To rank cities by population, we use 2018 estimates produced by the Census, downloaded from
+<https://www.census.gov/data/tables/time-series/demo/popest/2010s-total-cities-and-towns.html>.
+Population ranks were then coded into *city_data.csv*, along with the approximate dates at which city or state dine-in bans went into effect.
+
+* *build/input/city_data.csv*
 
 ## Crosswalks

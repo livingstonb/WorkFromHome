@@ -45,6 +45,6 @@ forvalues chunk = 1/`nchunks' {
 foreach var of varlist tjb*_occ tjb*_ind {
 	destring `var', replace
 }
-save "build/input/wave`wave'_complete.dta"
+save "build/input/sipp_raw_w`wave'.dta"
 
 global wave

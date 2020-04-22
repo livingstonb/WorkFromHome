@@ -96,7 +96,7 @@ merge m:1 census2018 using "`occ2018'",
 	keepusing(soc3d2010) keep(1 3) nogen;
 #delimit cr
 replace occ3d2010 = soc3d2010 if (year > 2017)
-drop census2010 census2018
+drop census2010 census2018 soc3d2010
 
 * Industry coding
 gen ind2012 = industry if inrange(year, 2013, 2017)

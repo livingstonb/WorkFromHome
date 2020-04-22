@@ -2,6 +2,7 @@
 Reshapes merged datasets into wide format.
 */
 
+adopath + "../ado"
 `#PREREQ' use "build/output/wfh_merged.dta", clear
 
 tostring sector, replace force
@@ -16,7 +17,9 @@ local variables oes* pct_* mean* median* nla*
 #delimit cr
 
 keep occ3d2010 col `variables'
+varlabels, save
 reshape wide `variables', i(occ3d2010) j(col) string
+varlabels, restore
 
 foreach var of varlist * {
 	quietly count if !missing(`var')

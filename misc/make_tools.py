@@ -19,19 +19,6 @@ class StataParser:
 						f'# {horzline}\n\n'
 					)
 
-	def adjust_paths(self):
-		"""
-		Strips ../ if present, otherwise appends the base
-		directory.
-		"""
-		for i in range(len(paths)):
-			if paths[i].startswith("../"):
-				paths[i] = paths[i].replace("../", "")
-			else:
-				paths[i] = os.path.join(prefix, paths[i])
-
-		return paths
-
 	def parse_path(self, fpath):
 		"""
 		Extracts different variables associated with filepath.

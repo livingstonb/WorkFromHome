@@ -36,7 +36,7 @@ label variable oes_employment "Employment level in occ-sector pair from OES"
 label variable oes_meanwage "Mean wage in occ-sector pair from OES"
 label variable source "Dataset"
 label variable pct_workfromhome "% WFH in occ-sector pair"
-label variable nworkers_wt "Est of total workers in group from given dataset"
+label variable nworkers_wt "Est of total workers in group"
 label variable nworkers_unw "n, Actual num respondents"
 
 label variable mean_pdeposits "Mean deposits"
@@ -66,7 +66,7 @@ label variable median_liquid_wcash "Median liquid assets w/assumed cash, not net
 label variable median_netilliquid "Median net illiquid assets"
 
 label variable meanwage "Mean wage, from given dataset"
-label variable pct_canwfh "% can WFH, ATUS only"
+label variable pct_canwfh "% can WFH"
 
 drop _merge
 

@@ -3,7 +3,7 @@ import re
 
 def parse():
 	currdir = 'WorkFromHome'
-	pat = r'cd\s+?(\w+).*?do\s+?(.*\.do)?'
+	pat = r'cd\s+?(\w+).*?do\s+?(.*\.do)?(.*)'
 	commands = []
 	dirs_seen = set()
 	for line in sys.stdin:
@@ -17,6 +17,7 @@ def parse():
 			if len(matches) >= 2 :
 				basedir = matches[0]
 				dofile = matches[1]
+				extra_cmds = ' '.join(matches[2:])
 
 				if (currdir != 'WorkFromHome') and (currdir != basedir):
 					commands.append(f'\ncd "../{basedir}"')
@@ -30,7 +31,7 @@ def parse():
 					commands.append(f'capture mkdir {objdir}/temp')
 					dirs_seen.add(currdir)
 
-				commands.append(f'do "{dofile}"')
+				commands.append(f'do "{dofile}" {extra_cmds}')
 
 		except Exception as e:
 			print(e)

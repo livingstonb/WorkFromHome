@@ -17,6 +17,18 @@ program .get
 	
 	class exit "`.list[`j']'"
 end
+program .find
+	args entry
+
+	local index = -1
+	forvalues j = 1/`.n' {
+		if "`.list[`j']'" == "`entry'" {
+			local index = `j'
+			continue, break
+		}
+	}
+	class exit `index'
+end
 program .di
 	args j
 	
