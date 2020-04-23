@@ -117,6 +117,9 @@ function stats = compute_statistics(merged_series, city_data)
     allcities.day_before_travel_ban = mean(stats.('day_before_travel_ban'));
     allcities.day_before_city_ban = mean(stats.('day_before_city_ban'));
     allcities.population_rank = NaN;
+    
+    invars = {'mean_before_
+    allcities = varfun(@mean, stats, 'InputVariables', {'change'}, 'OutputFormat', 'table')
     stats = [stats; struct2table(allcities)];
 
     % Related statistics

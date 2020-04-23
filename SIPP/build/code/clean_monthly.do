@@ -153,36 +153,31 @@ rename thtotinc hhgrossinc
 label variable hhgrossinc "HH gross income"
 
 // FIND MOST-WORKED OCCUPATION FOR EACH INDIVIDUAL
-* By wave
-levelsof swave, local(waves)
-
 tempfile occwave
-foreach wave of local waves {
-	preserve
+preserve
 
-	keep personid swave monthcode tjb*_occ
-	keep if swave == `wave'
+* Create variables distinct_occ* that contain distinct occupation codes for each
+* worker-wave
+keep personid swave monthcode tjb*_occ
+reshape wide tjb*_occ, i(personid swave) j(monthcode)
+rowdistinct tjb*_occ*, gen(distinct_occ)
+local ndistinct = `r(ndistinct)'
+drop tjb*_occ*
+save `occwave', replace
 
-	reshape wide tjb*_occ, i(personid) j(monthcode)
-	rowdistinct tjb*_occ*, gen(distinct_occ) id(personid)
-	local ndistinct = `r(ndistinct)'
-	drop tjb*_occ*
+restore
 
-	
-	save `occwave', replace
-	restore
-	
-	merge m:1 personid swave using `occwave', nogen update keep(1 3 4)
-}
+merge m:1 personid swave using `occwave', nogen keep(1 3) keepusing(distinct_occ*)
 
 forvalues j = 1/`ndistinct' {
+	* Indicator that one or more jobs for this worker-wave was in distinct_occ`j'
 	forvalues i = 1/7 {
 		gen occtmp`i' = (tjb`i'_occ == distinct_occ`j') & !missing(distinct_occ`j')
 	}
-
 	egen month_in_`j' = rowmax(occtmp*)
+
+	* Number of months spent in distinct_occ`j' for this worker-wave
 	bysort personid swave: egen nmonths_occ`j' = total(month_in_`j')
-	
 	drop occtmp* month_in_`j'
 }
 egen months_primaryocc = rowmax(nmonths_occ*)
@@ -197,26 +192,18 @@ forvalues j = 1/`ndistinct' {
 drop distinct_occ* nmonths_occ*
 
 // FIND MOST-WORKED INDUSTRY FOR EACH INDIVIDUAL
-* By wave
-levelsof swave, local(waves)
-
 tempfile indwave
-foreach wave of local waves {
-	preserve
+preserve
 
-	keep personid monthcode swave tjb*_ind
-	keep if swave == `wave'
+keep personid monthcode swave tjb*_ind
+reshape wide tjb*_ind, i(personid swave) j(monthcode)
+rowdistinct tjb*_ind*, gen(distinct_ind)
+local ndistinct = `r(ndistinct)'
+drop tjb*_ind*
+save `indwave', replace
 
-	reshape wide tjb*_ind, i(personid) j(monthcode)
-	rowdistinct tjb*_ind*, gen(distinct_ind) id(personid)
-	local ndistinct = `r(ndistinct)'
-	drop tjb*_ind*
-
-	save `indwave', replace
-
-	restore
-	merge m:1 personid swave using `indwave', nogen update keep(1 3 4)
-}
+restore
+merge m:1 personid swave using `indwave', nogen keep(1 3) keepusing(distinct_ind*)
 
 forvalues j = 1/`ndistinct' {
 	forvalues i = 1/7 {
