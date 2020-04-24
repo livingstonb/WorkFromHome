@@ -45,6 +45,6 @@ misc/procedures/%.txt :
 	$(MAKE) $* --dry-run | python misc/list_do_tasks.py > $@
 
 readme :
-	pandoc readme.md -o readme.pdf
+	-pandoc readme.md -o readme.pdf
 
 include tex/module.make

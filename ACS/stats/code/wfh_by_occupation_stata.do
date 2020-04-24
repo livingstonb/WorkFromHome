@@ -41,10 +41,13 @@ replace nworkers_wt = 0 if blankobs
 replace nworkers_unw = 0 if blankobs
 label variable blankobs "Empty category"
 
+* Store variable labels
+varlabels, save
 
 // PRODUCE STATA FILE
 tempfile acs2017only
 preserve
+
 #delimit ;
 collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
@@ -89,4 +92,8 @@ clear
 use `acs2017only'
 append using `acs2015to2017'
 append using `acs2013to2017'
+
+varlabels, restore
+label variable source "Dataset"
+
 `#TARGET' save "stats/output/ACSwfh.dta", replace
