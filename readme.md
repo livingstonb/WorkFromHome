@@ -1,6 +1,7 @@
 # Notes about the repository
 
 ## Structure
+
 Each dataset, e.g. ACS, is associated with its own module.
 Within each of these modules are directories, typically
 *build* and/or *stats*, each of which contain code and/or other files related to the module. Each of these directories contains
@@ -13,10 +14,16 @@ Code in each module expects the current working directory to be the module direc
 
 ## Make
 
+### Matlab code
+
+Most of the code is in Stata, but in some cases we use Matlab. Matlab code used in this repository is not used by the makefile, and is instead run separately. Matlab is only used for the Google and OpenTable datasets, however.
+
 ### Interdependencies
+
 Since there are interdependencies between the datasets, I rely heavily on GNU make to manage the code. If you would like to run the Stata code without the use of make, you can account for these dependencies by looking in the *misc/procedures/* directory, which provides for each dataset a potential order in which the code can be run without missing any dependencies. The *all.txt* file contains a suggested order of commands if you would like to run code for all of the datasets.
 
 ### A note about how I use make
+
 In most Stata do-files, I include commands which have no effect in Stata but can be parsed by python to keep track of dependencies and targets. The keywords *#PREREQ* and *#TARGET*,
 when found in a given line, will tell python to look for a filename enclosed in double quotes on the same line. These filenames are then used to create a .mk file corresponding with the do-file which contains rules for make. I create these files dynamically and include them in the makefile.
 
@@ -25,6 +32,7 @@ when found in a given line, will tell python to look for a filename enclosed in 
 ## ACS
 
 ### Required inputs
+
 The raw ACS dataset, downloaded from IPUMS. To view the variables needed from IPUMS, see the variables listed under the `keep` command in *ACS/build/code/read_acs.do*.
 
 * *build/input/acs_raw.dta*
@@ -32,6 +40,7 @@ The raw ACS dataset, downloaded from IPUMS. To view the variables needed from IP
 ## ATUS
 
 ### Required inputs
+
 All ATUS data can be downloaded from the BLS website. Make sure to change the import lines in the downloaded do-files to point to the data file--use the relative filepath starting with *build/input/*.
 
 * *build/input/atuscps_2017.dat*
@@ -54,7 +63,9 @@ All ATUS data can be downloaded from the BLS website. Make sure to change the im
 * *build/input/lvresp_1718.do*
 
 ## OES
+
 ### Required inputs
+
 To run *stats/code/stats2017.do*, only the following is necessary:
 
 * *build/input/nat3d2017.xlsx*
@@ -86,6 +97,7 @@ Otherwise, various other years are required, which can be downloaded from the BL
 ## SIPP
 
 ### Required inputs
+
 We use waves 1-4 of the 2014 SIPP. These are large files named *pu2014w#.dta*, which can be split into chunks and compressed with the *build/code/read_sipp.do* do-file. This do-file should be passed the wave number of the raw dataset to be processed, e.g. `do "build/code/do/read_sipp.do" 2` for wave 2.
 
 * *build/input/pu2014w1.dta*
@@ -100,9 +112,21 @@ The raw datasets can then be deleted and one can use the following files, produc
 * *build/input/sipp_raw_w3.dta*
 * *build/input/sipp_raw_w4.dta*
 
+## BEA
+
+### Required inputs
+
+Value added by industry and price indexes by industry downloaded from BEA.
+
+* *build/input/price_indexes_1947_1997.xls*
+* *build/input/price_indexes_1998_2019.xls*
+* *build/input/value_added_1947_1997.xls*
+* *build/input/value_added_1998_2019.xls*
+
 ## OpenTable
 
 ### Required inputs
+
 We use a dataset provided by OpenTable, downloaded from <https://www.opentable.com/state-of-industry>.
 
 * *build/input/state_of_industry.csv*
@@ -113,4 +137,23 @@ Population ranks were then coded into *city_data.csv*, along with the approximat
 
 * *build/input/city_data.csv*
 
-## Crosswalks
+## Google
+
+### Required inputs
+
+We use Google mobility data, downloaded from <https://www.google.com/covid19/mobility/>.
+The input file used is cleaned somewhat, with non-US observations as well as county-level observations excluded, and some variables were renamed.
+
+* *build/input/cleaned_mobility_report.csv*
+
+A file containing state-level data such as population estimates is also used.
+
+* *build/input/state_data.xlsx*
+
+## Occupation crosswalks
+
+### Required inputs
+
+We use various crosswalks, mostly provided from the BLS. Our occupation classification consists of three-digit 2010 SOC (aka major) categories. Most of our datasets use 2010 Census occupation codes, and for this we rely on a crosswalk provided by the BLS. One occupation code in the 2014 SIPP occupation variables doesn't line up with this crosswalk and is manually adjusted in the SIPP code we use.
+
+* *build/input/yr2010_census_to_soc.csv*

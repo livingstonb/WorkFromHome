@@ -1,4 +1,13 @@
-% Creates figures and statistics from Google mobility data.
+%% Creates figures and statistics from Google mobility data.
+%
+% States are ranked by population density which is estimated by dividing
+% 2018 Census population estimates by Census land area estimates.
+%
+% Dates on shelter-in-place executive orders were taken from:
+%   Sarah Mervosh, Denise Lu and Vanessa Swales. See Which States
+%       and Cities Have Told Residents to Stay at Home. New York Times.
+%       Accessed 4/23/20 at [https://www.nytimes.com/interactive/2020/
+%       us/coronavirus-stay-at-home-order.html].
 
 clear
 close all
@@ -11,22 +20,11 @@ mkdir(outdir)
 %% ---------------------- READ AND CLEAN DATA -----------------------------
 
 % Read raw OpenTable data
-filepath = 'build/input/Global_Mobility_Report.csv';
+filepath = 'build/input/cleaned_mobility_report.csv';
 data = readtable(filepath);
 
-% Extract US observations
-data = data(strcmp(data.('country_region_code'), 'US'),:);
-
-% Extract state-level observations
-data = data(~strcmp(data.('sub_region_1'), ''),:);
-data = data(strcmp(data.('sub_region_2'), ''),:);
-data(strcmp(data.('sub_region_1'), 'District of Columbia'),:) = [];
-data.Properties.VariableNames{'sub_region_1'} = 'state';
-
-dropvars = {'country_region_code', 'country_region', 'sub_region_2'};
-for var = dropvars
-    data.(var{1}) = [];
-end
+% Drop Washington D.C.
+data(strcmp(data.('state'), 'District of Columbia'),:) = [];
 
 % Relabel variables
 newvarnames = cellfun(@(x) strrep(x, '_percent_change_from_baseline', ''),...
@@ -37,7 +35,7 @@ data.Properties.VariableNames = newvarnames;
 data = convertvars(data, 'date', 'datetime');
 
 % Read population data
-state_variables = readtable('build/input/state_populations.xlsx');
+state_variables = readtable('build/input/state_data.xlsx');
 state_variables.('state') = cellfun(@(x) strrep(x, '.', ''),...
     state_variables.('state'), 'UniformOutput', false);
 state_variables = state_variables(~strcmp(state_variables.('state'), 'District of Columbia'),:);
@@ -97,8 +95,6 @@ vars_to_keep = {'retail_rec_at_travel_ban', 'workplaces_at_travel_ban',...
     'group'};
 data = outerjoin(data, new_city_vars, 'Keys', 'state', 'Type', 'left',...
     'RightVariables', vars_to_keep);
-
-%% Statistics
 
 %% Plots
 
