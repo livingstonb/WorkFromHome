@@ -55,6 +55,8 @@ drop if missing(sector, occ3d2010)
 rename workfromhome pct_workfromhome
 rename earnings meanwage
 
+varlabels, save
+
 * Collapse
 #delimit ;
 collapse
@@ -65,9 +67,12 @@ collapse
 	[iw=wpfinwgt], by(sector occ3d2010) fast;
 #delimit cr
 
+varlabels, restore
+
 drop mean_earnings
 drop median_earnings
 gen source = "SIPP"
+label variable source "Dataset"
 
 drop blankobs
 `#TARGET' save "stats/output/SIPPwfh.dta", replace

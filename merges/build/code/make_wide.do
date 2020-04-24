@@ -35,6 +35,40 @@ rename oes_occshare_d1s0 oes_occshare_s0
 rename oes_occshare_d1s1 oes_occshare_s1
 drop oes_employment_d* oes_meanwage_d* oes_occshare_d*
 
+foreach var of varlist *s0 {
+	local lab: variable label `var'
+	label variable `var' "`lab', sector C"
+}
+foreach var of varlist *s1 {
+	local lab: variable label `var'
+	label variable `var' "`lab', sector S"
+}
+
+foreach var of varlist *d1s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', ACS2013to2017"
+}
+foreach var of varlist *d2s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', ACS2015to2017"
+}
+foreach var of varlist *d3s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', ACS2017only"
+}
+foreach var of varlist *d4s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', ATUS"
+}
+foreach var of varlist *d5s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', DingelNeiman"
+}
+foreach var of varlist *d6s* {
+	local lab: variable label `var'
+	label variable `var' "`lab', SIPP"
+}
+
 order occ3d2010 oes*
 
 * Merge in essential workers data

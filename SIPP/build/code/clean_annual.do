@@ -83,22 +83,27 @@ gen whtm_monthlyearn = (netliquid < (4 * `earnwk')) * (netilliquid >= 5000)
 label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $5000)"
 
 gen whtm_annearn = (netliquid < earnings) * (netilliquid >= 5000)
-label variable whtm_monthlyearn "Share WHtM (NLIQ < annual earnings and NILLIQ >= $5000)"
+label variable whtm_annearn "Share WHtM (NLIQ < annual earnings and NILLIQ >= $5000)"
 
 gen phtm_biweeklyearn = (nla_lt_biweeklyearn == 1) * (whtm_biweeklyearn == 0)
 replace phtm_biweeklyearn = . if missing(nla_lt_biweeklyearn, whtm_biweeklyearn)
+label variable phtm_biweeklyearn "Share PHtM (NLIQ < 2 wks earnings and NILLIQ < $5000)"
 
 gen phtm_monthlyearn = (nla_lt_monthlyearn == 1) * (whtm_monthlyearn == 0)
 replace phtm_monthlyearn = . if missing(nla_lt_monthlyearn, whtm_monthlyearn)
+label variable phtm_monthlyearn "Share PHtM (NLIQ < 4 wks earnings and NILLIQ < $5000)"
 
 gen phtm_annearn = (nla_lt_annearn == 1) * (whtm_annearn == 0)
 replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
+label variable phtm_annearn "Share PHtM (NLIQ < annual earnings and NILLIQ < $5000)"
 
 foreach x of numlist 500 1000 2000 {
 	gen nla_lt_`x'_nia_any = (netliquid < `x') if !missing(netliquid)
+	label variable nla_lt_`x'_nia_any "Share with NLIQ < $`x'"
 foreach y of numlist 1000 5000 {
 	gen nla_lt_`x'_nia_gt_`y' = (netliquid < `x') * (netilliquid > `y')
 	replace nla_lt_`x'_nia_gt_`y' = . if missing(netliquid, netilliquid)
+	label variable nla_lt_`x'_nia_gt_`y' "Share with NLIQ < $`x' and NILLIQ > $`y'"
 }
 }
 
