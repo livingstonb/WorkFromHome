@@ -43,7 +43,7 @@ label variable nworkers_wt "Total"
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	gen(blankobs) over1(sector) values1(0 1)
+	over1(sector) values1(0 1)
 	over2(swave) values2(0 1) rename(occ3d2010);
 #delimit cr
 

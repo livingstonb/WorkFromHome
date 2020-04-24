@@ -64,7 +64,6 @@ appendblanks soc3d2010 using "`occ2010'",
 
 replace nworkers_wt = 0 if blankobs
 replace nworkers_unw = 0 if blankobs
-label variable blankobs "Empty category"
 
 // COLLAPSE TO EXCEL
 foreach wave of numlist 1 2 3 4 0 {

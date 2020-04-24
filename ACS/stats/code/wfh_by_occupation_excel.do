@@ -21,8 +21,7 @@ gen nworkers_wt = 1
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	gen(blankobs) rename(occ3d2010)
-	over1(sector) values1(0 1)
+	rename(occ3d2010) over1(sector) values1(0 1)
 	over2(year) values2(2013 2014 2015 2016 2017);
 #delimit cr
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)

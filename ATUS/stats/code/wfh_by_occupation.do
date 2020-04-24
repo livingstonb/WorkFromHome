@@ -20,7 +20,7 @@ label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders 
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	gen(blankobs) over1(sector) values1(0 1) rename(occ3d2010);
+	over1(sector) values1(0 1) rename(occ3d2010);
 #delimit cr
 
 replace normwt = 1 if blankobs

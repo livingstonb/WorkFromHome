@@ -31,15 +31,13 @@ label variable meanwage "Mean wage/salary income"
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	gen(blankobs) rename(occ3d2010)
-	over1(sector) values1(0 1)
+	rename(occ3d2010) over1(sector) values1(0 1)
 	over2(year) values2(2013 2014 2015 2016 2017 2018);
 #delimit cr
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
 replace nworkers_wt = 0 if blankobs
 replace nworkers_unw = 0 if blankobs
-label variable blankobs "Empty category"
 
 * Store variable labels
 varlabels, save
