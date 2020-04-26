@@ -34,6 +34,13 @@ values = unique(population.('density'));
 pop_ranks = table(values, (numel(values):-1:1)', 'VariableNames',...
     {'density', 'rank'});
 population = join(population, pop_ranks, 'Keys', 'density');
+population.Properties.VariableNames{'density'} = 'persons_per_sqmi';
+
+%% Dining room bans
+filepath = 'build/input/dine_in_bans.csv';
+dine_in_bans = readtable(filepath);
+dine_in_bans.dine_in_ban = datetime(dine_in_bans.dine_in_ban,...
+    'Format', 'MM/dd/yyyy');
 
 %% Coronavirus state tracking data
 state_tracking = readtable('build/temp/coronavirus_state_tracking.csv');
@@ -48,10 +55,17 @@ for j = 1:numel(datevars)
 end
 
 %% Merge
-states_data = outerjoin(school_closures, stay_at_home, 'Keys', 'state',...
-    'MergeKeys', true);
-states_data = outerjoin(states_data, population, 'Keys', 'state', 'MergeKeys', true);
-states_data = outerjoin(states_data, state_tracking, 'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(school_closures, stay_at_home,...
+    'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(states_data, population,...
+    'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(states_data, dine_in_bans,...
+    'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(states_data, state_tracking,...
+    'Keys', 'state', 'MergeKeys', true);
+
+%% Drop non-states
+states_data = rmmissing(states_data, 'DataVariables', 'rank');
 
 %% Save
 outpath = 'build/output/state_level_data.mat';

@@ -19,7 +19,7 @@ mkdir(outdir)
 
 %% ---------------------- READ AND CLEAN DATA -----------------------------
 
-% Read raw OpenTable data
+% Read raw Google data
 filepath = 'build/input/cleaned_mobility_report.csv';
 data = readtable(filepath);
 
