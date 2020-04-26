@@ -48,7 +48,11 @@ for j = 1:numel(datevars)
 end
 
 %% Merge
-data = outerjoin(school_closures, stay_at_home, 'Keys', 'state',...
+states_data = outerjoin(school_closures, stay_at_home, 'Keys', 'state',...
     'MergeKeys', true);
-data = outerjoin(data, population, 'Keys', 'state', 'MergeKeys', true);
-date = outerjoin(data, state_tracking, 'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(states_data, population, 'Keys', 'state', 'MergeKeys', true);
+states_data = outerjoin(states_data, state_tracking, 'Keys', 'state', 'MergeKeys', true);
+
+%% Save
+outpath = 'build/output/state_level_data.mat';
+save(outpath, 'states_data');

@@ -80,7 +80,7 @@ preserve
 tempfile tele3d
 keep if occ_group == "broad"
 
-collapse(mean) tele3tmp=tele5digit [iw=employment], by(industry soc3digit)
+collapse (mean) tele3tmp=tele5digit [iw=employment], by(industry soc3digit)
 save `tele3d'
 restore
 
