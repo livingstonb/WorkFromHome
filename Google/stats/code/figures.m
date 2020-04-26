@@ -1,3 +1,8 @@
+%% Creates figures from Google mobility data
+%
+% States are ranked by population density which is estimated by dividing
+% 2018 Census population estimates by Census land area estimates.
+
 clear
 close all
 
@@ -7,7 +12,7 @@ outdir = 'stats/output';
 mkdir(outdir)
 
 %% Options
-ALL_PLOTS = false;
+ALL_PLOTS = true;
 
 %% Read cleaned dataset
 filepath = 'build/output/state_restrictions.mat';
@@ -31,7 +36,8 @@ if ALL_PLOTS
     plot_group(bottom10, bottom10dir);
 else
     state_series = data(strcmp(data.state, 'New York'),:);
-    plot_state(state_series, 'workplaces');
+    plot_options = struct('varname', 'workplaces', 'varlabel', 'workplaces');
+    state_plot = StatePlots(state_series, plot_options);
 end
 
 %% Functions
@@ -39,14 +45,17 @@ end
 function plot_group(group, figdir)
     mkdir(figdir);
     states = reshape(unique(group.state), 1, []);
-    variables = {'retail_and_recreation', 'workplaces'};
+    varnames = {'retail_and_recreation', 'workplaces'};
+    varlabels = {'retail and recreation', 'workplaces'};
 
     for j = 1:10
         for k = 1:2
             state_series = group(strcmp(group.state, states{j}),:);
-            plot_state(state_series, variables{k});
+            plot_options = struct('varname', varnames{k},...
+                'varlabel', varlabels{k});
+            StatePlots(state_series, plot_options);
 
-            filename = strcat(states{j}, '_', variables{k}, '.pdf');
+            filename = strcat(states{j}, '_', varnames{k}, '.pdf');
             filepath = fullfile(figdir, filename);
             saveas(gcf, filepath);
             close
