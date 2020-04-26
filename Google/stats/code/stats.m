@@ -53,9 +53,6 @@ for j = 1:numel(other_subseries)
         'Keys', 'state', 'MergeKeys', true);
 end
 
-% statistics = struct();
-% statistics.february = data(:,{'state', 'retail_and_rec_feb', 'workplaces_feb'}
-
 %% Functions
 function table_out = clean_timetable(table_in, extra_vars_to_delete)
     table_out = timetable2table(table_in);
