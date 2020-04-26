@@ -1,7 +1,14 @@
+"""
+Cleans state-level coronavirus tracking data provided by David Van Dijcke.
+"""
+
 import pandas as pd
 import re
 
 def strip_abbrev(state):
+	"""
+	Removes state abbreviations from each string.
+	"""
 	pattern = r'\s\([A-Z]+\)'
 	abbrev = re.findall(pattern, state)[0]
 	return state.replace(abbrev, '')

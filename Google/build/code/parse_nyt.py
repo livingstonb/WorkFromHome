@@ -1,3 +1,12 @@
+"""
+Parses html of a NYT article for dates of stay-at-home orders by state.
+
+Source:
+	Sarah Mervosh, Denise Lu, and Vanessa Swales. See Which States and Cities
+	Have Told Residents to Stay at Home. The New York Times. Accessed online,
+	4/26/20.
+"""
+
 import os
 import re
 import pandas as pd

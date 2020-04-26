@@ -39,6 +39,9 @@ forvalues i = 1/3 {
 	restore
 }
 
+clear
+use `oestmp5'
+
 // Load Dingell-Neiman
 `#PREREQ' use "build/temp/DN_temp.dta", clear
 
