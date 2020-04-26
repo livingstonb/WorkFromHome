@@ -15,11 +15,11 @@ mkdir(outdir)
 ALL_PLOTS = true;
 
 %% Read cleaned dataset
-filepath = 'build/output/state_restrictions.mat';
-load(filepath, 'state_restrictions')
+filepath = 'build/output/state_time_series.mat';
+load(filepath, 'state_time_series')
 
 %% Filter top and bottom 10 states by population density
-data = rmmissing(state_restrictions, 'DataVariables', 'stay_at_home');
+data = rmmissing(state_time_series, 'DataVariables', 'stay_at_home');
 
 ranks = unique(data.rank);
 n = numel(ranks);

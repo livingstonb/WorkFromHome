@@ -26,6 +26,6 @@ data = outerjoin(data, states_data, 'Keys', 'state', 'MergeKeys', true,...
 data = table2timetable(data, 'RowTimes', 'date');
 
 %% Save
-state_restrictions = data;
-outpath = 'build/output/state_restrictions.mat';
-save(outpath, 'state_restrictions')
+state_time_series = data;
+outpath = 'build/output/state_time_series.mat';
+save(outpath, 'state_time_series')

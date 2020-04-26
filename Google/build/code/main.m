@@ -96,38 +96,9 @@ vars_to_keep = {'retail_rec_at_travel_ban', 'workplaces_at_travel_ban',...
 data = outerjoin(data, new_city_vars, 'Keys', 'state', 'Type', 'left',...
     'RightVariables', vars_to_keep);
 
-%% Plots
-
-% Top 10
-group = data(data.('group') == 1,:);
-figdir = fullfile(outdir, 'top10');
-plot_group(group, figdir);
-
-% Bottom 10
-group = data(data.('group') == 0,:);
-figdir = fullfile(outdir, 'bottom10');
-plot_group(group, figdir);
-
-
 %% Functions
 function series = values_at_date(data, date, vars_to_keep, varnames)
     series = data(data.('date') == date,vars_to_keep);
     series.Properties.VariableNames = varnames;
-end
-
-function plot_group(group, figdir)
-    mkdir(figdir);
-    states = reshape(unique(group.('state')), 1, []);
-    for state = states
-        for variable = {'retail_and_recreation', 'workplaces'}
-            state_series = group(strcmp(group.('state'), state{1}),:);
-            plot_state(state_series, variable{1});
-
-            filename = strcat(state{1}, '_', variable{1}, '.pdf');
-            filepath = fullfile(figdir, filename);
-            saveas(gcf, filepath);
-            close
-        end
-    end
 end
 
