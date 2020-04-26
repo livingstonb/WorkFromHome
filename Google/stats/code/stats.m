@@ -1,8 +1,12 @@
 
 clear
 close all
+warning('off', 'MATLAB:MKDIR:DirectoryExists');
 
-cd '/media/hdd/GitHub/WorkFromHome/Google'
+[~, currdir] = fileparts(pwd);
+if strcmp(currdir, 'code')
+    cd '../..';
+end
 addpath('stats/code')
 outdir = 'stats/output';
 mkdir(outdir)
@@ -29,12 +33,12 @@ at_travel_ban.Properties.VariableNames =...
     {'state', 'retail_and_rec_travel_ban', 'workplaces_travel_ban'};
 
 %% Other times
+doy = @(t) day(t, 'dayofyear');
 variables = {'stay_at_home', 'school_closure', 'dine_in_ban'};
 
 other_subseries = {};
 for j = 1:numel(variables)
-    mask = day(state_time_series.date, 'dayofyear')...
-    	 == day(state_time_series.(variables{j}), 'dayofyear');
+    mask = doy(state_time_series.date) == doy(state_time_series.(variables{j}));
     other_subseries{j} = state_time_series(mask,vars_to_keep);
     other_subseries{j} = clean_timetable(other_subseries{j});
     

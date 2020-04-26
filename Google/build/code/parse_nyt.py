@@ -64,12 +64,13 @@ def clean(dict_in):
 
 def write_csv(dict_in, outpath):
 	ser = pd.Series(dict_in)
+	print(ser)
 	ser.to_csv(outpath, header=['date'], index_label=['state'])
 
+if __name__ == '__main__':
+	filepath = 'build/input/NYT_stay_at_home.html'
+	found = parse_html(filepath)
+	cleaned = clean(found)
 
-filepath = 'build/input/NYT_stay_at_home.html'
-found = parse_html(filepath)
-cleaned = clean(found)
-
-outpath = 'build/temp/stay_at_home.csv'
-write_csv(cleaned, outpath)
+	outpath = 'build/temp/stay_at_home.csv'
+	write_csv(cleaned, outpath)

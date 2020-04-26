@@ -57,7 +57,7 @@ classdef StatePlots < handle
             
             obj.ax.XLabel.String = 'Date';
             obj.ax.YLabel.String = strcat(...
-                '% difference from baseline', obj.varlabel);
+                '% difference from baseline, ', obj.varlabel);
             box(obj.ax, 'on')
         end
     end

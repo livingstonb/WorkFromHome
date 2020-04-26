@@ -1,5 +1,13 @@
 
 clear
+warning('off', 'MATLAB:MKDIR:DirectoryExists');
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
+
+[~, currdir] = fileparts(pwd);
+if strcmp(currdir, 'code')
+    cd '../..';
+end
+addpath('build/code')
 
 %% School closure
 filepath = 'build/input/school_closures.csv';

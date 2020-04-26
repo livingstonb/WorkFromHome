@@ -1,4 +1,12 @@
 clear
+warning('off', 'MATLAB:MKDIR:DirectoryExists');
+
+[~, currdir] = fileparts(pwd);
+if strcmp(currdir, 'code')
+    cd '../..';
+end
+addpath('build/code')
+
 
 %% Read Google mobility data
 filepath = 'build/input/cleaned_mobility_report.csv';

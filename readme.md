@@ -16,7 +16,7 @@ Code in each module expects the current working directory to be the module direc
 
 ### Matlab code
 
-Most of the code is in Stata, but in some cases we use Matlab. Matlab code used in this repository is not used by the makefile, and is instead run separately. Matlab is only used for the Google and OpenTable datasets, however.
+Most of the code is in Stata, but in some cases we use Matlab. Matlab code used in this repository is not as tightly integrate
 
 ### Interdependencies
 

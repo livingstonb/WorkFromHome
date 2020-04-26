@@ -5,8 +5,12 @@
 
 clear
 close all
+warning('off', 'MATLAB:MKDIR:DirectoryExists');
 
-cd '/media/hdd/GitHub/WorkFromHome/Google'
+[~, currdir] = fileparts(pwd);
+if strcmp(currdir, 'code')
+    cd '../..';
+end
 addpath('stats/code')
 outdir = 'stats/output';
 mkdir(outdir)
@@ -25,40 +29,38 @@ ranks = unique(data.rank);
 n = numel(ranks);
 
 top10 = data(ismember(data.rank, ranks(1:10)),:);
+top10.Properties.Description = 'top10';
 bottom10 = data(ismember(data.rank, ranks(n-9:n)),:);
+bottom10.Properties.Description = 'bottom10';
 
 %% Make plots
 if ALL_PLOTS
-    top10dir = 'stats/output/top10figs';
-    plot_group(top10, top10dir);
+    varnames = {'retail_and_recreation', 'workplaces'};
+    varlabels = {'retail and recreation', 'workplaces'};
 
-    bottom10dir = 'stats/output/bottom10figs';
-    plot_group(bottom10, bottom10dir);
+    groups = {top10, bottom10};
+    for grp = 1:2
+        group = groups{grp};
+        figdir = fullfile('stats/output',...
+            strcat(group.Properties.Description, 'figs'));
+        mkdir(figdir);
+        states = reshape(unique(group.state), 1, []);
+        for j = 1:10
+            for k = 1:2
+                state_series = group(strcmp(group.state, states{j}),:);
+                plot_options = struct('varname', varnames{k},...
+                    'varlabel', varlabels{k});
+                StatePlots(state_series, plot_options);
+
+                filename = strcat(states{j}, '_', varnames{k}, '.pdf');
+                filepath = fullfile(figdir, filename);
+                saveas(gcf, filepath);
+                close
+            end
+        end
+    end
 else
     state_series = data(strcmp(data.state, 'New York'),:);
     plot_options = struct('varname', 'workplaces', 'varlabel', 'workplaces');
     state_plot = StatePlots(state_series, plot_options);
-end
-
-%% Functions
-
-function plot_group(group, figdir)
-    mkdir(figdir);
-    states = reshape(unique(group.state), 1, []);
-    varnames = {'retail_and_recreation', 'workplaces'};
-    varlabels = {'retail and recreation', 'workplaces'};
-
-    for j = 1:10
-        for k = 1:2
-            state_series = group(strcmp(group.state, states{j}),:);
-            plot_options = struct('varname', varnames{k},...
-                'varlabel', varlabels{k});
-            StatePlots(state_series, plot_options);
-
-            filename = strcat(states{j}, '_', varnames{k}, '.pdf');
-            filepath = fullfile(figdir, filename);
-            saveas(gcf, filepath);
-            close
-        end
-    end
 end

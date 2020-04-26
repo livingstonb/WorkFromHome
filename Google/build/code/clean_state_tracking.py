@@ -40,8 +40,9 @@ def clean(filepath):
 
 	return df
 
-filepath = 'build/input/coronavirus_state_tracking.csv'
-df = clean(filepath)
+if __name__ == '__main__':
+	filepath = 'build/input/coronavirus_state_tracking.csv'
+	df = clean(filepath)
 
-outpath = 'build/temp/coronavirus_state_tracking.csv'
-df.to_csv(outpath, header=True)
+	outpath = 'build/temp/coronavirus_state_tracking.csv'
+	df.to_csv(outpath, header=True)

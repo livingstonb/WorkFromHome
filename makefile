@@ -1,6 +1,8 @@
 STATA = ../misc/statab do
+# MATLAB := matlab -nodisplay -batch -logfile -batch
 MODULES := occupations industries OES ACS \
-	SIPP ATUS DingelNeiman SHED merges BEA
+	SIPP ATUS DingelNeiman SHED merges BEA \
+	Google
 SUBDIRS :=
 OBJDIRS :=
 
@@ -15,7 +17,7 @@ endif
 
 .PHONY : clean clean_mk clean_temp clean_output all mkirs \
 	clean_module procedures clean_procedures \
-	all_with_procedures readme tex
+	all_with_procedures readme tex $(MODULES)
 
 clean : clean_logs clean_mk clean_temp \
 	clean_output clean_procedures
