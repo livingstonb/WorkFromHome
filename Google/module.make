@@ -9,9 +9,12 @@ OBJDIRS += $(newdirs)
 
 google_merged = Google/build/output/state_time_series.mat
 
-.PHONY : mobility_figures
+sources := Google/stats/code/estimate.do
+includes := $(sources:%.do=%.mk)
 
-Google : $(google_merged) mobility_figures
+.PHONY : mobility_figures mobility_stats
+
+Google : $(google_merged) mobility_figures mobility_stats
 
 state_tracking_data = Google/build/temp/coronavirus_state_tracking.csv
 state_tracking_log = build/logs/clean_state_tracking.log
@@ -56,3 +59,16 @@ figures_cmd += -batch "run('stats/code/figures')"
 mobility_figures : $(figures_src) $(google_merged)
 	@mkdir -p $(newdirs)
 	cd Google && matlab -noFigureWindows $(figures_cmd)
+
+mobility_stats : Google/stats/tex/estimates.pdf
+
+Google/stats/output/mobility_changes.tex : Google/stats/output/mobility_changes.xlsx
+	python misc/xlsx_to_latex.py $<
+
+mobility_tex_src := Google/stats/tex/estimates.tex
+mobility_tex_objs := reg_table.tex mobility_changes.tex
+mobility_tex_objs := $(addprefix Google/stats/output/, $(mobility_tex_objs))
+Google/stats/tex/estimates.pdf : $(mobility_tex_objs) $(mobility_tex_src)
+	@cd Google/stats/tex && pdflatex estimates
+
+-include $(includes)

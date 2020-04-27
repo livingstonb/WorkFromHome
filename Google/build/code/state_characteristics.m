@@ -35,8 +35,6 @@ population = population(~strcmp(population.('state'), 'District of Columbia'),:)
 population.Properties.VariableNames{'pop2018'} = 'population';
 population = rmmissing(population, 'DataVariables', 'density');
 population.('land') = [];
-population.('shelter_in_place') = [];
-population.('dine_in_ban') = [];
 
 values = unique(population.('density'));
 pop_ranks = table(values, (numel(values):-1:1)', 'VariableNames',...

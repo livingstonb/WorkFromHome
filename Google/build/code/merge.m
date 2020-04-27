@@ -34,6 +34,11 @@ data = outerjoin(data, states_data, 'Keys', 'state', 'MergeKeys', true,...
 data = table2timetable(data, 'RowTimes', 'date');
 
 %% Save
+% MATLAB timetable
 state_time_series = data;
 outpath = 'build/output/state_time_series.mat';
 save(outpath, 'state_time_series')
+
+% csv
+outpath = 'build/output/state_time_series.csv';
+writetimetable(state_time_series, outpath, 'WriteVariableNames', true);

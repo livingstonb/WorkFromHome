@@ -16,7 +16,7 @@ outdir = 'stats/output';
 mkdir(outdir)
 
 %% Options
-ALL_PLOTS = true;
+STATES = 'Illinois';
 
 %% Read cleaned dataset
 filepath = 'build/output/state_time_series.mat';
@@ -34,7 +34,7 @@ bottom10 = data(ismember(data.rank, ranks(n-9:n)),:);
 bottom10.Properties.Description = 'bottom10';
 
 %% Make plots
-if ALL_PLOTS
+if isequal(STATES, 'all')
     varnames = {'retail_and_recreation', 'workplaces'};
     varlabels = {'retail and recreation', 'workplaces'};
 
@@ -60,7 +60,7 @@ if ALL_PLOTS
         end
     end
 else
-    state_series = data(strcmp(data.state, 'New York'),:);
-    plot_options = struct('varname', 'workplaces', 'varlabel', 'workplaces');
+    state_series = data(strcmp(data.state, STATES),:);
+    plot_options = struct('varname', 'retail_and_recreation', 'varlabel', 'workplaces');
     state_plot = StatePlots(state_series, plot_options);
 end
