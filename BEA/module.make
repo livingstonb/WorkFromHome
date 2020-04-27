@@ -8,4 +8,6 @@ sources = value_added_long.do \
 
 targets = build/output/tornquist_series.dta
 
+empty_targets =
+
 include misc/includes.make

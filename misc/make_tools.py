@@ -80,8 +80,8 @@ class StataParser:
 		newdirs = [f'{self.subdir}/{x}' for x in newdirnames]
 		newdirlines = '\n'.join([f'\t@mkdir -p {x}' for x in newdirs])
 
-		prereqlines = 'prereqs = ' + ' \\\n\t'.join(self.mk['prereqs'])
-		targetlines = 'targets = ' + ' \\\n\t'.join(self.mk["targets"])
+		prereqlines = 'prereqs := ' + ' \\\n\t'.join(self.mk['prereqs'])
+		targetlines = 'targets := ' + ' \\\n\t'.join(self.mk["targets"])
 		with open(self.mkpath, 'w') as fobj:
 			fobj.write(self.header)
 			fobj.write(prereqlines)

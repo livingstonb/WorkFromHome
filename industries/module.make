@@ -11,4 +11,6 @@ targets = essential_industries_table.dta \
 	census2012_to_sector.dta
 targets := $(addprefix build/output/, $(targets))
 
+empty_targets =
+
 include misc/includes.make

@@ -11,4 +11,6 @@ sources = clean_annual.do \
 targets = build/output/sipp_cleaned.dta \
 	stats/output/SIPPwfh.dta
 
+empty_targets =
+
 include misc/includes.make

@@ -7,4 +7,6 @@ sources = clean_atus.do read_atus.do \
 
 targets = build/output/atus_cleaned.dta stats/output/ATUSwfh.dta
 
+empty_targets =
+
 include misc/includes.make

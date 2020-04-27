@@ -40,11 +40,11 @@ clean_procedures :
 
 procedures = $(addprefix misc/procedures/, $(MODULES))
 procedures := $(addsuffix .txt, $(procedures))
-procedures : clean $(procedures)
+procedures : $(procedures)
 
 misc/procedures/%.txt :
 	mkdir -p misc/procedures
-	$(MAKE) $* --dry-run | python misc/list_do_tasks.py > $@
+	$(MAKE) $* -B --dry-run | python misc/list_do_tasks.py > $@
 
 readme :
 	-pandoc readme.md -o readme.pdf

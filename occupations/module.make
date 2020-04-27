@@ -12,4 +12,6 @@ sources = census_to_soc2010.do \
 targets = build/output/census2010_to_soc2010.dta \
 	build/output/census2018_to_soc2010.dta
 
+empty_targets =
+
 include misc/includes.make
