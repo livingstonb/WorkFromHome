@@ -31,8 +31,8 @@ classdef StatePlots < handle
         end
         
         function plot_vertical_lines(obj)
-            obj.make_xline('travel_ban', 'Federal travel ban',...
-                0, datetime('14-Mar-2020'));
+            obj.make_xline('business_closure_CST',...
+                'Business closure', 0);
             obj.make_xline('stay_at_home',...
                 'Stay-at-home', -10);
             obj.make_xline('school_closure',...
@@ -46,10 +46,12 @@ classdef StatePlots < handle
                 date = obj.data.(variable)(1);
             end
 
-            obj.xlines.(variable) = xline(date);
+            if ~ismissing(date)
+                obj.xlines.(variable) = xline(date, '--');
 
-            txt = strcat('\leftarrow ', label);
-            text(date, pos, txt)
+                txt = strcat('\leftarrow ', label);
+                text(date, pos, txt)
+            end
         end
         
         function format(obj)
@@ -57,7 +59,7 @@ classdef StatePlots < handle
             
             obj.ax.XLabel.String = 'Date';
             obj.ax.YLabel.String = strcat(...
-                '% difference from baseline, ', obj.varlabel);
+                '% difference from baseline,', obj.varlabel);
             box(obj.ax, 'on')
         end
     end

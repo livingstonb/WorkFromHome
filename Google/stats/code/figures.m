@@ -16,7 +16,7 @@ outdir = 'stats/output';
 mkdir(outdir)
 
 %% Options
-STATES = 'Illinois';
+STATES = 'New York';
 
 %% Read cleaned dataset
 filepath = 'build/output/state_time_series.mat';
@@ -34,10 +34,10 @@ bottom10 = data(ismember(data.rank, ranks(n-9:n)),:);
 bottom10.Properties.Description = 'bottom10';
 
 %% Make plots
-if isequal(STATES, 'all')
-    varnames = {'retail_and_recreation', 'workplaces'};
-    varlabels = {'retail and recreation', 'workplaces'};
+varnames = {'retail_and_recreation', 'workplaces'};
+varlabels = {'retail and recreation', 'workplaces'};
 
+if isequal(STATES, 'all')
     groups = {top10, bottom10};
     for grp = 1:2
         group = groups{grp};
@@ -60,7 +60,14 @@ if isequal(STATES, 'all')
         end
     end
 else
-    state_series = data(strcmp(data.state, STATES),:);
-    plot_options = struct('varname', 'retail_and_recreation', 'varlabel', 'workplaces');
-    state_plot = StatePlots(state_series, plot_options);
+    for k = 1:2
+        state_series = data(strcmp(data.state, STATES),:);
+        plot_options = struct('varname', varnames{k}, 'varlabel', varlabels{k});
+        StatePlots(state_series, plot_options);
+
+        filename = strcat(STATES, '_', varnames{k}, '.pdf');
+        filepath = fullfile('stats/output', filename);
+        saveas(gcf, filepath);
+        close
+    end
 end

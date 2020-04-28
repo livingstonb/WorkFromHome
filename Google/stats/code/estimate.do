@@ -35,8 +35,8 @@ collapse (firstnm) benchmark_change_retail
 	(firstnm) total_change_retail
 	(firstnm) total_change_work, by(statename);
 #delimit cr
-label variable benchmark_change_retail "Unexplained, retail"
-label variable benchmark_change_work "Unexplained, work"
+label variable benchmark_change_retail "T * Constant, retail"
+label variable benchmark_change_work "T * Constant, work"
 label variable total_change_retail "Total, retail"
 label variable total_change_work "Total, work"
 label variable statename "State"

@@ -2,6 +2,7 @@
 
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage[margin=0.5in]{geometry}
 \pagestyle{empty}
 
 \title{Mobility and policy interventions}
@@ -12,9 +13,35 @@
 \maketitle
 
 \section{Model}
+Let $m_{s,t}$ be one of Google's measure of the \% difference of mobility from baseline, where $s$ is state and $t$ is day. Then define our baseline value of mobility for state $s$ as $m_s^0$, the mean of $m_{s,t}$ between 2/22 and 3/7 for workplaces and between 2/29 and 3/7 for retail and recreation, excluding weekends in both cases. Similarly, define our terminal value for mobility for state $s$ as
+$m_s^T$, the mean of $m_{s,t}$ between the day after the stay-at-home order and the 4/11, both inclusive.
+Then consider a variable:
+$$
+y_{st} = \begin{cases}
+0, &  t = 0 \\
+m_{s,t} - m_s^0, & t \in \{1, \ldots, T_s-1\} \\
+m_s^T - m_s^0, & t = T_s
+\end{cases}
+$$
+
+Our model is the following:
+\begin{align*}
+\Delta y_{s,t} = \beta + \alpha' D_{s,t} + \theta' I_{s,t} + \epsilon_{s,t}
+\end{align*}
+where $D_{s,t}$ contains dummies for Saturday, Sunday, and Monday; and $I_{s,t}$ contains three dummies for each of the four interventions: a lag, a contemporaneous term, and a lead.
+
+\subsection{Estimate of the fall in mobility not attributable to the interventions}
+Fix a state $s$, and assume the following expectations are taken conditional on $s$, which is associated with $T$ time periods in our data. The estimate is the following, where $NI$ (no-interventions) implies conditioning on $I_{s,t}$ being equal to zero for each time period:
+\begin{align*}
+\text{E}_{NI}\left[y_{s,T} - y_{s,0}\right] &=
+\text{E}_{NI}\left[\sum_{t=1}^T \Delta y_{s,T}\right] \\
+&= \beta T + \alpha' \sum_{t=1}^T D_{s,t}
+\end{align*}
 
 \section{Regression tables}
 \input{../output/reg_table.tex}
+
+\section{Estimates of fall in mobility not attributable to interventions}
 \input{../output/mobility_changes.tex}
 
 \end{document}
