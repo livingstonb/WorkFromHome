@@ -1,3 +1,6 @@
+/* --- HEADER ---
+Performs OLS estimation of mobility regressions.
+*/
 
 estimates clear
 

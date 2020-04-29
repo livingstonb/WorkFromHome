@@ -20,8 +20,8 @@ foreach var of varlist retail_and_recreation workplaces {
 	gen terminal_date = stay_at_home + 1
 	gen terminal_period = (date >= terminal_date) & !weekend & !missing(stay_at_home)
 	bysort state: egen tmp_terminal_mobility = mean(`var') if terminal_period
-// 	by state: egen terminal_mobility = max(tmp_terminal_mobility)
-	gen terminal_mobility = `var' if (date == terminal_date)
+	by state: egen terminal_mobility = max(tmp_terminal_mobility)
+	* gen terminal_mobility = `var' if (date == terminal_date)
 
 	* Dependent variable
 	gen mobility_`name' = `var' if inrange(date, `tb2', terminal_date)
