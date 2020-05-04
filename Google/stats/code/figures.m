@@ -16,7 +16,7 @@ outdir = 'stats/output';
 mkdir(outdir)
 
 %% Options
-STATES = 'New York';
+STATES = 'all';
 
 %% Read cleaned dataset
 filepath = 'build/output/state_time_series.mat';

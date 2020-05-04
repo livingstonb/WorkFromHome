@@ -18,10 +18,10 @@ foreach var of varlist retail_and_recreation workplaces {
 
 	* Terminal values (after stay-at-home)
 	gen terminal_date = stay_at_home + 1
-	gen terminal_period = (date >= terminal_date) & !weekend & !missing(stay_at_home)
+	gen terminal_period = (date >= terminal_date) & inrange(day_of_week, 2, 5) & !missing(stay_at_home)
 	bysort state: egen tmp_terminal_mobility = mean(`var') if terminal_period
 	by state: egen terminal_mobility = max(tmp_terminal_mobility)
-	* gen terminal_mobility = `var' if (date == terminal_date)
+// 	gen terminal_mobility = `var' if (date == terminal_date)
 
 	* Dependent variable
 	gen mobility_`name' = `var' if inrange(date, `tb2', terminal_date)
@@ -42,8 +42,11 @@ foreach var of varlist retail_and_recreation workplaces {
 }
 
 * Labels
-label variable mobility_retail "Mobility, retail and rec"
-label variable mobility_work "Mobility, workplaces"
+label variable mobility_retail "Retail_and_rec"
+label variable mobility_work "Workplaces"
+
+label variable total_change_retail "Total change, retail"
+label variable total_change_work "Total change, work"
 
 * Date dummies
 gen d_sunday = (day_of_week == 0)
@@ -55,10 +58,12 @@ label variable d_monday "Monday"
 label variable d_saturday "Saturday"
 
 * Intervention dummies
-gen d_stay_at_home = (date == stay_at_home)
-gen d_school_closure = (date == school_closure)
-gen d_dine_in_ban = (date == dine_in_ban)
-gen d_business_closure = (date == business_closure)
+gen d_stay_at_home = (date == stay_at_home) if !missing(stay_at_home)
+gen d_school_closure = (date == school_closure) if !missing(school_closure)
+gen d_dine_in_ban = (date == dine_in_ban) if !missing(dine_in_ban)
+gen d_business_closure = (date == business_closure) if !missing(business_closure)
+
+gen all_interventions = !missing(stay_at_home, school_closure, dine_in_ban, business_closure)
 
 * Encode state
 encode state, gen(stateid)

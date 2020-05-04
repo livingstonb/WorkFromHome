@@ -22,29 +22,42 @@ foreach dum of local idummies {
 }
 
 * Estimation
-eststo: quietly reg D.mobility_retail `days_of_week' `interventions', robust
-gen benchmark_change_retail = (days_retail - 1) * _b[_cons] if !missing(stay_at_home)
+gen dretail = D.mobility_retail
+label variable dretail "Retail"
 
-eststo: quietly reg D.mobility_work `days_of_week' `interventions', robust
-gen benchmark_change_work = (days_work - 1) * _b[_cons] if !missing(stay_at_home)
+gen dwork = D.mobility_work
+label variable dwork "Work"
 
-* Create table
+drop if !all_interventions
+
+local names retail work
+foreach var of local names {
+	eststo: reg d`var' `days_of_week' `interventions', robust
+
+	gen const_`var' = (days_retail - 1) * _b[_cons] if !missing(stay_at_home)
+
+	gen tmp1_`var' = _b[d_saturday] * d_saturday + _b[d_sunday] * d_sunday + _b[d_monday] * d_monday
+	bysort stateid: egen tmp2_`var' = total(tmp1_`var') if !missing(stay_at_home) & !missing(d`var')
+	replace tmp2_`var' = tmp2_`var' + const_`var'
+	bysort stateid: egen explained_`var' = max(tmp2_`var')
+	drop tmp1_`var' tmp2_`var'
+	
+	label variable const_`var' "beta * T, `var'"
+	label variable explained_`var' "Voluntary, `var'"
+}
+
+* Create regression table
 `#TARGET' esttab using "stats/output/reg_table.tex", label replace
 
-* Table of benchmark change
-#delimit ;
-collapse (firstnm) benchmark_change_retail
-	(firstnm) benchmark_change_work
-	(firstnm) total_change_retail
-	(firstnm) total_change_work, by(statename);
-#delimit cr
-label variable benchmark_change_retail "T * Constant, retail"
-label variable benchmark_change_work "T * Constant, work"
+* Table of changes, by state
+duplicates drop statename, force
+keep statename explained* total_change*
 label variable total_change_retail "Total, retail"
 label variable total_change_work "Total, work"
 label variable statename "State"
 
 #delimit ;
-`#TARGET' export excel using "stats/output/mobility_changes.xlsx",
+`#TARGET' export excel statename explained* total*
+	using "stats/output/mobility_changes.xlsx",
 	replace firstrow(varlabels);
 #delimit cr
