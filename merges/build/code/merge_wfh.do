@@ -38,6 +38,7 @@ label variable source "Dataset"
 label variable pct_workfromhome "% WFH"
 label variable nworkers_wt "Est of total workers in group"
 label variable nworkers_unw "n, Actual num respondents"
+label variable teleworkable "DN Teleworkable"
 
 label variable meanwage "Mean wage"
 label variable pct_canwfh "% can WFH"

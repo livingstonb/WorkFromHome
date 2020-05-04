@@ -44,11 +44,23 @@ use `oestmp5'
 
 // Load Dingell-Neiman
 `#PREREQ' use "build/temp/DN_temp.dta", clear
+rename teleworkable teletmp
+
+* Use value ending in .00 if available
+gen minor = (substr(onetsoccode, 8, 3) == ".00")
+gen teleminor = teletmp if minor
+bysort soc2010: egen minor_present = total(minor)
+drop if minor_present & !minor
 
 * Assume each 8-digit occupation has same employment share within 6-digit occ
-rename teleworkable teletmp
-bysort soc2010: egen teleworkable = mean(teletmp)
-drop title onetsoccode teletmp
+bysort soc2010: egen telemean = mean(teletmp)
+
+* Create teleworkable variable
+gen teleworkable = teleminor if minor
+replace teleworkable = telemean if !minor
+
+drop title onetsoccode teletmp teleminor telemean
+drop minor_present minor
 duplicates drop soc2010, force
 
 expand 2, gen(sector)

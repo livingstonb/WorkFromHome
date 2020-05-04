@@ -77,4 +77,6 @@ rename occ3d2010 soc3d2010
 merge 1:1 soc3d2010 using "`ess'", nogen keep(1 3) keepusing(essential)
 rename soc3d2010 occ3d2010
 
+label variable essential "Share of workers in essential industries"
+
 `#TARGET' save "build/output/wfh_merged_wide.dta", replace
