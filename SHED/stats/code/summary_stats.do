@@ -6,27 +6,27 @@ clear
 adopath + "../ado"
 
 `#PREREQ' local cleaned "build/output/shed_cleaned.dta"
-use if inlist(year, 2014, 2016) using "`cleaned'"
-
-// NORMALIZE WEIGHTS
-quietly sum wgt if (year == 2014)
-local wgt2014 = `r(sum)'
-
-quietly sum wgt if (year == 2016)
-local wgt2016 = `r(sum)'
-
-replace wgt = wgt * `wgt2016' / `wgt2014' if year == 2014
+use "`cleaned'"
 
 // SAMPLE SELECTION
 keep if (age >= 15)
+
+// NORMALIZE WEIGHTS
+quietly sum wgt if (year == 2018)
+local wgt2018 = `r(sum)'
+
+forvalues yr = 2013/2017 {
+	quietly sum wgt if (year == `yr')
+	local wgt`yr' = `r(sum)'
+	replace wgt = wgt * `wgt2018' / `wgt`yr'' if (year == `yr')
+}
 
 // TABLES
 
 * Add blanks
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
-appendblanks soc2d2010 using "`occ2010'",
-	gen(blankobs);
+appendblanks soc2d2010 using "`occ2010'";
 #delimit cr
 replace wgt = 1 if blankobs
 
@@ -101,16 +101,51 @@ label values wfhflex flexlbl
 `#TARGET' local xlxname "stats/output/SHED_HtM.xlsx"
 
 .descriptions = .statalist.new
+.descriptions.append "All respondents"
+.descriptions.append "All workers"
+.descriptions.append "5 occupation groups"
 .descriptions.append "A 2x2 economy"
 .descriptions.append "Stats by 2-digit occupation"
 .sheets = .descriptions.copy
 createxlsx .descriptions .sheets .xlxnotes using "`xlxname'"
 .sheets.loop_reset
 
-* In 2x2 economy
+* All respondents
+gen all_resp = 1
+.all_resp = .collapsevar.new all_resp
+label variable all_resp "All respondents"
+
 .sheets.loop_next
 #delimit ;
 collapsecustom `cvars' [iw=wgt] using "`xlxname'",
+	by(.all_resp) modify sheet("`.sheets.loop_get'");
+#delimit cr
+
+* All 5 occupation groups
+gen all_workers = 1 if !missing(occ_group)
+.all_workers = .collapsevar.new all_workers
+label variable all_workers "All workers"
+
+.sheets.loop_next
+#delimit ;
+collapsecustom `cvars' [iw=wgt] using "`xlxname'",
+	by(.all_workers) modify sheet("`.sheets.loop_get'");
+#delimit cr
+
+* Each of the 5 occupation groups
+.occ_group = .collapsevar.new occ_group
+label variable occ_group "Occupation"
+
+.sheets.loop_next
+#delimit ;
+collapsecustom `cvars' [iw=wgt] using "`xlxname'",
+	by(.occ_group) modify sheet("`.sheets.loop_get'");
+#delimit cr
+
+* In 2x2 economy
+.sheets.loop_next
+#delimit ;
+collapsecustom `cvars' [iw=wgt] using "`xlxname'" if inlist(year, 2014, 2016),
 	by(.wfhflex .sector) modify sheet("`.sheets.loop_get'");
 #delimit cr
 
@@ -120,6 +155,6 @@ label variable soc2d2010 "Occupation"
 
 .sheets.loop_next
 #delimit ;
-collapsecustom .wfhflex `cvars' [iw=wgt] using "`xlxname'",
+collapsecustom .wfhflex `cvars' [iw=wgt] using "`xlxname'" if inlist(year, 2014, 2016),
 	by(.soc2d2010) modify sheet("`.sheets.loop_get'");
 #delimit cr

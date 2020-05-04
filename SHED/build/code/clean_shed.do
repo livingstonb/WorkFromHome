@@ -4,7 +4,9 @@ This do-file cleans the SHED dataset.
 
 adopath + "../ado"
 
-* Resave occupation crosswalk as stata file
+// RESAVE OCCUPATION CROSSWALK AS STATA TEMPFILE
+
+* 2-digit occupation categories
 clear
 `#PREREQ' import delimited "build/input/occ_crosswalk.csv", bindquotes(strict)
 label define soclbl 11 "Management Occupations"
@@ -31,6 +33,14 @@ label define soclbl 51 "Production Occupations", add
 label define soclbl 53 "Transportation and Material Moving Occupations", add
 label values soc2d soclbl
 
+* 5 occupation groups for Greg Kaplan
+gen occ_group = .
+replace occ_group = 1 if inlist(soc2d, 29, 31, 33, 49, 51, 53)
+replace occ_group = 2 if inlist(soc2d, 11, 13, 15, 17, 23, 43)
+replace occ_group = 3 if inlist(soc2d, 19, 37, 45, 47)
+replace occ_group = 4 if inlist(soc2d, 21, 25, 27)
+replace occ_group = 5 if inlist(soc2d, 35, 39, 41)
+
 tempfile cwalk
 save `cwalk', replace
 
@@ -48,7 +58,7 @@ save `naics', replace
 // RECODE OCCUPATION
 #delimit ;
 merge m:1 occupation year using `cwalk',
-	keep(match master) keepusing(soc2d soc_2d_label) nogen;
+	keep(match master) keepusing(soc2d soc_2d_label occ_group) nogen;
 #delimit cr
 drop soc_2d_label
 rename soc2d soc2d2010
