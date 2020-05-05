@@ -12,7 +12,7 @@ rename nworkers_wt oes_employment
 save `oestmp'
 
 tempfile dntmp
-`#PREREQ' use "../DingelNeiman/build/output/DN_aggregated.dta", clear
+`#PREREQ' use "../DingelNeiman/build/output/DN_3digit.dta", clear
 gen source = "DingelNeiman"
 drop employment
 rename soc3d2010 occ3d2010
