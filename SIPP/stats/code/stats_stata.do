@@ -39,25 +39,28 @@ label variable nworkers_unw "n, unwtd"
 gen nworkers_wt = !missing(workfromhome)
 label variable nworkers_wt "Total"
 
+rename workfromhome pct_workfromhome
+rename earnings meanwage
+
+// Collapse at the 3-digit level
+preserve
+
+varlabels, save
+
 * Add blanks
 `#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
-	over1(sector) values1(0 1)
-	over2(swave) values2(0 1) rename(occ3d2010);
+	over1(sector) values1(0 1) rename(occ3d2010);
 #delimit cr
 
 replace nworkers_wt = 0 if blankobs
 replace nworkers_unw = 0 if blankobs
+replace wpfinwgt = 1 if blankobs
 label variable blankobs "Empty category"
 
 drop if missing(sector, occ3d2010)
-rename workfromhome pct_workfromhome
-rename earnings meanwage
 
-varlabels, save
-
-* Collapse
 #delimit ;
 collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
@@ -76,3 +79,43 @@ label variable source "Dataset"
 
 drop blankobs
 `#TARGET' save "stats/output/SIPPwfh.dta", replace
+restore
+
+// Collapse at the 5-digit level
+preserve
+
+varlabels, save
+
+* Add blanks
+local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+#delimit ;
+appendblanks soc5d2010 using "`occ2010'",
+	over1(sector) values1(0 1) rename(occ5d2010);
+#delimit cr
+
+replace nworkers_wt = 0 if blankobs
+replace nworkers_unw = 0 if blankobs
+replace wpfinwgt = 1 if blankobs
+label variable blankobs "Empty category"
+
+drop if missing(sector, occ5d2010)
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	`meanstats' `medianstats'
+	(min) blankobs
+	[iw=wpfinwgt], by(sector occ5d2010) fast;
+#delimit cr
+
+varlabels, restore
+
+drop mean_earnings
+drop median_earnings
+gen source = "SIPP"
+label variable source "Dataset"
+
+drop blankobs
+`#TARGET' save "stats/output/SIPPwfh_5digit.dta", replace
+restore

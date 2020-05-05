@@ -231,11 +231,12 @@ rename occcensus census2010
 `#PREREQ' local occsipp "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 merge m:1 census2010 using "`occsipp'",
-	keepusing(soc3d2010) keep(match master) nogen;
+	keepusing(soc3d2010 soc5d2010) keep(match master) nogen;
 #delimit cr
 replace soc3d2010 = 472 if census2010 == 6765
 rename census2010 occcensus
 rename soc3d2010 occ3d2010
+rename soc5d2010 occ5d2010
 drop ejb*_scrnr
 
 * Map industry to C/S sector
