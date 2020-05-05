@@ -1,4 +1,4 @@
-args socvar force_weighted
+args socvar televar new_televar force_weighted
 
 * Aggregate up
 tempvar missings missing_employment agg_employment all_missing_emp
@@ -9,26 +9,26 @@ bysort `socvar' sector: egen `agg_employment' = total(employment), missing
 
 * Compute weighted mean
 tempvar tele_weighted agg_teleworkable
-gen `tele_weighted' = teleworkable * employment / `agg_employment'
+gen `tele_weighted' = `televar' * employment / `agg_employment'
 bysort `socvar' sector: egen `agg_teleworkable' = total(`tele_weighted'), missing
 
 * Compute arithmetic mean
 tempvar mean_teleworkable
-bysort `socvar' sector: egen `mean_teleworkable' = mean(teleworkable)
+bysort `socvar' sector: egen `mean_teleworkable' = mean(`televar')
 
-* Replace with weighted mean first
-replace teleworkable = `agg_teleworkable'
+* Use weighted mean first
+gen `new_televar' = `agg_teleworkable'
 
 if "`force_weighted'" == "force_weighted" {
 	* Use arithmetic mean only if employment is missing for entire group
-	replace teleworkable = `mean_teleworkable' if `all_missing_emp'
+	replace `new_televar' = `mean_teleworkable' if `all_missing_emp'
 }
 else {
 	* Use arithmetic mean if any employment is missing for group
-	replace teleworkable = `mean_teleworkable' if `missing_employment'
+	replace `new_televar' = `mean_teleworkable' if `missing_employment'
 }
 
-* Drop duplicates
-duplicates drop `socvar' sector, force
+* Drop
+// duplicates drop `socvar' sector, force
 drop `missings' `missing_employment' `agg_employment' `all_missing_emp'
-drop `tele_weighted' `agg_teleworkable' `mean_teleworkable' employment
+drop `tele_weighted' `agg_teleworkable' `mean_teleworkable'
