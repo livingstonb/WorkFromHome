@@ -29,7 +29,7 @@ foreach var of local stats {
 	local medianstats `medianstats' (median) median_`var'
 }
 
-foreach var of varlist qualitative_h2m foodinsecure nla* whtm* phtm* {
+foreach var of varlist qualitative_h2m foodinsecure nla* whtm* phtm* htm* {
 	local meanstats `meanstats' (mean) `var'
 }
 
@@ -81,7 +81,7 @@ drop blankobs
 `#TARGET' save "stats/output/SIPPwfh.dta", replace
 restore
 
-// Collapse at the 5-digit level
+// Collapse at the 5-digit level, by sector and for both sectors
 preserve
 
 varlabels, save
@@ -100,6 +100,11 @@ label variable blankobs "Empty category"
 
 drop if missing(sector, occ5d2010)
 
+tempfile cleaned
+save `cleaned'
+
+* Collapse by sector
+tempfile bysector
 #delimit ;
 collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
@@ -108,6 +113,23 @@ collapse
 	(min) blankobs
 	[iw=wpfinwgt], by(sector occ5d2010) fast;
 #delimit cr
+save `bysector'
+
+* Collapse for both sectors
+use `cleaned', clear
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	`meanstats' `medianstats'
+	(min) blankobs
+	[iw=wpfinwgt], by(occ5d2010) fast;
+#delimit cr
+
+* Combine
+append using `bysector'
+replace sector = 2 if missing(sector)
+label define sector_lbl 2 "Pooled", modify
 
 varlabels, restore
 

@@ -97,6 +97,19 @@ gen phtm_annearn = (nla_lt_annearn == 1) * (whtm_annearn == 0)
 replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
 label variable phtm_annearn "Share PHtM (NLIQ < annual earnings and NILLIQ < $5000)"
 
+#delimit ;
+gen htm_biweeklyearn = whtm_biweeklyearn | phtm_biweeklyearn
+	& !missing(whtm_biweeklyearn, phtm_biweeklyearn);
+gen htm_monthlyearn = whtm_monthlyearn | phtm_monthlyearn
+	& !missing(whtm_monthlyearn, phtm_monthlyearn);
+gen htm_annearn = whtm_annearn | phtm_annearn
+	& !missing(whtm_annearn, phtm_annearn);
+#delimit cr
+
+label variable htm_biweeklyearn "Share HTM (NLIQ < 2 wks earnings)"
+label variable htm_monthlyearn "Share HTM (NLIQ < 4 wks earnings)"
+label variable htm_annearn "Share HTM (NLIQ < annual earnings)"
+
 foreach x of numlist 500 1000 2000 {
 	gen nla_lt_`x'_nia_any = (netliquid < `x') if !missing(netliquid)
 	label variable nla_lt_`x'_nia_any "Share with NLIQ < $`x'"

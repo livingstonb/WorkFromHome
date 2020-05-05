@@ -118,13 +118,13 @@ sort soc3d2010 sector
 `#TARGET' save "build/output/DN_3digit.dta", replace
 restore
 
-// 6-digit level
+// 5-digit level
 preserve
 
-rename tele6d teleworkable
+rename tele5d teleworkable
 
 drop employment
-rename emp6d employment
+rename emp5d employment
 
 * Re-classify some occupations with "manual alternative"
 replace teleworkable = 1 if (soc5digit == "13-1130")
@@ -151,14 +151,14 @@ replace teleworkable = 0 if (soc5digit == "43-5020")
 replace teleworkable = 0 if (soc5digit == "43-9050")
 replace teleworkable = 0 if (soc5digit == "43-9070")
 
-duplicates drop soc2010 sector, force
-drop if missing(sector, soc2010)
-keep soc2010 sector teleworkable employment occ_title
-order soc2010 occ_title sector teleworkable employment
-sort soc2010 sector
+duplicates drop soc5digit sector, force
+drop if missing(sector, soc5digit)
+keep soc5digit sector teleworkable employment occ_title
+order soc5digit occ_title sector teleworkable employment
+sort soc5digit sector
 
 replace employment = 0 if missing(employment)
 
-`#TARGET' save "build/output/DN_6digit.dta", replace
+`#TARGET' save "build/output/DN_5digit.dta", replace
 restore
 

@@ -5,6 +5,8 @@ to 2- and 3-digit SOC 2010 categories.
 
 args censusyear
 
+local censusyear 2010
+
 * Use crosswalk between CENSUS2010 and SOC2010
 `#PREREQ' local cwalk "build/input/yr`censusyear'_census_to_soc.csv"
 import delimited "`cwalk'", clear bindquotes(strict)
