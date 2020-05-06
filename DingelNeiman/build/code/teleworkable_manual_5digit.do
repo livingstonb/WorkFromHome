@@ -3,7 +3,7 @@ This script reads the teleworkable measure constructed by
 Dingel and Neiman, and aggregates occupations to the 5-digit level.
 */
 
-// Prepare OES 5-digit occs for merge
+// Read OES 5-digit for merge
 `#PREREQ' use "build/temp/nat3d2017.dta", clear
 
 * Collapse by sector and detailed occupation
