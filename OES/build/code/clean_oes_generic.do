@@ -80,7 +80,7 @@ if "`aggregate_occs'" == "1" {
 		destring soc3d2010, replace force
 	}
 	else {
-		drop if (occ_group == "detailed")
+// 		drop if (occ_group == "detailed")
 		gen soc3d2010 = substr(occ_code, 1, 4)
 		replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
 		destring soc3d2010, replace force
@@ -92,6 +92,7 @@ if "`aggregate_occs'" == "1" {
 		do "../occupations/build/output/soc5dlabels2010.do"
 		label values soc5d2010 soc5d2010_lbl
 		
+		gen is_detailed = (occ_group == "detailed")
 		gen is_minor = (occ_group == "minor")
 		gen is_broad = (occ_group == "broad")
 				
@@ -100,9 +101,13 @@ if "`aggregate_occs'" == "1" {
 		gen minor_level = is_minor | (is_broad & !minor_present)
 		
 		* For 5-digit aggregation
-		rename is_broad broad_level
+		bysort soc5d2010 naicscode: egen broad_present = max(is_broad)
+		gen broad_level = is_broad | (is_detailed & !broad_present)
+		
+		* For 6-digit occupations
+		rename is_detailed detailed_level
 
-		drop is_minor minor_present
+		drop is_minor minor_present is_broad broad_present
 	}
 
 	if (`year' >= 2018) {

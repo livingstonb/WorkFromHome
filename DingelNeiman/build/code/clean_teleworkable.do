@@ -10,31 +10,29 @@ Dingel and Neiman, and aggregates it up to the 3-digit level.
 rename occ_code soc2010
 rename tot_emp employment
 
-local digits 3 5 6
-local lvls minor broad detailed
+* 3-digit aggregation
+preserve
+keep if minor_level
+collapse (sum) employment, by(sector soc3d2010)
+tempfile oestmp3
+save `oestmp3'
+restore
 
-forvalues i = 1/3 {
-	local digit: word `i' of `digits'
-	local lvl: word `i' of `lvls'
+* 5-digit aggregation
+preserve
+keep if broad_level
+collapse (sum) employment, by(sector soc5d2010)
+tempfile oestmp5
+save `oestmp5'
+restore
 
-	preserve
-	keep if occ_group == "`lvl'"
-	collapse (sum) employment (firstnm) occ_title, by(sector soc2010)
-
-	if `digit' == 3 {
-		rename soc2010 soc3digit
-	}
-	else if `digit' == 5 {
-		rename soc2010 soc5digit
-	}
-
-	tempfile oestmp`digit'
-	save `oestmp`digit'', replace
-	restore
-}
-
-clear
-use `oestmp5'
+* 6-digit aggregation
+preserve
+keep if detailed_level
+collapse (sum) employment, by(sector soc2010)
+tempfile oestmp6
+save `oestmp6'
+restore
 
 // Load Dingell-Neiman
 `#PREREQ' use "build/temp/DN_temp.dta", clear
@@ -60,31 +58,27 @@ duplicates drop soc2010, force
 expand 2, gen(sector)
 
 * Some occupations in OES only provided at 5-digit or 3-digit level
-gen soc5digit = substr(soc2010, 1, 6)
-replace soc5digit = soc5digit + "0"
-
-gen soc3digit = substr(soc2010, 1, 4)
-replace soc3digit = soc3digit + "000"
-replace soc3digit = "15-1100" if soc3digit == "15-1000"
-replace soc3digit = "51-5100" if soc3digit == "51-5000"
+gen soc5d2010 = substr(soc2010, 1, 6)
+replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
+destring soc5d2010, force replace
 
 * Merge at 6 digit level, where possible
-merge m:1 soc2010 sector using `oestmp6', keep(1 3) keepusing(employment occ_title) nogen
+merge m:1 soc2010 sector using `oestmp6', keep(1 3) keepusing(employment) nogen
 
 * Aggregate up to the 5-digit level
 rename teleworkable tele6d
-`#PREREQ' do "build/code/aggregate.do" soc5digit tele6d tele5d
+`#PREREQ' do "build/code/aggregate.do" soc5d2010 tele6d tele5d
 rename employment emp6d
 
 * Merge at 5 digit level
 #delimit ;
-merge m:1 soc5digit sector using `oestmp5',
+merge m:1 soc5d2010 sector using `oestmp5',
 	keep(1 3) update keepusing(employment) nogen;
 #delimit cr
 
 * Aggregate up to the 3-digit level
 preserve
-duplicates drop soc5digit sector, force
+duplicates drop soc5d2010 sector, force
 
 do "build/code/aggregate.do" soc3d2010 tele5d tele3d
 duplicates drop soc3d2010 sector, force
@@ -99,7 +93,7 @@ merge m:1 soc3d2010 sector using `agg3d', nogen keepusing(tele3d)
 
 * Merge at 3 digit level
 #delimit ;
-merge m:1 soc3digit sector using `oestmp3',
+merge m:1 soc3d2010 sector using `oestmp3',
 	keep(1 3) update keepusing(employment) nogen;
 #delimit cr
 
@@ -127,35 +121,35 @@ drop employment
 rename emp5d employment
 
 * Re-classify some occupations with "manual alternative"
-replace teleworkable = 1 if (soc5digit == "13-1130")
-replace teleworkable = 1 if (soc5digit == "13-2080")
-replace teleworkable = 1 if (soc5digit == "19-3050")
-replace teleworkable = 1 if (soc5digit == "41-3040")
-replace teleworkable = 1 if (soc5digit == "43-2020")
-replace teleworkable = 1 if (soc5digit == "43-4180")
-replace teleworkable = 1 if (soc5digit == "13-2070")
-replace teleworkable = 1 if (soc5digit == "17-3020")
-replace teleworkable = 0 if (soc5digit == "39-3010")
-replace teleworkable = 0 if (soc5digit == "25-2050")
-replace teleworkable = 0 if (soc5digit == "27-2020")
-replace teleworkable = 0 if (soc5digit == "25-2010")
-replace teleworkable = 0 if (soc5digit == "25-4020")
-replace teleworkable = 0 if (soc5digit == "25-4030")
-replace teleworkable = 0 if (soc5digit == "27-4020")
-replace teleworkable = 0 if (soc5digit == "33-9020")
-replace teleworkable = 0 if (soc5digit == "39-3030")
-replace teleworkable = 0 if (soc5digit == "39-9010")
-replace teleworkable = 0 if (soc5digit == "39-9040")
-replace teleworkable = 0 if (soc5digit == "43-1010")
-replace teleworkable = 0 if (soc5digit == "43-5020")
-replace teleworkable = 0 if (soc5digit == "43-9050")
-replace teleworkable = 0 if (soc5digit == "43-9070")
+replace teleworkable = 1 if (soc5d2010 == 13113)
+replace teleworkable = 1 if (soc5d2010 == 13208)
+replace teleworkable = 1 if (soc5d2010 == 19305)
+replace teleworkable = 1 if (soc5d2010 == 41304)
+replace teleworkable = 1 if (soc5d2010 == 43202)
+replace teleworkable = 1 if (soc5d2010 == 43418)
+replace teleworkable = 1 if (soc5d2010 == 13207)
+replace teleworkable = 1 if (soc5d2010 == 17302)
+replace teleworkable = 0 if (soc5d2010 == 39301)
+replace teleworkable = 0 if (soc5d2010 == 25205)
+replace teleworkable = 0 if (soc5d2010 == 27202)
+replace teleworkable = 0 if (soc5d2010 == 25201)
+replace teleworkable = 0 if (soc5d2010 == 25402)
+replace teleworkable = 0 if (soc5d2010 == 25403)
+replace teleworkable = 0 if (soc5d2010 == 27402)
+replace teleworkable = 0 if (soc5d2010 == 33902)
+replace teleworkable = 0 if (soc5d2010 == 39303)
+replace teleworkable = 0 if (soc5d2010 == 39901)
+replace teleworkable = 0 if (soc5d2010 == 39904)
+replace teleworkable = 0 if (soc5d2010 == 43101)
+replace teleworkable = 0 if (soc5d2010 == 43502)
+replace teleworkable = 0 if (soc5d2010 == 43905)
+replace teleworkable = 0 if (soc5d2010 == 43907)
 
-duplicates drop soc5digit sector, force
-drop if missing(sector, soc5digit)
-keep soc5digit sector teleworkable employment occ_title
-order soc5digit occ_title sector teleworkable employment
-sort soc5digit sector
+duplicates drop soc5d2010 sector, force
+drop if missing(sector, soc5d2010)
+keep soc5d2010 sector teleworkable employment
+order soc5d2010 sector teleworkable employment
+sort soc5d2010 sector
 
 replace employment = 0 if missing(employment)
 
