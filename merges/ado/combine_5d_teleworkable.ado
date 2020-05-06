@@ -15,6 +15,13 @@ program combine_5d_teleworkable
 
 	replace teleworkable = `televal' if `category'
 	label define `varlist'_lbl `socval' "`label'", modify
+	
+	* Critical workers
+	quietly sum critical if `subcategory' [iw=employment]
+	replace critical = `r(mean)' if `category'
+	
+	replace critical = 0 if (critical < 0.5)
+	replace critical = 1 if (critical > 0.5)
 
 	* Essential workers
 	quietly sum essential if `subcategory' [iw=employment]

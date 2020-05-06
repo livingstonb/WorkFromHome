@@ -20,13 +20,20 @@ drop if blankobs & !ismissing
 drop if missing(soc5d2010, sector)
 drop ismissing blankobs
 
+* Critical workers by occupation
+`#PREREQ' local critical "../CriticalInfrastructure/build/output/critical5d.dta"
+merge m:1 soc5d2010 using "`critical'", nogen keepusing(val_critical)
+gen critical = val_critical if sector == 2
+drop val_critical
+label variable critical "Critical occupation indicator"
+
 * Essential workers by occupation
 `#PREREQ' local essential "../industries/build/output/essential_share_by_occ5d.dta"
 merge m:1 soc5d2010 using "`essential'", nogen keepusing(essential)
 replace essential = . if inlist(sector, 0, 1)
 label variable essential "Share of workers in essential industries"
 
-* Combine teleworkable, OES variables, and essential share where SIPP occupations are combined
+* Aggregate variables where SIPP occupations are combined
 #delimit ;
 combine_5d_teleworkable soc5d2010, socval(25100) televal(1)
 	label("Postsecondary Teachers");
@@ -46,6 +53,10 @@ combine_5d_teleworkable soc5d2010, socval(53100) televal(0)
 combine_5d_teleworkable soc5d2010, socval(29900) televal(0)
 	label("Occupational Health and Safety Specialists and Technicians");
 #delimit cr
+
+rename critical tmp_critical
+bysort soc5d2010 (sector): gen critical = tmp_critical[_N]
+drop tmp_critical
 
 rename essential tmp_essential
 bysort soc5d2010 (sector): gen essential = tmp_essential[_N]
