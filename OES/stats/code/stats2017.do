@@ -27,6 +27,7 @@ import excel "build/input/nat3d2017", clear firstrow
 
 * Clean
 `#PREREQ' do "build/code/clean_oes_generic.do" 2017 1
+keep if minor_level
 
 // MERGE WITH SECTOR
 `#PREREQ' do "build/code/merge_with_sector.do"

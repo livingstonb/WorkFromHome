@@ -85,12 +85,24 @@ if "`aggregate_occs'" == "1" {
 		replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
 		destring soc3d2010, replace force
 		
-		gen occ_broad = occ_code if occ_group == "broad"
+		gen soc5d2010 = substr(occ_code, 1, 6)
+		replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
+		destring soc5d2010, replace force
 		
-		gen minors = (occ_group == "minor")
-		bysort soc3d2010: egen minor_present = max(minors)
+		do "../occupations/build/output/soc5dlabels2010.do"
+		label values soc5d2010 soc5d2010_lbl
 		
-		drop if (occ_group == "broad") & minor_present		
+		gen is_minor = (occ_group == "minor")
+		gen is_broad = (occ_group == "broad")
+				
+		* For 3-digit aggregation -- some industries don't have minor summary groups
+		bysort soc3d2010 naicscode: egen minor_present = max(is_minor)
+		gen minor_level = is_minor | (is_broad & !minor_present)
+		
+		* For 5-digit aggregation
+		rename is_broad broad_level
+
+		drop is_minor minor_present
 	}
 
 	if (`year' >= 2018) {

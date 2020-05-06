@@ -7,7 +7,8 @@ sources = compute_essential_by_occupation.do \
 	census2012_to_sector.do
 
 targets = essential_industries_table.dta \
-	essential_share_by_occ.dta \
+	essential_share_by_occ3d.dta \
+	essential_share_by_occ5d.dta \
 	census2012_to_sector.dta
 targets := $(addprefix build/output/, $(targets))
 

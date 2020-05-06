@@ -34,6 +34,9 @@ forvalues year = 1999/2019 {
 	
 	* Clean
 	`#PREREQ' do "build/code/clean_oes_generic.do" `year' 1
+	if (`year' >= 2012) {
+		keep if minor_level
+	}
 	
 	* Collapse
 	gen employment = 1

@@ -20,7 +20,13 @@ drop if blankobs & !ismissing
 drop if missing(soc5d2010, sector)
 drop ismissing blankobs
 
-* Combine teleworkable and OES variables where SIPP occupations are combined
+* Essential workers by occupation
+`#PREREQ' local essential "../industries/build/output/essential_share_by_occ5d.dta"
+merge m:1 soc5d2010 using "`essential'", nogen keepusing(essential)
+replace essential = . if inlist(sector, 0, 1)
+label variable essential "Share of workers in essential industries"
+
+* Combine teleworkable, OES variables, and essential share where SIPP occupations are combined
 #delimit ;
 combine_5d_teleworkable soc5d2010, socval(25100) televal(1)
 	label("Postsecondary Teachers");
@@ -40,6 +46,10 @@ combine_5d_teleworkable soc5d2010, socval(53100) televal(0)
 combine_5d_teleworkable soc5d2010, socval(29900) televal(0)
 	label("Occupational Health and Safety Specialists and Technicians");
 #delimit cr
+
+rename essential tmp_essential
+bysort soc5d2010 (sector): gen essential = tmp_essential[_N]
+drop tmp_essential
 
 * Drop small groups not showing up in SIPP and not having data for both sectors
 bysort soc5d2010: gen counts = _N

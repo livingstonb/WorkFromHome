@@ -72,7 +72,7 @@ foreach var of varlist *d6s* {
 order occ3d2010 oes*
 
 * Merge in essential workers data
-`#PREREQ' local ess "../industries/build/output/essential_share_by_occ.dta"
+`#PREREQ' local ess "../industries/build/output/essential_share_by_occ3d.dta"
 rename occ3d2010 soc3d2010
 merge 1:1 soc3d2010 using "`ess'", nogen keep(1 3) keepusing(essential)
 rename soc3d2010 occ3d2010
