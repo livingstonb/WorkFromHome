@@ -1,3 +1,7 @@
+/* --- HEADER ---
+Reads a dataset indicating whether a given SOC code is critical or not critical.
+The indicator is aggregated from the 6-digit occupation level to the 5-digit level.
+*/
 
 // Read dataset
 clear

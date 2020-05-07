@@ -1,3 +1,19 @@
+/* --- HEADER ---
+Aggregates the teleworkable measure from a finer occupation classification to a
+broader classification. The teleworkable measure is aggregated up using an
+employment-weighted mean where possible.
+
+--- Arguments ---
+socvar : Variable containing occupation codes for the broader category
+televar : Teleworkable measure
+new_televar : Desired name of the newly aggregated teleworkable measure
+force_weighted : An option argument, that when passed "force_weighted", aggregates
+	teleworkable with a weighted mean whenever there is at least one non-missing
+	value for employment within the group. Otherwise, if any employment value
+	within the group is missing, an unweighted mean is used.
+*/
+
+
 args socvar televar new_televar force_weighted
 
 * Aggregate up

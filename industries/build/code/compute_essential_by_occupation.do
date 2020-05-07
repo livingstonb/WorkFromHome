@@ -35,21 +35,14 @@ rename emp_oes employment
 
 // Collapse at 3-digit level
 preserve
-
 keep if minor_level
 collapse (mean) essential (sum) employment=ones [iw=employment], by(soc3d2010)
 `#TARGET' save "build/output/essential_share_by_occ3d.dta", replace
-
 restore
 
 // Collapse at 5-digit level
 preserve
-
 keep if broad_level
 collapse (mean) essential (sum) employment=ones [iw=employment], by(soc5d2010)
 `#TARGET' save "build/output/essential_share_by_occ5d.dta", replace
-
-* Combine some categories
-
-
 restore

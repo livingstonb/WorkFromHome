@@ -1,5 +1,7 @@
 /* --- HEADER ---
-Cleans one year of OES data.
+Cleans one year of OES data. The year of OES data to use is passed as the first
+argument. The second argument is optional, if a 1 is passed then variables will
+be created to allow for easy aggregation of occupation categories.
 */
 
 args year aggregate_occs

@@ -32,7 +32,7 @@ save `dntmp3d'
 clear
 
 // Prepare OES 6-digit occs for merge
-`#PREREQ' import excel "../OES/build/input/nat2d2017", clear firstrow
+import excel "../OES/build/input/nat2d2017", clear firstrow
 
 * Clean
 `#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017

@@ -6,18 +6,6 @@ Dingel and Neiman, and aggregates occupations to the 5-digit level.
 // Read OES 5-digit for merge
 `#PREREQ' use "build/temp/nat3d2017.dta", clear
 
-// * Collapse by sector and detailed occupation
-// rename occ_code soc2010
-// rename tot_emp employment
-// rename a_mean meanwage
-//
-// keep if occ_group == "broad"
-//
-// gen soc5d2010 = strtrim(soc2010)
-// replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
-// destring soc5d2010, force replace
-// replace soc5d2010 = soc5d2010 / 10
-
 drop if soc5d2010 >= 55000
 drop if missing(sector)
 rename tot_emp employment

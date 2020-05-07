@@ -1,3 +1,6 @@
+/* --- HEADER ---
+Reads 2017 OES data into Stata and calls cleaning routines, then resaves.
+*/
 
 // Prepare OES 6-digit occs for merge
 import excel "../OES/build/input/nat3d2017", clear firstrow
