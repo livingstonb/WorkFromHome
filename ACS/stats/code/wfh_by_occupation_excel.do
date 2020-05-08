@@ -15,19 +15,18 @@ drop if missing(sector, occ3d2010)
 capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 
-* Add blanks
 gen nworkers_wt = 1
 
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
-#delimit ;
-appendblanks soc3d2010 using "`occ2010'",
-	rename(occ3d2010) over1(sector) values1(0 1)
-	over2(year) values2(2013 2014 2015 2016 2017);
-#delimit cr
-drop if (occ3d2010 >= 550) & !missing(occ3d2010)
+* Add blanks
+`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
 
-gen pct_workfromhome = workfromhome * 100
-replace nworkers_wt = 0 if blankobs
+#delimit ;
+appendblanks soc3d2010 using "`blanks'",
+	zeros(nworkers_wt nworkers_unw) ones(perwt)
+	over1(sector) values1(0 1) over2(year)
+	values2(2013 2014 2015 2016 2017)
+	rename(occ3d2010);
+#delimit cr
 
 * Collapse variables
 #delimit ;

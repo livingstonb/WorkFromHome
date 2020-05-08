@@ -24,11 +24,8 @@ forvalues yr = 2013/2017 {
 // TABLES
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
-#delimit ;
-appendblanks soc2d2010 using "`occ2010'";
-#delimit cr
-replace wgt = 1 if blankobs
+`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
+appendblanks soc3d2010 using "`blanks'", ones(wgt)
 
 * Collect variables for collapse
 #delimit ;

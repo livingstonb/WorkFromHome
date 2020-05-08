@@ -48,23 +48,18 @@ replace header5 = 0 if (header5 != 1)
 tempvar d2one d2all
 bysort soc2 (socstr): gen `d2one' = slabel if header2
 bysort soc2 (socstr `d2one'): gen `d2all' = `d2one'[1]
-labmask soc2, values(`d2all') lblname(soc2d`occyear'_lbl)
 
 * 3-digit
 tempvar d3one d3all
 bysort soc3 (socstr): gen `d3one' = slabel if header3
 bysort soc3 (socstr `d3one'): gen `d3all' = `d3one'[1]
-labmask soc3, values(`d3all') lblname(soc3d`occyear'_lbl)
 replace soc3 = . if header2
 
 * 5-digit
 tempvar d5one d5all
 bysort soc5 (socstr): gen `d5one' = slabel if header5
 bysort soc5 (socstr `d5one'): gen `d5all' = `d5one'[1]
-labmask soc5, values(`d5all') lblname(soc5d`occyear'_lbl)
 replace soc5 = . if header2 | header3
-
-keep soc*
 
 sort socstr
 drop if soc2 >= 55
@@ -72,21 +67,25 @@ drop if soc2 >= 55
 `#TARGET' local lab5d "build/output/soc5dlabels`occyear'.do"
 `#TARGET' local lab3d "build/output/soc3dlabels`occyear'.do"
 `#TARGET' local lab2d "build/output/soc2dlabels`occyear'.do"
-`#TARGET' local vals5d "build/output/soc5dvalues`occyear'.do"
-`#TARGET' local vals3d "build/output/soc3dvalues`occyear'.do"
-`#TARGET' local vals2d "build/output/soc2dvalues`occyear'.do"
+`#TARGET' local vals5d "build/output/soc5dvalues`occyear'.dta"
+`#TARGET' local vals3d "build/output/soc3dvalues`occyear'.dta"
+`#TARGET' local vals2d "build/output/soc2dvalues`occyear'.dta"
 local digits 2 3 5
 foreach d of local digits {
-	#delimit ;
-	label save soc`d'd`occyear'_lbl using "`lab`d'd'", replace;
-	#delimit cr
-	
-	* List of occupations
+	* Save list of occupation codes and labels
 	preserve
-	keep soc`d'
+	keep soc`d' `d`d'all'
 	rename soc`d' soc`d'd`occyear'
 	duplicates drop
 	drop if missing(soc`d'd`occyear')
+	
+	labmask soc`d'd`occyear', values(`d`d'all') lblname(soc`d'd`occyear'_lbl)
+	drop `d`d'all'
+	
+	#delimit ;
+	label save soc`d'd`occyear'_lbl using "`lab`d'd'", replace;
+	#delimit cr
+
 	save "`vals`d'd'", replace
 	restore
 }

@@ -1,5 +1,5 @@
 program dta_compare
-	syntax anything, INDEX(string) [, THRESHOLD(real 0)]
+	syntax anything, INDEX(string) [, THRESHOLD(real 0) ALL]
 
 	clear
 
@@ -41,7 +41,7 @@ program dta_compare
 		quietly replace `absdiff' = 0 if (`absdiff' < `threshold')
 
 		quietly sum `absdiff'
-		if (`r(sum)' == 0) {
+		if (`r(sum)' == 0) & ("`all'" != "all"){
 			drop `var'
 		}
 		else {

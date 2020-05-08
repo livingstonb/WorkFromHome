@@ -18,7 +18,6 @@ drop employment
 rename soc3d2010 occ3d2010
 save `dntmp'
 
-
 `#PREREQ' use "../ACS/stats/output/ACSwfh.dta", clear
 `#PREREQ' append using "../ATUS/stats/output/ATUSwfh.dta"
 `#PREREQ' append using "../SIPP/stats/output/SIPPwfh.dta"

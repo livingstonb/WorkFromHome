@@ -17,14 +17,13 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
 #delimit ;
-appendblanks soc3d2010 using "`occ2010'",
+appendblanks soc3d2010 using "`blanks'",
+	zeros(nworkers_wt) ones(normwt)
 	over1(sector) values1(0 1) rename(occ3d2010);
 #delimit cr
 
-replace normwt = 1 if blankobs
-replace nworkers_wt = 0 if blankobs
 drop if (occ3d2010 >= 550) & !missing(occ3d2010)
 
 * Set collapse variables

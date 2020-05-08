@@ -48,16 +48,12 @@ preserve
 varlabels, save
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
 #delimit ;
-appendblanks soc3d2010 using "`occ2010'",
+appendblanks soc3d2010 using "`blanks'",
+	zeros(nworkers_wt nworkers_unw) ones(wpfinwgt)
 	over1(sector) values1(0 1) rename(occ3d2010);
 #delimit cr
-
-replace nworkers_wt = 0 if blankobs
-replace nworkers_unw = 0 if blankobs
-replace wpfinwgt = 1 if blankobs
-label variable blankobs "Empty category"
 
 drop if missing(sector, occ3d2010)
 
@@ -87,16 +83,12 @@ preserve
 varlabels, save
 
 * Add blanks
-local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+`#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
 #delimit ;
-appendblanks soc5d2010 using "`occ2010'",
+appendblanks soc5d2010 using "`blanks'",
+	zeros(nworkers_wt nworkers_unw) ones(wpfinwgt)
 	over1(sector) values1(0 1) rename(occ5d2010);
 #delimit cr
-
-replace nworkers_wt = 0 if blankobs
-replace nworkers_unw = 0 if blankobs
-replace wpfinwgt = 1 if blankobs
-label variable blankobs "Empty category"
 
 drop if missing(sector, occ5d2010)
 

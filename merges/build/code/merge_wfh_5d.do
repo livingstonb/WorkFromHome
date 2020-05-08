@@ -12,21 +12,12 @@ drop nworkers_wt meanwage source
 `#PREREQ' local telew "../DingelNeiman/build/output/DN_5d_manual_scores.dta"
 merge 1:1 soc5d2010 sector using "`telew'", nogen
 
-// `#PREREQ' local occs "../occupations/build/output/census2010_to_soc2010.dta"
-// appendblanks soc5d2010 using "`occs'", over1(sector) values1(0 1 2)
+* Add blanks
 `#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
-gen blankobs = 0
-forvalues s = 0/2 {
-	append using "`blanks'", gen(appended)
-	replace sector = `s' if appended
-	replace blankobs = 1 if appended
-	drop appended
-}
+appendblanks soc5d2010 using "`blanks'", over1(sector) values1(0 1 2)
 
-bysort soc5d2010 sector: egen ismissing = min(blankobs)
-drop if blankobs & !ismissing
+* Drop missing sector or occupation
 drop if missing(soc5d2010, sector)
-drop ismissing blankobs
 
 * Critical workers by occupation
 `#PREREQ' local critical "../CriticalInfrastructure/build/output/critical5d.dta"
@@ -45,30 +36,20 @@ label variable essential "Share of workers in essential industries"
 #delimit ;
 combine_5d_teleworkable soc5d2010, socval(25100) televal(1)
 	label("Postsecondary Teachers");
-#delimit cr
-
-#delimit ;
 combine_5d_teleworkable soc5d2010, socval(25300) televal(1)
 	label("Other Teachers and Instructors");
-#delimit cr
-
-#delimit ;
 combine_5d_teleworkable soc5d2010, socval(53100) televal(0)
 	label("Supervisors of Transportation and Material Moving Workers");
-#delimit cr
-
-#delimit ;
 combine_5d_teleworkable soc5d2010, socval(29900) televal(0)
 	label("Occupational Health and Safety Specialists and Technicians");
 #delimit cr
 
-rename critical tmp_critical
-bysort soc5d2010 (sector): gen critical = tmp_critical[_N]
-drop tmp_critical
-
-rename essential tmp_essential
-bysort soc5d2010 (sector): gen essential = tmp_essential[_N]
-drop tmp_essential
+* Variables critical and essential need to be constant across sectors, for reshape
+foreach var of varlist critical essential {
+	rename `var' tmp_`var'
+	bysort soc5d2010 (sector): gen `var' = tmp_`var'[_N]
+	drop tmp_`var'
+}
 
 * Drop small groups not showing up in SIPP and not having data for both sectors
 bysort soc5d2010: gen counts = _N
