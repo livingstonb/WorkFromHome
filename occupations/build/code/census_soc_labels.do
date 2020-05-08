@@ -67,13 +67,26 @@ replace soc5 = . if header2 | header3
 keep soc*
 
 sort socstr
+drop if soc2 >= 55
 
 `#TARGET' local lab5d "build/output/soc5dlabels`occyear'.do"
 `#TARGET' local lab3d "build/output/soc3dlabels`occyear'.do"
 `#TARGET' local lab2d "build/output/soc2dlabels`occyear'.do"
+`#TARGET' local vals5d "build/output/soc5dvalues`occyear'.do"
+`#TARGET' local vals3d "build/output/soc3dvalues`occyear'.do"
+`#TARGET' local vals2d "build/output/soc2dvalues`occyear'.do"
 local digits 2 3 5
 foreach d of local digits {
 	#delimit ;
 	label save soc`d'd`occyear'_lbl using "`lab`d'd'", replace;
 	#delimit cr
+	
+	* List of occupations
+	preserve
+	keep soc`d'
+	rename soc`d' soc`d'd`occyear'
+	duplicates drop
+	drop if missing(soc`d'd`occyear')
+	save "`vals`d'd'", replace
+	restore
 }

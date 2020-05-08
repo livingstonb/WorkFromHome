@@ -12,8 +12,16 @@ drop nworkers_wt meanwage source
 `#PREREQ' local telew "../DingelNeiman/build/output/DN_5d_manual_scores.dta"
 merge 1:1 soc5d2010 sector using "`telew'", nogen
 
-`#PREREQ' local occs "../occupations/build/output/census2010_to_soc2010.dta"
-appendblanks soc5d2010 using "`occs'", over1(sector) values1(0 1)
+// `#PREREQ' local occs "../occupations/build/output/census2010_to_soc2010.dta"
+// appendblanks soc5d2010 using "`occs'", over1(sector) values1(0 1 2)
+`#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
+gen blankobs = 0
+forvalues s = 0/2 {
+	append using "`blanks'", gen(appended)
+	replace sector = `s' if appended
+	replace blankobs = 1 if appended
+	drop appended
+}
 
 bysort soc5d2010 sector: egen ismissing = min(blankobs)
 drop if blankobs & !ismissing
