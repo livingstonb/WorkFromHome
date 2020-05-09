@@ -1,13 +1,12 @@
-/* --- MAKEFILE INSTRUCTIONS ---
+/* --- HEADER ---
+Reads the .dta chunks of the raw data, extracting
+needed variables and combining waves.
+
 #PREREQ "build/input/sipp_raw_w1.dta"
 #PREREQ "build/input/sipp_raw_w2.dta"
 #PREREQ "build/input/sipp_raw_w3.dta"
 #PREREQ "build/input/sipp_raw_w4.dta"
 */
-
-/* Dataset: SIPP */
-/* This script reads the .dta chunks of the raw data, extracting
-needed variables and combining waves. */
 
 clear
 set maxvar 10000

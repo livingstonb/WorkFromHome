@@ -2,8 +2,7 @@ subdir = DingelNeiman
 
 objdirs = build
 
-sources = read_teleworkable.do \
-	clean_teleworkable.do \
+sources = clean_teleworkable.do \
 	prepare_oes.do \
 	teleworkable_manual_5digit.do
 

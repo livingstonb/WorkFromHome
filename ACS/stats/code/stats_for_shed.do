@@ -24,5 +24,9 @@ collapse (mean) wfh2digit [iw=perwt], by(soc2d2010) fast;
 
 gen wfhflex = (wfh2digit > 3.5)
 label values wfhflex bin_lbl
+label variable wfhflex "WFH-flexible occupation according to ACS"
+
+rename wfh2digit acs_pct_workfromhome
+label variable acs_pct_workfromhome "% WFH in ACS"
 
 `#TARGET' save "stats/output/acs_stats_for_shed.dta", replace

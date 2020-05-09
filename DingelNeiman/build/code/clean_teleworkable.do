@@ -34,8 +34,17 @@ tempfile oestmp6
 save `oestmp6'
 restore
 
-// Load Dingell-Neiman
-`#PREREQ' use "build/temp/DN_temp.dta", clear
+// Read teleworkable measure
+clear
+`#PREREQ' import delimited "build/input/occupations_workathome.csv"
+gen soc2010 = substr(onetsoccode, 1, 7)
+gen soc3d2010 = substr(soc2010, 1, 4)
+replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
+destring soc3d2010, replace
+
+* Label 3-digit categories
+`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
+label values soc3d2010 soc3d2010_lbl
 rename teleworkable teletmp
 
 * Use value ending in .00 if available
@@ -155,4 +164,3 @@ replace employment = 0 if missing(employment)
 
 `#TARGET' save "build/output/DN_5digit.dta", replace
 restore
-

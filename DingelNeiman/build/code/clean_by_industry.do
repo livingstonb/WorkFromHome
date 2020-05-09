@@ -4,8 +4,16 @@ Dingel and Neiman, and aggregates it up to the 3-digit level.
 */
 
 // Prepare Dingell-Neiman
-tempfile dntmp6d dntmp5d dntmp3d
-`#PREREQ' use "build/temp/DN_temp.dta", clear
+`#PREREQ' import delimited "build/input/occupations_workathome.csv"
+gen soc2010 = substr(onetsoccode, 1, 7)
+gen soc3d2010 = substr(soc2010, 1, 4)
+replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
+destring soc3d2010, replace
+
+* Label 3-digit categories
+`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
+label values soc3d2010 soc3d2010_lbl
+
 rename teleworkable teletmp
 bysort soc2010: egen teleworkable = mean(teletmp)
 drop teletmp
@@ -16,6 +24,8 @@ gen soc6digit = subinstr(soc2010, "-", "", .)
 destring soc6digit, force replace
 gen soc3digit = floor(soc6digit / 1000)
 gen soc5digit = floor(soc6digit / 10)
+
+tempfile dntmp6d dntmp5d dntmp3d
 
 preserve
 keep soc6digit teleworkable

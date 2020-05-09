@@ -1,11 +1,8 @@
-/* --- ADDITIONAL MAKEFILE INSTRUCTIONS ---
-#PREREQ "../ado/rowdistinct.ado"
-*/
-
-/* Dataset: SIPP */
-/* This script reads the .dta file after it has been split into chunks,
+/* --- HEADER ---
+This script reads the .dta file after it has been split into chunks,
 cleaned somewhat, and recombined. Various variables are recoded and 
-new variables are generated. */
+new variables are generated.
+*/
 
 `#PREREQ' use "build/temp/sipp_monthly1.dta", clear
 adopath + "../ado"
