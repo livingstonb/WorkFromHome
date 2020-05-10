@@ -100,4 +100,18 @@ drop teleworkable_s*
 rename telefinal teleworkable
 label variable teleworkable "Teleworkable, manual score"
 
+* Add 2- and 3-digit codes
+gen soc2d2010 = floor(soc5d2010 / 1000)
+label variable soc2d2010 "Occupation, 2-digit"
+`#PREREQ' do "../occupations/build/output/soc2dlabels2010.do"
+label values soc2d2010 soc2d2010_lbl
+
+gen soc3d2010 = floor(soc5d2010 / 100)
+label variable soc3d2010 "Occupation, 3-digit"
+`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
+label values soc3d2010 soc3d2010_lbl
+
+order soc2d2010 soc3d2010 soc5d2010
+drop blankobs
+
 `#TARGET' save "build/output/merged5d.dta", replace
