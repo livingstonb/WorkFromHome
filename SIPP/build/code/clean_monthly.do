@@ -333,5 +333,23 @@ replace qualitative_h2m = 1 if (couldntpayutil == 1)
 label variable qualitative_h2m "HH was food-insecure and/or unable to pay utility bills"
 label values qualitative_h2m bin_lbl
 
+// ANNUAL VARIABLES
+
+* Earnings
+bysort personid swave: egen earnings = total(grossearn)
+label variable earnings "earnings"
+
+* WFH
+by personid swave: egen wfh = max(workfromhome)
+by personid swave: egen mwfh = max(wfh_mainocc)
+drop workfromhome wfh_mainocc
+
+replace wfh = 100 * wfh
+replace mwfh = 100 * mwfh
+rename wfh workfromhome
+rename mwfh mworkfromhome
+label variable workfromhome " % Who worked from home at least one day of the week"
+label variable mworkfromhome " % Who worked from home at least one day of the week in main occ"
+
 compress
 `#TARGET' save "build/temp/sipp_monthly2.dta", replace
