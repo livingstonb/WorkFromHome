@@ -7,6 +7,7 @@ desired sample unit, either person, hh, or fam.
 `#PREREQ' use "build/temp/sipp_monthly2.dta", clear
 
 args sunit
+local sunit hh
 
 egen person_wave = group(personid swave)
 local cash_multiplier = 1.05
@@ -43,14 +44,8 @@ if ("`sunit'" == "hh") | ("`sunit'" == "fam") {
 	drop months_ref
 
 	* Drop reference members with unstable spouse-present status
-	gen spouse_present = (ems == 1) if is_ref
-
-	#delimit ;
-	bysort personid swave (monthcode):
-		gen stable_ref = (spouse_present[1] == spouse_present[_N]) if is_ref;
-	#delimit cr
-	drop if !stable_ref
-	drop stable_ref spouse_present
+	bysort personid swave (epnspous_ehc): gen constmarried = (epnspous_ehc[1] == epnspous_ehc[_N])
+	drop if is_ref & !constmarried
 	
 	* Create unit id based on personid of reference member
 	bysort monthgroup: gen tmp_sampleid = person_wave if is_ref
@@ -66,6 +61,17 @@ if ("`sunit'" == "hh") | ("`sunit'" == "fam") {
 	* Keep last month only
 	keep if monthcode == 12
 	drop monthcode
+	
+	* Drop families if spouse has been dropped from the sample
+	bysort sampleid: gen tmp_famnumref = rfamnum if is_ref
+	bysort sampleid: gen tmp_spousepnum = epnspous_ehc if is_ref
+	by sampleid: gen famnumref = max(tmp_famnumref)
+	by sampleid: gen spousepnum = max(tmp_spousepnum)
+
+	gen is_spouse = (pnum == spousepnum) & (rfamnum == famnumref) if !missing(spousepnum)
+	by sampleid: egen spouse_present = max(is_spouse)
+	keep if spouse_present | missing(spousepnum)
+	drop *famnumref *spousepnum spouse_present
 	
 	* Create weights
 	if "`sunit'" == "hh" {

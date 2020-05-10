@@ -122,7 +122,22 @@ The prefixes LE and LU denote an edited variable and an unedited variable, respe
 
 \section{SIPP}
 \subsection{Sample}
-We use waves 1-4 of the 2014 SIPP. For each wave, we use all individuals of age 15 or older who were present in all 12 months of the wave. The waves are treated separately when computing all intermediate variables, and then pooled prior to final estimation. We do not link individuals across waves in any way.
+We use waves 1-4 of the 2014 SIPP. The waves are treated separately when computing all intermediate variables, and then pooled prior to final estimation. We do not link individuals across waves in any way.
+
+\subsubsection{Individual level sample}
+In the individual level sample, we use all individuals of age 15 or older who were present in all 12 months of the wave.
+
+\subsubsection{Family level sample}
+Here we start with all individuals of age 15 or older who were present in all 12 months of the wave. SIPP identifies families for each month separately, and because of changes in family composition across months, we use our own definition of family at the annual frequency. We start by identifying family heads as the SIPP-designated family reference member. A family head in our definition must be the head of a family for each of the twelve months in the wave. Any members of a family in which the reference member does not satisfy this condition do not show up in any family in our sample.
+
+A family is then defined as the group of individuals who are all in the same SIPP-designated family as the family head for all twelve months of the wave. If in individual is in the same family as the family head for only 10 months, for example, then this individual is excluded from the family unit. In these cases, only these members are dropped; the family is still included as a sampling unit but does not include such members. The exception to this is if the family head's spouse is one of these members, in which case the entire family is dropped. We also drop families if the family head's marriage status changes at any point in the year. Only a very small number of families are dropped for either of these two reasons.
+
+In terms of SIPP variables: A family head is an individual such that the variable PNUM is equal to the variable RFAMREF. We designate an individual as a member of a head's family if the values of SSUID, ERESIDENCEID, and RFAMNUM for the individual are equal to that of the head in each month of the year. The spouse of the head in a given month, if one is present, is the individual with a value of PNUM equal to the head's value of SPOUS\_EHC. Both the spouse, if present, and the head, must show up in all twelve months of data and be married and in the same household for each month, or the family is dropped.
+
+\subsubsection{Household level sample}
+Sampling units are identified in this sample in the same way as the family level sample, except we use household reference members as the household heads and members are dropped or the entire household is dropped based on the same conditions, but with respect to the household instead of the family. Households with unstable marriage status are dropped as in the family level sample only in relation to the marriage status of the household head; married individuals in the household which are not the household head or the spouse of the household head are treated as any other individuals, that is, they are dropped individually if they are not in the same household as the head for all months of the year, but the household is still kept in the sample.
+
+In terms of SIPP variables: A household head is an individual such that the variable PNUM is equal to the variable RFAMREF and such that RFAMNUM is equal to one. We designate an individual as a member of a head's household if the values of SSUID and ERESIDENCEID for the individual are equal to that of the head in each month of the year. The spouse of the head in a given month, if one is present, is the individual with a value of PNUM equal to the head's value of SPOUS\_EHC. Both the spouse, if present, and the head, must show up in all twelve months of data and be married and in the same household for each month, or the household is dropped.
 
 \subsubsection{Sample size}
 For computing \%WFH by occupation, we use 98,597 observations across four waves, with each observation representing one respondent-year pair. Since the source data is a panel, this amounts to 42,170 distinct individuals. These figures reflect both attrition and new entrants into existing SIPP sample units. 
@@ -137,8 +152,14 @@ For each worker-wave pair, I classify a worker as holding a given occupation by 
 \item I designate the primary occupation as the occupation code reported in the greatest number of months. If there is a tie, I choose among the most frequent codes the occupation code which was reported first.
 \end{enumerate}
 
+\subsubsection{Household and family level samples}
+In the household and family level samples, the occupation of the household or family is set to the occupation of the individual in the household or family with the largest reported mean earnings.
+
 \subsection{Classification of worker into industry category}
 For industry classification I use essentially the same procedure as in Section \ref{sipp_occupation}, and I do this separately from occupation.
+
+\subsubsection{Household and family level samples}
+In the household and family level samples, the industry of the household or family is set to the industry of the individual in the household or family with the largest reported mean earnings.
 
 \subsection{Variables}
 
@@ -146,6 +167,7 @@ For industry classification I use essentially the same procedure as in Section \
 All estimates are computed based on the provided person-level weight variable for the 2014 SIPP, which is identified as WPFINWGT.
 
 \subsubsection{Assets and liabilities}
+At the individual level, the individual level variables below are used directly. At the household and family level, an unweighted sum is taken over these variables across members of the household or family.
 We use the following definitions:
 \begin{align*}
 \text{deposits} &= \text{saving accts} + \text{checking accts} + \text{money market funds} \\
@@ -181,6 +203,8 @@ Our measure of earnings is annual earnings, which we set equal to the sum of TPE
 \begin{quote}
 Income earned from all jobs worked during the month, including wage and salary income, bonus payments, commissions, overtime payments, tips, other income from self-employed businesses, self-employed business profits, and accounting for time spent away from a job without pay.
 \end{quote}
+
+At the individual level, TPEARN is used directly. At the household or family level, an unweighted sum is taken over TPEARN across members of the household or family.
 
 \subsubsection{Ratio of liquid wealth to earnings}
 This statistic is just net liquid assets divided by annual earnings, conditional on annual earnings being at least \$1000.

@@ -75,7 +75,7 @@ local keepvars
 	eresidenceid rfamref
 	epnspous_ehc epncohab_ehc
 	rpnpar1_ehc rpnpar2_ehc
-	ems erelrpe
+	ems erelrpe epnspouse
 	
 /* Other HtM measures */
 	efood3 efood4 efood5 efood6 eawbgas
