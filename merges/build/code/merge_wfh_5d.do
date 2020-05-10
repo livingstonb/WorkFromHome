@@ -2,10 +2,12 @@
 Merges teleworkable and SIPP variables at the 5-digit occupation level.
 */
 
+args sunit
+
 adopath + "../ado"
 adopath + "ado"
 
-`#PREREQ' use "../SIPP/stats/output/SIPPwfh_5digit.dta", clear
+`#PREREQ' use "../SIPP/stats/output/SIPP5d_`sunit'.dta", clear
 rename occ5d2010 soc5d2010
 drop nworkers_wt meanwage source
 
@@ -75,7 +77,7 @@ foreach var of local rstubs {
 }
 varlabels, save
 
-quietly reshape wide `stubs', i(soc5d2010) j(sector)
+quietly reshape wide `stubs', i(soc5d2010 sunit) j(sector)
 varlabels, restore
 
 foreach var of varlist *_s0 {
@@ -114,4 +116,4 @@ label values soc3d2010 soc3d2010_lbl
 order soc2d2010 soc3d2010 soc5d2010
 drop blankobs
 
-`#TARGET' save "build/output/merged5d.dta", replace
+`#TARGET' save "build/output/merged5d_`sunit'.dta", replace

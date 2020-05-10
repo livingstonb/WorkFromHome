@@ -140,12 +140,14 @@ else if "`sunit'" == "fam" {
 else if "`sunit'" == "hh" {
 	gen sunit = 2
 }
-label variable sunit "Sampling unit"
+label variable sunit "SIPP sampling unit"
 
 label define sunit_lbl 0 "Person"
 label define sunit_lbl 1 "Family", add
 label define sunit_lbl 2 "Household", add
 label values sunit sunit_lbl
+
+gen source = "SIPP"
 
 local varorder occ5d2010 sector
 order `varorder'
