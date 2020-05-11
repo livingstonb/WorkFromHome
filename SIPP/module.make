@@ -13,7 +13,7 @@ targets = stats/output/SIPP3d_person.dta \
 	stats/output/SIPP3d_hh.dta \
 	stats/output/SIPP5d_person.dta \
 	stats/output/SIPP5d_fam.dta \
-	stats/output/SIPP5d_hh.dta \
+	stats/output/SIPP5d_hh.dta
 
 empty_targets =
 

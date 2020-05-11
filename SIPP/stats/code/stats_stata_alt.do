@@ -4,11 +4,74 @@ for SIPP and outputs them to a spreadsheet.
 */
 
 args sunit
+local hh_nla_scale = 3500 / 2100
 
 adopath + "../ado"
 
-// Read
+// READ AND COMPUTE STATISTICS
 `#PREREQ' use "build/output/annual_`sunit'.dta", clear
+
+replace netliquid = netliquid * `hh_nla_scale'
+label variable netliquid "net liquid assets, scaled so median HH is $3500"
+
+gen netliq_earnings_ratio = netliquid / earnings if (earnings > 1000)
+label variable netliq_earnings_ratio "net liquid assets to earnings ratio for earnings > 1000"
+
+gen earnwk = earnings / 52
+label variable earnwk "Weekly earnings"
+
+gen nla_lt_biweeklyearn = (netliquid < (2 * earnwk))
+label variable nla_lt_biweeklyearn "Share with net liquid assets < 2 weeks earnings"
+
+gen nla_lt_monthlyearn = (netliquid < (4 * earnwk))
+label variable nla_lt_monthlyearn "Share with net liquid assets < 4 weeks earnings"
+
+gen nla_lt_annearn = (netliquid < earnings)
+label variable nla_lt_annearn "Share with net liquid assets < annual earnings"
+
+gen whtm_biweeklyearn = (netliquid < (2 * earnwk)) * (netilliquid >= 5000)
+label variable whtm_biweeklyearn "Share WHtM (NLIQ < 2 wks earnings and NILLIQ >= $5000)"
+
+gen whtm_monthlyearn = (netliquid < (4 * earnwk)) * (netilliquid >= 5000)
+label variable whtm_monthlyearn "Share WHtM (NLIQ < 4 wks earnings and NILLIQ >= $5000)"
+
+gen whtm_annearn = (netliquid < earnings) * (netilliquid >= 5000)
+label variable whtm_annearn "Share WHtM (NLIQ < annual earnings and NILLIQ >= $5000)"
+
+gen phtm_biweeklyearn = (nla_lt_biweeklyearn == 1) * (whtm_biweeklyearn == 0)
+replace phtm_biweeklyearn = . if missing(nla_lt_biweeklyearn, whtm_biweeklyearn)
+label variable phtm_biweeklyearn "Share PHtM (NLIQ < 2 wks earnings and NILLIQ < $5000)"
+
+gen phtm_monthlyearn = (nla_lt_monthlyearn == 1) * (whtm_monthlyearn == 0)
+replace phtm_monthlyearn = . if missing(nla_lt_monthlyearn, whtm_monthlyearn)
+label variable phtm_monthlyearn "Share PHtM (NLIQ < 4 wks earnings and NILLIQ < $5000)"
+
+gen phtm_annearn = (nla_lt_annearn == 1) * (whtm_annearn == 0)
+replace phtm_annearn = . if missing(nla_lt_annearn, whtm_annearn)
+label variable phtm_annearn "Share PHtM (NLIQ < annual earnings and NILLIQ < $5000)"
+
+#delimit ;
+gen htm_biweeklyearn = whtm_biweeklyearn | phtm_biweeklyearn
+	& !missing(whtm_biweeklyearn, phtm_biweeklyearn);
+gen htm_monthlyearn = whtm_monthlyearn | phtm_monthlyearn
+	& !missing(whtm_monthlyearn, phtm_monthlyearn);
+gen htm_annearn = whtm_annearn | phtm_annearn
+	& !missing(whtm_annearn, phtm_annearn);
+#delimit cr
+
+label variable htm_biweeklyearn "Share HTM (NLIQ < 2 wks earnings)"
+label variable htm_monthlyearn "Share HTM (NLIQ < 4 wks earnings)"
+label variable htm_annearn "Share HTM (NLIQ < annual earnings)"
+
+foreach x of numlist 500 1000 2000 {
+	gen nla_lt_`x'_nia_any = (netliquid < `x') if !missing(netliquid)
+	label variable nla_lt_`x'_nia_any "Share with NLIQ < $`x'"
+foreach y of numlist 1000 5000 {
+	gen nla_lt_`x'_nia_gt_`y' = (netliquid < `x') * (netilliquid > `y')
+	replace nla_lt_`x'_nia_gt_`y' = . if missing(netliquid, netilliquid)
+	label variable nla_lt_`x'_nia_gt_`y' "Share with NLIQ < $`x' and NILLIQ > $`y'"
+}
+}
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
