@@ -7,7 +7,6 @@ desired sample unit, either person, hh, or fam.
 `#PREREQ' use "build/temp/sipp_monthly2.dta", clear
 
 args sunit
-local sunit hh
 
 egen person_wave = group(personid swave)
 local cash_multiplier = 1.05
@@ -65,8 +64,8 @@ if ("`sunit'" == "hh") | ("`sunit'" == "fam") {
 	* Drop families if spouse has been dropped from the sample
 	bysort sampleid: gen tmp_famnumref = rfamnum if is_ref
 	bysort sampleid: gen tmp_spousepnum = epnspous_ehc if is_ref
-	by sampleid: gen famnumref = max(tmp_famnumref)
-	by sampleid: gen spousepnum = max(tmp_spousepnum)
+	by sampleid: egen famnumref = max(tmp_famnumref)
+	by sampleid: egen spousepnum = max(tmp_spousepnum)
 
 	gen is_spouse = (pnum == spousepnum) & (rfamnum == famnumref) if !missing(spousepnum)
 	by sampleid: egen spouse_present = max(is_spouse)

@@ -127,17 +127,17 @@ We use waves 1-4 of the 2014 SIPP. The waves are treated separately when computi
 \subsubsection{Individual level sample}
 In the individual level sample, we use all individuals of age 15 or older who were present in all 12 months of the wave.
 
-\subsubsection{Family level sample}
-Here we start with all individuals of age 15 or older who were present in all 12 months of the wave. SIPP identifies families for each month separately, and because of changes in family composition across months, we use our own definition of family at the annual frequency. We start by identifying family heads as the SIPP-designated family reference member. A family head in our definition must be the head of a family for each of the twelve months in the wave. Any members of a family in which the reference member does not satisfy this condition do not show up in any family in our sample.
+\subsubsection{Family and household level samples}
+Here we start with all individuals of age 15 or older who were present in all 12 months of the wave. SIPP identifies families/households for each month separately, and because of changes in family/household composition across months, we use our own definition of family/household at the annual frequency. We define a sampling unit with the following procedure, repeated separately for each wave:
 
-A family is then defined as the group of individuals who are all in the same SIPP-designated family as the family head for all twelve months of the wave. If in individual is in the same family as the family head for only 10 months, for example, then this individual is excluded from the family unit. In these cases, only these members are dropped; the family is still included as a sampling unit but does not include such members. The exception to this is if the family head's spouse is one of these members, in which case the entire family is dropped. We also drop families if the family head's marriage status changes at any point in the year. Only a very small number of families are dropped for either of these two reasons.
+\begin{enumerate}
+\item Designate as a head for each SIPP-designated family (household) reference member who was a family (household) reference member for each month of the wave. For families, the heads are the observations satisfying PNUM = RFAMREF for each value of MONTHCODE between 1 and 12. For households, the heads are the observations satisfying PNUM = RFAMREF and RFAMNUM = 1 for each value of MONTHCODE between 1 and 12.
+\item Create a one-member sampling unit for each head.
+\item For each sampling unit, check if the head had a spouse present at any month in the wave. If a spouse was not present (EPNSPOUS\_EHC was missing for all months for the head), or if the head's marriage to the spouse was constant (EPNSPOUS\_EHC was a constant across all twelve values of MONTHCODE) do nothing. Otherwise drop the sampling unit and drop both the head and the spouse from the dataset. This drops only a small number of families/households.
+\item For each individual who is not a sampling unit head, check if the individual's family/household reference member was the same individual for all twelve values of MONTHCODE. If so, add the individual to the sampling unit created for that reference member, if that reference member is still in the sample. If the reference member changed for the individual or if the reference member was constant but has been dropped from the dataset, drop the individual from the dataset. I.e. a member of a family/household will only be included in the sampling unit if that member is present in that particular family/household for the entire wave.
 
-In terms of SIPP variables: A family head is an individual such that the variable PNUM is equal to the variable RFAMREF. We designate an individual as a member of a head's family if the values of SSUID, ERESIDENCEID, and RFAMNUM for the individual are equal to that of the head in each month of the year. The spouse of the head in a given month, if one is present, is the individual with a value of PNUM equal to the head's value of SPOUS\_EHC. Both the spouse, if present, and the head, must show up in all twelve months of data and be married and in the same household for each month, or the family is dropped.
-
-\subsubsection{Household level sample}
-Sampling units are identified in this sample in the same way as the family level sample, except we use household reference members as the household heads and members are dropped or the entire household is dropped based on the same conditions, but with respect to the household instead of the family. Households with unstable marriage status are dropped as in the family level sample only in relation to the marriage status of the household head; married individuals in the household which are not the household head or the spouse of the household head are treated as any other individuals, that is, they are dropped individually if they are not in the same household as the head for all months of the year, but the household is still kept in the sample.
-
-In terms of SIPP variables: A household head is an individual such that the variable PNUM is equal to the variable RFAMREF and such that RFAMNUM is equal to one. We designate an individual as a member of a head's household if the values of SSUID and ERESIDENCEID for the individual are equal to that of the head in each month of the year. The spouse of the head in a given month, if one is present, is the individual with a value of PNUM equal to the head's value of SPOUS\_EHC. Both the spouse, if present, and the head, must show up in all twelve months of data and be married and in the same household for each month, or the household is dropped.
+An individual's household reference member is the observation with the same values for SSUID and ERESIDENCEID as the individual, in the given month and wave, and who as already been identified as a household reference member in the first step. The same is true for identifying the individual's family reference member, except that the individual and the family reference member must also share the same value of RFAMNUM.
+\end{enumerate}
 
 \subsubsection{Sample size}
 For computing \%WFH by occupation, we use 98,597 observations across four waves, with each observation representing one respondent-year pair. Since the source data is a panel, this amounts to 42,170 distinct individuals. These figures reflect both attrition and new entrants into existing SIPP sample units. 
@@ -164,7 +164,14 @@ In the household and family level samples, the industry of the household or fami
 \subsection{Variables}
 
 \subsubsection{Weights}
-All estimates are computed based on the provided person-level weight variable for the 2014 SIPP, which is identified as WPFINWGT.
+The weights used were chosen according to a flow diagram provided for the 2014 SIPP.
+
+Individual-level estimates are computed based on the December value of the provided person-level weight variable for the 2014 SIPP, which is WPFINWGT.
+
+Family-level estimates are computed based on the December value of WPFINWGT for the family reference member.
+
+Household-level estimates are computed based on the December value of WPFINWGT for the household member for which ERELRPE is equal to either 1 or 2.
+
 
 \subsubsection{Assets and liabilities}
 At the individual level, the individual level variables below are used directly. At the household and family level, an unweighted sum is taken over these variables across members of the household or family.
