@@ -4,6 +4,7 @@
 \author{}
 \date{}
 
+\usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{breakurl}
 \usepackage{amsmath}
@@ -20,7 +21,19 @@
 For mapping Census occupation and industry codes to SOC and NAICS codes, respectively, I rely on crosswalks provided by \cite{crosswalks}.
 
 \subsection{Occupation classification}
+
+\subsubsection{Minor groups}
 We use a total of 94 occupation categories, consisting of all three-digit (aka minor) groups in the 2010 SOC system, with the exclusion of major group 55 known as \emph{Military Specific Occupations}. For cases in which the data are based on other classification systems, e.g. 2018 SOC or 2010 Census, we use crosswalks to reclassify workers into a 2010 minor group.
+
+\subsubsection{Broad groups}
+We use a total of 443 occupation categories, consisting almost entirely of five-digit (aka broad) groups in the 2010 SOC system, with the exclusion of occupations in major group 55 known as \emph{Military Specific Occupations}.
+All five-digit groups are included except for those in four three-digit groups for which we aggregate to the three-digit level. These three-digit groups are the following:
+\begin{itemize}
+\item Postsecondary Teachers
+\item Other Teachers and Instructors
+\item Other Healthcare Practitioners and Technical Occupations
+\item Supervisors of Transportation and Material Moving Workers
+\end{itemize}
 
 \subsection{Sector classification}
 To identify a worker as belonging to sector C or sector S, we go by 2017 NAICS codes. For datasets using 2012 NAICS codes, we map 2012 industry codes into roughtly equivalent 2017 industry codes.
@@ -251,10 +264,10 @@ Note that this variable is based on all jobs held; some jobs may not coincide wi
 Here we use a combination of data from \cite{OES} and \cite{brookings}. The appendix to \cite{brookings} provides 4-digit industry codes deemed to be essential. The OES sample used was the four-digit employment-by-industry dataset for May 2017.
 
 \subsection{Methods}
-First, each OES occupation code was mapped to a 2010 SOC minor category. Second, each four-digit industry was either mapped to the essential workers data, in which case the industry was deemed essential, or not, and the industry was classified as non-essential.
+First, each OES occupation code was mapped to a 2010 SOC category at the desired level of aggregation. Second, each four-digit industry was either mapped to the essential workers data, in which case the industry was deemed essential, or not, and the industry was classified as non-essential.
 At this point we had employment, mean wage, and a binary indicator for essential industries, at the occupation-industry level. We then computed employment-weighted means to aggregate over all industries and estimate the share of each occupation in essential industries.
 
-\section{A teleworkable index using data from Dingel and Neiman}
+\section{Teleworkable, O*NET-SOC score at the 3-digit level, from Dingel and Neiman}
 
 \subsection{Data}
 Using a binary indicator of whether an occupation is \emph{teleworkable} from \cite{DN}, we aggregate up to 2010 SOC minor occupation categories.
@@ -266,6 +279,12 @@ We aggregated upwards starting from the finest categories possible. We took empl
 
 This means that, for example, once we averaged out the SOC-O*NET occupations to 6-digit SOC codes, we might run into a case where two of the three 6-digit occupations in Dingel-Neiman for a given 5-digit occupation category have nonmissing employment estimates in OES, but one is missing in OES. In that case, we took another arithmetic mean over the teleworkable variable for these three occupations to aggregate to the 5-digit level. From there, we would then do the same thing: if all occupations in SOC at the given 5-digit category had nonmissing employment estimates in OES, we would use an employment-weighted mean of teleworkable at the current aggregation level to aggregate upward, and if not, we would use an arithmetic mean, etc...
 
+\section{Teleworkable, manual score at the 5-digit level, from Dingel and Neiman}
+
+\subsection{Data}
+We start with a teleworkable indicator taking the values of 0, 0.25, 0.5, 0.75, and 1 from \cite{DN}, available at the 5-digit 2010 SOC level. We rounded values of 0.25 down to zero and values of 0.75 up to one. Values of 0.5 were changed to zero or one by discretion and the recoded occupations are shown in Table \ref{teleworkable_recode}.
+
+\input{teleworkable_one_half.tex}
 
 \bibliography{bibliography}
 \bibliographystyle{plain}

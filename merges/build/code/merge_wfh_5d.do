@@ -43,7 +43,7 @@ combine_5d_teleworkable soc5d2010, socval(25300) televal(1)
 combine_5d_teleworkable soc5d2010, socval(53100) televal(0)
 	label("Supervisors of Transportation and Material Moving Workers");
 combine_5d_teleworkable soc5d2010, socval(29900) televal(0)
-	label("Occupational Health and Safety Specialists and Technicians");
+	label("Other Healthcare Practitioners and Technical Occupations");
 #delimit cr
 
 * Variables critical and essential need to be constant across sectors, for reshape
