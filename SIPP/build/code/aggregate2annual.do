@@ -198,7 +198,5 @@ foreach y of numlist 1000 5000 {
 }
 }
 
-drop `earnwk'
-
-drop person_wave
+drop person_wave `earnwk'
 `#TARGET' save "build/output/annual_`sunit'.dta", replace

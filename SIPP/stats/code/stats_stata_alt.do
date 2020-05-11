@@ -85,6 +85,9 @@ preserve
 
 varlabels, save
 
+* Sum of weights for each occupation
+gen weights = 1
+
 * Add blanks
 `#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
 #delimit ;
@@ -105,7 +108,7 @@ collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
 	(mean) pct_workfromhome (mean) meanwage
 	`meanstats' `medianstats'
-	(min) blankobs
+	(min) blankobs (sum) weights
 	[iw=swgts], by(sector occ5d2010) fast;
 #delimit cr
 save `bysector'
@@ -117,7 +120,7 @@ collapse
 	(sum) nworkers_wt (rawsum) nworkers_unw
 	(mean) pct_workfromhome (mean) meanwage
 	`meanstats' `medianstats'
-	(min) blankobs
+	(min) blankobs (sum) weights
 	[iw=swgts], by(occ5d2010) fast;
 #delimit cr
 
@@ -127,6 +130,7 @@ replace sector = 2 if missing(sector)
 label define sector_lbl 2 "Pooled", modify
 
 varlabels, restore
+label variable weights "Sum of SIPP weights"
 
 drop mean_earnings
 drop median_earnings

@@ -53,6 +53,17 @@ foreach var of varlist critical essential {
 	drop tmp_`var'
 }
 
+* Make sure all sunit values are present
+if "`sunit'" == "person" {
+	replace sunit = 0 if missing(sunit)
+}
+else if "`sunit'" == "fam" {
+	replace sunit = 1 if missing(sunit)
+}
+else if "`sunit'" == "hh" {
+	replace sunit = 2 if missing(sunit)
+}
+
 * Drop small groups not showing up in SIPP and not having data for both sectors
 bysort soc5d2010: gen counts = _N
 drop if (counts != 3)
@@ -66,7 +77,7 @@ label variable employment "OES Total Employment"
 label variable meanwage "OES Mean Annual Wage"
 
 #delimit ;
-local rstubs n_sipp pct_workfromhome mean_* qualitative_h2m foodinsecure
+local rstubs n_sipp pct_workfromhome mean_* qualitative_h2m foodinsecure weights
 	nla_lt* whtm_* phtm_* htm_* median_* teleworkable employment meanwage;
 #delimit cr
 
@@ -77,7 +88,7 @@ foreach var of local rstubs {
 }
 varlabels, save
 
-quietly reshape wide `stubs', i(soc5d2010 sunit) j(sector)
+quietly reshape wide `stubs', i(soc5d2010) j(sector)
 varlabels, restore
 
 foreach var of varlist *_s0 {
