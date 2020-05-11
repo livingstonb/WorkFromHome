@@ -3,16 +3,17 @@ This script computes various asset, earnings, and WFH statistics
 for SIPP and outputs them to a spreadsheet.
 */
 
-args sunit
-local hh_nla_scale = 3500 / 2100
+args sunit digit
 
 adopath + "../ado"
 
 // READ AND COMPUTE STATISTICS
 `#PREREQ' use "build/output/annual_`sunit'.dta", clear
 
-replace netliquid = netliquid * `hh_nla_scale'
-label variable netliquid "net liquid assets, scaled so median HH is $3500"
+if `digit' == 5 {
+	replace netliquid = netliquid * 3500 / 2100
+	label variable netliquid "net liquid assets, scaled so median HH is $3500"
+}
 
 gen netliq_earnings_ratio = netliquid / earnings if (earnings > 1000)
 label variable netliq_earnings_ratio "net liquid assets to earnings ratio for earnings > 1000"
@@ -108,118 +109,93 @@ label variable nworkers_wt "Total"
 rename workfromhome pct_workfromhome
 rename earnings meanwage
 
-// Collapse at the 3-digit level
-preserve
-
-varlabels, save
-
-* Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
-#delimit ;
-appendblanks soc3d2010 using "`blanks'",
-	zeros(nworkers_wt nworkers_unw) ones(swgts)
-	over1(sector) values1(0 1) rename(occ3d2010);
-#delimit cr
-
-drop if missing(sector, occ3d2010)
-
-#delimit ;
-collapse
-	(sum) nworkers_wt (rawsum) nworkers_unw
-	(mean) pct_workfromhome (mean) meanwage
-	`meanstats' `medianstats'
-	(min) blankobs
-	[iw=swgts], by(sector occ3d2010) fast;
-#delimit cr
-
-varlabels, restore
-
-drop mean_earnings
-drop median_earnings
-gen source = "SIPP"
-label variable source "Dataset"
-
-drop blankobs
-`#TARGET' save "stats/output/SIPP3d_`sunit'.dta", replace
-restore
-
-// Collapse at the 5-digit level, by sector and for both sectors
-preserve
-
-varlabels, save
-
+// CLEANING
 * Sum of weights for each occupation
 gen weights = 1
-
-* Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
-#delimit ;
-appendblanks soc5d2010 using "`blanks'",
-	zeros(nworkers_wt nworkers_unw) ones(swgts)
-	over1(sector) values1(0 1) rename(occ5d2010);
-#delimit cr
-
-drop if missing(sector, occ5d2010)
-
-tempfile cleaned
-save `cleaned'
-
-* Collapse by sector
-tempfile bysector
-#delimit ;
-collapse
-	(sum) nworkers_wt (rawsum) nworkers_unw
-	(mean) pct_workfromhome (mean) meanwage
-	`meanstats' `medianstats'
-	(min) blankobs (sum) weights
-	[iw=swgts], by(sector occ5d2010) fast;
-#delimit cr
-save `bysector'
-
-* Collapse for both sectors
-use `cleaned', clear
-#delimit ;
-collapse
-	(sum) nworkers_wt (rawsum) nworkers_unw
-	(mean) pct_workfromhome (mean) meanwage
-	`meanstats' `medianstats'
-	(min) blankobs (sum) weights
-	[iw=swgts], by(occ5d2010) fast;
-#delimit cr
-
-* Combine
-append using `bysector'
-replace sector = 2 if missing(sector)
-label define sector_lbl 2 "Pooled", modify
-
-varlabels, restore
 label variable weights "Sum of SIPP weights"
 
-drop mean_earnings
-drop median_earnings
+* Add blanks
+`#PREREQ' local blanks "../occupations/build/output/soc`digit'dvalues2010.dta"
+#delimit ;
+appendblanks soc`digit'd2010 using "`blanks'",
+	zeros(nworkers_wt nworkers_unw) ones(swgts)
+	over1(sector) values1(0 1) rename(occ`digit'd2010);
+#delimit cr
 
-if "`sunit'" == "person" {
-	gen sunit = 0
+drop if missing(sector, occ`digit'd2010)
+
+// Collapse by sector and occupation
+preserve
+varlabels, save
+
+#delimit ;
+collapse
+	(sum) nworkers_wt (rawsum) nworkers_unw
+	(mean) pct_workfromhome (mean) meanwage
+	`meanstats' `medianstats' (sum) weights
+	(min) blankobs
+	[iw=swgts], by(sector occ`digit'd2010) fast;
+#delimit cr
+
+varlabels, restore
+
+if `digit' == 3 {
+	drop mean_earnings median_earnings weights
+	gen source = "SIPP"
+	label variable source "Dataset"
+
+	drop blankobs
+	save "stats/output/SIPP3d_`sunit'.dta", replace
 }
-else if "`sunit'" == "fam" {
-	gen sunit = 1
+else if `digit' == 5 {
+	tempfile occ_and_sector
+	save `occ_and_sector', replace
 }
-else if "`sunit'" == "hh" {
-	gen sunit = 2
-}
-label variable sunit "SIPP sampling unit"
-
-label define sunit_lbl 0 "Person"
-label define sunit_lbl 1 "Family", add
-label define sunit_lbl 2 "Household", add
-label values sunit sunit_lbl
-
-gen source = "SIPP"
-
-local varorder occ5d2010 sector
-order `varorder'
-sort `varorder'
-
-drop blankobs
-`#TARGET' save "stats/output/SIPP5d_`sunit'.dta", replace
 restore
+
+// Collapse by occupation only (5-digit only)
+if `digit' == 5 {
+	varlabels, save
+
+	drop if missing(sector, occ`digit'd2010)
+	#delimit ;
+	collapse
+		(sum) nworkers_wt (rawsum) nworkers_unw
+		(mean) pct_workfromhome (mean) meanwage
+		`meanstats' `medianstats' (sum) weights
+		(min) blankobs
+		[iw=swgts], by(occ`digit'd2010) fast;
+	#delimit cr
+	gen sector = 2
+	label define sector_lbl 2 "Pooled", modify
+
+	varlabels, restore
+	
+	* Combine with occ-sector statistics
+	append using `occ_and_sector'
+	
+	drop mean_earnings median_earnings
+	
+	if "`sunit'" == "person" {
+	gen sunit = 0
+	}
+	else if "`sunit'" == "fam" {
+		gen sunit = 1
+	}
+	else if "`sunit'" == "hh" {
+		gen sunit = 2
+	}
+	label variable sunit "SIPP sampling unit"
+	label define sunit_lbl 0 "Person"
+	label define sunit_lbl 1 "Family", add
+	label define sunit_lbl 2 "Household", add
+	label values sunit sunit_lbl
+	gen source = "SIPP"
+	
+	local varorder occ`digit'd2010 sector
+	order `varorder'
+	sort `varorder'
+
+	drop blankobs
+	save "stats/output/SIPP5d_`sunit'.dta", replace
+}
