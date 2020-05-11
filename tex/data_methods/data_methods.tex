@@ -232,9 +232,9 @@ This statistic is just net liquid assets divided by annual earnings, conditional
 \subsubsection{HtM in terms of earnings}
 For various $x$ and $y$ in the expressions below, we compute binary indicators for HtM status for each observation. Let $b$ be net liquid assets and let $a$ be net illiquid assets.
 \begin{align*}
-\text{HtM} &= (a < x) \\
-\text{WHtM} &= (a < x) * (b \geq y) \\
-\text{PHtM} &= (a < x) * (b < y)
+\text{HtM} &= (b < x) \\
+\text{WHtM} &= (b < x) * (a \geq y) \\
+\text{PHtM} &= (b < x) * (a < y)
 \end{align*}
 To compute shares of individuals falling into these categories, we take weighted means of these indicators.
 
