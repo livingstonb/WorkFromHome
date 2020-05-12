@@ -1,15 +1,15 @@
-/* --- HEADER ---
+/*
 Performs cleaning and generates new variables for
 the ACS.
 */
 
-`#' args extra_variables
+args extra_variables
 
 clear
 capture label define bin_lbl 0 "No" 1 "Yes"
 
 * Read data after coding missing values
-`#PREREQ' local tempinput "build/temp/acs_temp.dta"
+local tempinput "build/temp/acs_temp.dta"
 use if (year >= 2013) using "`tempinput'" , clear
 
 * Nominal wage income
@@ -82,7 +82,7 @@ gen census2010 = occn if inrange(year, 2000, 2017)
 gen census2018 = occn if (year > 2017)
 
 * 2012 - 2017
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 merge m:1 census2010 using "`occ2010'",
 	keepusing(soc3d2010 soc2d2010) keep(1 3) nogen;
@@ -90,7 +90,7 @@ merge m:1 census2010 using "`occ2010'",
 rename soc3d2010 occ3d2010
 
 * 2018
-`#PREREQ' local occ2018 "../occupations/build/output/census2018_to_soc2010.dta"
+local occ2018 "../occupations/build/output/census2018_to_soc2010.dta"
 #delimit ;
 merge m:1 census2018 using "`occ2018'",
 	keepusing(soc3d2010) keep(1 3) nogen;
@@ -102,7 +102,7 @@ drop census2010 census2018 soc3d2010
 gen ind2012 = industry if inrange(year, 2013, 2017)
 gen ind2017 = industry if (year > 2017)
 
-`#PREREQ'  local c12 "../industries/build/output/census2012_to_sector.dta"
+local c12 "../industries/build/output/census2012_to_sector.dta"
 #delimit ;
 merge m:1 ind2012 using "`c12'",
 	keepusing(sector) keep(1 3) nogen;
@@ -117,4 +117,4 @@ merge m:1 ind2017 using "`c17'",
 drop ind2012 ind2017
 
 compress
-`#TARGET' save "build/output/acs_cleaned.dta", replace
+save "build/output/acs_cleaned.dta", replace

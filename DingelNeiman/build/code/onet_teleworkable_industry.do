@@ -1,17 +1,17 @@
-/* --- HEADER ---
-This script reads the teleworkable measure constructed by
-Dingel and Neiman, and aggregates it up to the 3-digit level.
+/*
+Reads the teleworkable measure constructed by
+Dingel and Neiman, and aggregates it by industry.
 */
 
 // Prepare Dingell-Neiman
-`#PREREQ' import delimited "build/input/occupations_workathome.csv"
+import delimited "build/input/occupations_workathome.csv", clear
 gen soc2010 = substr(onetsoccode, 1, 7)
 gen soc3d2010 = substr(soc2010, 1, 4)
 replace soc3d2010 = subinstr(soc3d2010, "-", "", .)
 destring soc3d2010, replace
 
 * Label 3-digit categories
-`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
+do "../occupations/build/output/soc3dlabels2010.do"
 label values soc3d2010 soc3d2010_lbl
 
 rename teleworkable teletmp
@@ -45,7 +45,7 @@ clear
 import excel "../OES/build/input/nat2d2017", clear firstrow
 
 * Clean
-`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017
+do "../OES/build/code/clean_oes_generic.do" 2017
 rename occ_code soc2010
 rename tot_emp employment
 
@@ -60,7 +60,29 @@ drop if inlist(occ_group, "total", "major")
 keep soc2010 occ_group employment industry ind_employment
 
 * Collapse by industry and detailed occupation
-`#PREREQ' do "build/code/group_industries.do" industry
+label define naics_lbl 11 "Agriculture, Forestry, Fishing and Hunting", replace
+label define naics_lbl 21 "Mining, Quarrying, and Oil and Gas Extraction", add
+label define naics_lbl 22 "Utilities", add
+label define naics_lbl 23 "Construction", add
+label define naics_lbl 31 "Manufacturing", add
+label define naics_lbl 42 "Wholesale Trade", add
+label define naics_lbl 44 "Retail Trade", add
+label define naics_lbl 48 "Transportation and Warehousing", add
+label define naics_lbl 51 "Information", add
+label define naics_lbl 52 "Finance and Insurance", add
+label define naics_lbl 53 "Real Estate and Rental Leasing", add
+label define naics_lbl 54 "Professional, Scientific, and Technical Services", add
+label define naics_lbl 55 "Management of Companies and Enterprises", add
+label define naics_lbl 56 "Administrative and Support and Waste Management and Remediation Services", add
+label define naics_lbl 61 "Educational Services", add
+label define naics_lbl 62 "Health Card and Social Assistance", add
+label define naics_lbl 71 "Arts, Entertainment, and Recreation", add
+label define naics_lbl 72 "Accommodation", add
+label define naics_lbl 81 "Other Services (except Public Administration)", add
+label define naics_lbl 92 "Public Administration", add
+
+recode industry (32/33 = 31) (45 = 44) (49 = 48) (99 = 92)
+label values industry naics_lbl
 
 gen soc6digit = subinstr(soc2010, "-", "", .)
 destring soc6digit, force replace
@@ -109,4 +131,4 @@ label variable teleworkable "Share of workers in teleworkable occupations"
 label variable employment "Total employment"
 label variable industry "Industry, 2-digit NAICS"
 
-`#TARGET' save "build/output/DN_by_industry.dta", replace
+save "build/output/DN_by_industry.dta", replace

@@ -1,4 +1,4 @@
-/* --- HEADER ---
+/*
 Generates occupation-industry-specific variables
 to be used in correspondence with SHED data.
 */
@@ -12,7 +12,7 @@ capture label define bin_lbl 0 "No" 1 "Yes"
 capture label define bin_pct_lbl 0 "No" 100 "Yes"
 
 * Collapse by occupation
-`#PREREQ' use "build/output/acs_cleaned.dta", clear
+use "build/output/acs_cleaned.dta", clear
 drop if missing(sector, soc2d2010)
 keep if inrange(year, `yr1', `yr2')
 
@@ -29,4 +29,4 @@ label variable wfhflex "WFH-flexible occupation according to ACS"
 rename wfh2digit acs_pct_workfromhome
 label variable acs_pct_workfromhome "% WFH in ACS"
 
-`#TARGET' save "stats/output/acs_stats_for_shed.dta", replace
+save "stats/output/acs_stats_for_shed.dta", replace

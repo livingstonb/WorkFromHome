@@ -1,13 +1,13 @@
-/* --- HEADER ---
+/*
 Reads the raw data from the .dat file and
 performs some minor cleaning tasks. Assumes the cwd
 is ACS.
 */
 
-`#' args extra_variables
+args extra_variables
 
 * Read raw dataset
-`#PREREQ' use "build/input/acs_raw.dta", clear
+use "build/input/acs_raw.dta", clear
 
 rename occ occn
 
@@ -44,4 +44,4 @@ keep if (age >= 15) & !missing(age)
 keep if (incwage > 0) & !missing(incwage)
 
 compress
-`#TARGET' save "build/temp/acs_temp.dta", replace
+save "build/temp/acs_temp.dta", replace

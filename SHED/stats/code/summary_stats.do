@@ -1,12 +1,11 @@
-/* --- HEADER ---
+/*
 Computes summary statistics for SHED.
 */
 
 clear
 adopath + "../ado"
 
-`#PREREQ' local cleaned "build/output/shed_cleaned.dta"
-use "`cleaned'"
+use "build/output/shed_cleaned.dta"
 
 // SAMPLE SELECTION
 keep if (age >= 15)
@@ -24,7 +23,7 @@ forvalues yr = 2013/2017 {
 // TABLES
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
+local blanks "../occupations/build/output/soc3dvalues2010.dta"
 appendblanks soc3d2010 using "`blanks'", ones(wgt)
 
 * Collect variables for collapse
@@ -95,7 +94,7 @@ label values wfhflex flexlbl
 .xlxnotes.append "Sample: 2014 and 2016"
 .xlxnotes.append "Description: HtM statistics"
 
-`#TARGET' local xlxname "stats/output/SHED_HtM.xlsx"
+local xlxname "stats/output/SHED_HtM.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "All respondents"

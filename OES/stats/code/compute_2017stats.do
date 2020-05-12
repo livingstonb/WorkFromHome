@@ -1,4 +1,4 @@
-/* --- HEADER ---
+/*
 This do-file computes employment and wage statistics by 3-digit
 occupation from OES data.
 */
@@ -6,7 +6,7 @@ occupation from OES data.
 clear
 
 // PREPARE BLANK OCCUPATION ENTRIES
-`#PREREQ' local occ2010dta "../occupations/build/output/census2010_to_soc2010.dta"
+local occ2010dta "../occupations/build/output/census2010_to_soc2010.dta"
 tempfile yrtmp
 save `yrtmp', emptyok
 forvalues sval = 0/1 {
@@ -26,11 +26,11 @@ forvalues sval = 0/1 {
 import excel "build/input/nat3d2017", clear firstrow
 
 * Clean
-`#PREREQ' do "build/code/clean_oes_generic.do" 2017 1
+do "build/code/clean_oes_generic.do" 2017 1
 keep if minor_level
 
 // MERGE WITH SECTOR
-`#PREREQ' do "build/code/merge_with_sector.do"
+do "build/code/merge_with_sector.do"
 
 rename a_mean meanwage
 label variable meanwage "Mean annual wage"
@@ -85,9 +85,9 @@ rename totemp nworkers_wt
 drop blankobs
 gen source = "OES"
 
-`#TARGET' save "stats/output/OESstats.dta", replace
+save "stats/output/OESstats.dta", replace
 restore
 
 * Save to xlsx
-`#TARGET' local xlxpath "stats/output/oes_occ_sector.xlsx"
+local xlxpath "stats/output/oes_occ_sector.xlsx"
 export excel using "`xlxpath'", replace firstrow(varlabels)

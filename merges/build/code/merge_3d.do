@@ -1,26 +1,25 @@
-/* --- HEADER ---
-Combines datasets into one larger dataset which provided
-statistics by occupation.
+/*
+Combines datasets into one larger dataset with statistics by occupation.
 */
 
 clear
 
 tempfile oestmp
-`#PREREQ' use "../OES/stats/output/OESstats.dta", clear
+use "../OES/stats/output/OESstats.dta", clear
 rename meanwage oes_meanwage
 rename nworkers_wt oes_employment
 save `oestmp'
 
 tempfile dntmp
-`#PREREQ' use "../DingelNeiman/build/output/DN_3digit.dta", clear
+use "../DingelNeiman/build/output/DN_3digit.dta", clear
 gen source = "DingelNeiman"
 drop employment
 rename soc3d2010 occ3d2010
 save `dntmp'
 
-`#PREREQ' use "../ACS/stats/output/ACSwfh.dta", clear
-`#PREREQ' append using "../ATUS/stats/output/ATUSwfh.dta"
-`#PREREQ' append using "../SIPP/stats/output/SIPPwfh.dta"
+use "../ACS/stats/output/ACSwfh.dta", clear
+append using "../ATUS/stats/output/ATUSwfh.dta"
+append using "../SIPP/stats/output/SIPP3d_person.dta"
 append using `dntmp'
 
 merge m:1 occ3d2010 sector using `oestmp', keepusing(oes_meanwage oes_employment)
@@ -56,4 +55,4 @@ order sector occ3d2010 oes* source pct_workfromhome
 sort occ3d2010 sector source
 
 compress
-`#TARGET' save "build/output/wfh_merged.dta", replace
+save "build/temp/merged3d.dta", replace

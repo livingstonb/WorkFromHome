@@ -1,12 +1,11 @@
-/* --- HEADER ---
+/*
 Reproduces the essential industries classifications from Brookings and
 appends all non-essential industries as well.
 */
 
 // PREPARE ESSENTIAL INDUSTRIES DATA
 clear
-`#PREREQ' local essential "build/input/essential_industries.csv"
-import delimited "`essential'", varnames(1)
+import delimited "build/input/essential_industries.csv", varnames(1)
 gen essential = 1
 
 tempfile essential_tmp
@@ -32,4 +31,6 @@ rename NAICS_TITLE title_naics
 rename naicscode naics
 sort naics
 
-`#TARGET' save "build/output/essential_industries_table.dta", replace
+drop industry
+
+save "build/output/essential_industries_table.dta", replace

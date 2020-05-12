@@ -1,10 +1,10 @@
-/* --- HEADER ---
-This script reads the teleworkable measure constructed by
+/*
+Reads the teleworkable measure constructed by
 Dingel and Neiman, and aggregates occupations to the 5-digit level.
 */
 
 // Read OES 5-digit for merge
-`#PREREQ' use "build/temp/nat3d2017.dta", clear
+use "build/temp/nat3d2017.dta", clear
 
 drop if soc5d2010 >= 55000
 drop if missing(sector)
@@ -29,7 +29,7 @@ save `oesdata'
 
 // Read teleworkable
 clear
-`#PREREQ' import delimited using "build/input/teleworkable_opinion_edited.csv", varnames(1)
+import delimited using "build/input/teleworkable_opinion_edited.csv", varnames(1)
 
 rename broadgroupcode soc5d2010
 rename broadgroup occtitle
@@ -41,7 +41,7 @@ replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
 destring soc5d2010, force replace
 replace soc5d2010 = soc5d2010 / 10
 
-`#PREREQ' do "../occupations/build/output/soc5dlabels2010.do"
+do "../occupations/build/output/soc5dlabels2010.do"
 label values soc5d2010 soc5d2010_lbl
 
 drop occtitle
@@ -53,4 +53,4 @@ recode teleworkable (0.25 = 0) (0.75 = 1)
 merge 1:m soc5d2010 using `oesdata', nogen keep(1 3)
 drop if missing(sector)
 
-`#TARGET' save "build/output/DN_5d_manual_scores.dta", replace
+save "build/output/DN_5d_manual_scores.dta", replace

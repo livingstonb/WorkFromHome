@@ -1,5 +1,5 @@
-/* --- HEADER ---
-This do-file cleans the SHED dataset.
+/*
+Cleans the SHED dataset.
 */
 
 adopath + "../ado"
@@ -8,7 +8,7 @@ adopath + "../ado"
 
 * 2-digit occupation categories
 clear
-`#PREREQ' import delimited "build/input/occ_crosswalk.csv", bindquotes(strict)
+import delimited "build/input/occ_crosswalk.csv", bindquotes(strict)
 label define soclbl 11 "Management Occupations"
 label define soclbl 13 "Business and Financial Operations Occupations", add
 label define soclbl 15 "Computer and Mathematical Occupations", add
@@ -53,7 +53,7 @@ tempfile naics
 save `naics', replace
 
 * Read main data file
-`#PREREQ' use "build/temp/shed_temp.dta", clear
+use "build/temp/shed_temp.dta", clear
 
 // RECODE OCCUPATION
 #delimit ;
@@ -63,7 +63,7 @@ merge m:1 occupation year using `cwalk',
 drop soc_2d_label
 rename soc2d soc2d2010
 
-`#PREREQ' local acsstats "../ACS/stats/output/acs_stats_for_shed.dta"
+local acsstats "../ACS/stats/output/acs_stats_for_shed.dta"
 #delimit ;
 merge m:1 soc2d2010 using "`acsstats'",
 	keep(match master) nogen;
@@ -162,4 +162,4 @@ replace spendinc_h2m = 1 if inlist(spendinc, 1, 2) & (year == 2018)
 replace	spendinc_h2m = 0 if spendinc == 3 & (year == 2018)
 label variable spendinc_h2m "Income was less or equal to than spending"
 
-`#TARGET' save "build/output/shed_cleaned.dta", replace
+save "build/output/shed_cleaned.dta", replace

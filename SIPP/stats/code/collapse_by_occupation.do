@@ -8,7 +8,7 @@ args sunit digit
 adopath + "../ado"
 
 // READ AND COMPUTE STATISTICS
-`#PREREQ' use "build/output/annual_`sunit'.dta", clear
+use "build/output/annual_`sunit'.dta", clear
 
 if `digit' == 5 {
 	replace netliquid = netliquid * 3500 / 2100
@@ -115,7 +115,7 @@ gen weights = 1
 label variable weights "Sum of SIPP weights"
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc`digit'dvalues2010.dta"
+local blanks "../occupations/build/output/soc`digit'dvalues2010.dta"
 #delimit ;
 appendblanks soc`digit'd2010 using "`blanks'",
 	zeros(nworkers_wt nworkers_unw) ones(swgts)

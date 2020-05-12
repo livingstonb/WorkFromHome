@@ -1,15 +1,17 @@
-/* --- HEADER ---
-This script computes WFH and other statistics for the ACS.
+/*
+Computes WFH and other statistics for the ACS.
 Statistics are computed separately for different occupations
-and sectors. Assumes the cwd is ACS.
+and sectors.
 */
 
 clear
+
+capture mkdir "stats/output"
+
 adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
-`#PREREQ' local cleaned "build/output/acs_cleaned.dta"
-use "`cleaned'" if inrange(year, 2013, 2018), clear
+use "build/output/acs_cleaned.dta" if inrange(year, 2013, 2018), clear
 drop if missing(sector, occ3d2010)
 
 label define bin_lbl 0 "No" 1 "Yes", replace
@@ -28,7 +30,7 @@ gen meanwage = incwage
 label variable meanwage "Mean wage/salary income"
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
+local blanks "../occupations/build/output/soc3dvalues2010.dta"
 
 #delimit ;
 appendblanks soc3d2010 using "`blanks'",
@@ -96,4 +98,4 @@ append using `acs2013to2017'
 varlabels, restore
 label variable source "Dataset"
 
-`#TARGET' save "stats/output/ACSwfh.dta", replace
+save "stats/output/ACSwfh.dta", replace

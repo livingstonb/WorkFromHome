@@ -1,12 +1,5 @@
-/* --- HEADER ---
+/*
 Reads the SHED raw data.
-
-#PREREQ "build/input/SHED2013.dta"
-#PREREQ "build/input/SHED2014.dta"
-#PREREQ "build/input/SHED2015.dta"
-#PREREQ "build/input/SHED2016.dta"
-#PREREQ "build/input/SHED2017.dta"
-#PREREQ "build/input/SHED2018.dta"
 */
 
 clear
@@ -182,4 +175,4 @@ foreach codevar of local codevars {
 }
 
 compress
-`#TARGET' save "build/temp/shed_temp.dta", replace
+save "build/temp/shed_temp.dta", replace

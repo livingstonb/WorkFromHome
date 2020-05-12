@@ -1,10 +1,10 @@
-/* --- HEADER ---
-This script reads the .dta file after it has been split into chunks,
+/*
+Reads the .dta file after it has been split into chunks,
 cleaned somewhat, and recombined. Various variables are recoded and 
 new variables are generated.
 */
 
-`#PREREQ' use "build/temp/sipp_monthly1.dta", clear
+use "build/temp/sipp_monthly1.dta", clear
 adopath + "../ado"
 
 egen personid = group(ssuid pnum)
@@ -225,7 +225,7 @@ drop tjb*_ind distinct_ind* mostmonths nmonths_ind*
 
 * Merge with 3-digit occupation
 rename occcensus census2010
-`#PREREQ' local occsipp "../occupations/build/output/census2010_to_soc2010.dta"
+local occsipp "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 merge m:1 census2010 using "`occsipp'",
 	keepusing(soc3d2010 soc5d2010) keep(match master) nogen;
@@ -238,7 +238,7 @@ drop ejb*_scrnr
 
 * Map industry to C/S sector
 rename indcensus ind2012
-`#PREREQ' local cwlk "../industries/build/output/census2012_to_sector.dta"
+local cwlk "../industries/build/output/census2012_to_sector.dta"
 #delimit ;
 merge m:1 ind2012 using "`cwlk'",
 	nogen keep(match master) keepusing(sector);
@@ -352,4 +352,4 @@ label variable workfromhome " % Who worked from home at least one day of the wee
 label variable mworkfromhome " % Who worked from home at least one day of the week in main occ"
 
 compress
-`#TARGET' save "build/temp/sipp_monthly2.dta", replace
+save "build/temp/sipp_monthly2.dta", replace

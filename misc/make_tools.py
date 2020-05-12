@@ -83,6 +83,10 @@ class StataParser:
 		target1 = self.mk["targets"][0]
 		rtargs = [f"{x} : {target1}" for x in self.mk["targets"][1:]]
 
+		recipe = newdirlines + '\n'
+		recipe += f"\tcd {self.module} && $(STATA) {do}\n"
+		recipe += f"\t@-mv {self.loginitial} {self.logfinal}\n\n"
+
 		prereqlines = 'prereqs := ' + ' \\\n\t'.join(self.mk['prereqs'])
 		targetlines = 'targets := ' + ' \\\n\t'.join(self.mk["targets"])
 		with open(self.mkpath, 'w') as fobj:
@@ -91,12 +95,16 @@ class StataParser:
 			fobj.write('\n')
 			fobj.write(targetlines)
 			fobj.write("\n.PRECIOUS : $(targets)\n")
-			fobj.write(f"{target1} : $(prereqs)\n")
-			fobj.write(newdirlines)
-			fobj.write('\n')
-			fobj.write(f"\tcd {self.module} && $(STATA) {do}\n")
-			fobj.write(f"\t@-mv {self.loginitial} {self.logfinal}\n\n")
-			fobj.write('\n\n'.join(rtargs))
+
+			for target in self.mk["targets"]:
+				fobj.write(f"{target} : $(prereqs)\n")
+				fobj.write(recipe)
+			# fobj.write(f"{target1} : $(prereqs)\n")
+			# fobj.write(newdirlines)
+			# fobj.write('\n')
+			# fobj.write(f"\tcd {self.module} && $(STATA) {do}\n")
+			# fobj.write(f"\t@-mv {self.loginitial} {self.logfinal}\n\n")
+			# fobj.write('\n\n'.join(rtargs))
 
 	def write_txt(self):
 		if len(self.mk['prereqs']) > 0:

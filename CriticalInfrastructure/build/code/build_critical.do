@@ -1,11 +1,11 @@
-/* --- HEADER ---
+/*
 Reads a dataset indicating whether a given SOC code is critical or not critical.
 The indicator is aggregated from the 6-digit occupation level to the 5-digit level.
 */
 
 // Read dataset
 clear
-`#PREREQ' local empfile "build/input/soc2010_critical.csv"
+local empfile "build/input/soc2010_critical.csv"
 import delimited using "`empfile'", clear bindquotes(strict) varnames(1)
 keep if occ_group == "detailed"
 drop occ_group
@@ -25,7 +25,7 @@ replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
 destring soc5d2010, force replace
 
 capture label drop soc5d2010_lbl
-`#PREREQ' do "../occupations/build/output/soc5dlabels2010.do"
+do "../occupations/build/output/soc5dlabels2010.do"
 label values soc5d2010 soc5d2010_lbl
 
 * Take weighted mean
@@ -40,4 +40,4 @@ label variable critical "Critical worker indicator"
 label define critical_lbl 0 "Not critical" 1 "Critical"
 label values critical critical_lbl
 
-`#TARGET' save "build/output/critical5d.dta", replace
+save "build/output/critical5d.dta", replace

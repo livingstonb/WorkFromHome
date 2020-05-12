@@ -1,8 +1,8 @@
-/* --- HEADER ---
-This script performs cleaning for the ATUS dataset.
+/*
+Cleans the ATUS dataset.
 */
 
-`#PREREQ' use "build/temp/atus_combined.dta", clear
+use "build/temp/atus_combined.dta", clear
 
 drop if missing(leavemod)
 drop leavemod
@@ -55,7 +55,7 @@ rename temjot multjob
 rename tuyear year
 
 * 3-digit occupation
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 rename occcensus census2010
 #delimit ;
 merge m:1 census2010 using "`occ2010'",
@@ -66,7 +66,7 @@ rename soc3d2010 occ3digit
 label variable occ3digit "Occupation, 3 digit"
 
 * Sector
-`#PREREQ' local ind12 "../industries/build/output/census2012_to_sector.dta"
+local ind12 "../industries/build/output/census2012_to_sector.dta"
 rename inddetailed ind2012
 #delimit ;
 merge m:1 ind2012 using "`ind12'",
@@ -203,4 +203,4 @@ label define hasyoungchild_lbl 2 "Parent of a child 13 to 17 years (none younger
 label values hasyoungchild hasyoungchild_lbl
 
 compress
-`#TARGET' save "build/output/atus_cleaned.dta", replace
+save "build/output/atus_cleaned.dta", replace

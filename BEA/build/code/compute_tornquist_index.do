@@ -1,12 +1,12 @@
-/* --- HEADER ---
+/*
 Computes the Tornquist index for each sector, C and S.
 */
 
 clear
 
-`#PREREQ' use "build/temp/value_added_long.dta"
+use "build/temp/value_added_long.dta"
 
-`#PREREQ' local priceind "build/temp/price_indexes_long.dta"
+local priceind "build/temp/price_indexes_long.dta"
 merge 1:1 industry sector year using "`priceind'", nogen
 
 keep if year >= 1963
@@ -58,4 +58,4 @@ label variable PS "Tornquist index, sector S"
 label variable QC "Quantity, sector C"
 label variable QS "Quantity, sector S"
 
-`#TARGET' save "build/output/tornquist_series.dta", replace
+save "build/output/tornquist_series.dta", replace

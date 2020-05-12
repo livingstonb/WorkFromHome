@@ -1,15 +1,11 @@
-/* --- HEADER ---
+/*
 Aggregates OES data to the level of 3-digit occupation level.
-
-#PREREQ "../occupations/build/output/soc2000_to_soc3d2010.dta"
-#PREREQ "../occupations/build/output/oes99_to_soc3d2010.dta"
-#PREREQ "../occupations/build/output/soc3dlabels2010.do"
 */
 
 clear
 
 * Prepare blank occupation categories
-`#PREREQ' use "../occupations/build/output/census2010_to_soc2010.dta"
+use "../occupations/build/output/census2010_to_soc2010.dta"
 duplicates drop soc3d2010, force
 keep soc3d2010
 
@@ -33,7 +29,7 @@ forvalues year = 1999/2019 {
 	import excel "build/input/nat`digit'd`year'", clear firstrow
 	
 	* Clean
-	`#PREREQ' do "build/code/clean_oes_generic.do" `year' 1
+	do "build/code/clean_oes_generic.do" `year' 1
 	if (`year' >= 2012) {
 		keep if minor_level
 	}
@@ -61,4 +57,4 @@ forvalues year = 1999/2019 {
 
 sort soc3d2010 year
 order soc3d2010 year
-`#TARGET' save "stats/output/occupation_level_employment.dta", replace
+save "stats/output/occupation_level_employment.dta", replace

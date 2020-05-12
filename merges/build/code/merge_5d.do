@@ -1,4 +1,4 @@
-/* --- HEADER ---
+/*
 Merges teleworkable and SIPP variables at the 5-digit occupation level.
 */
 
@@ -7,7 +7,7 @@ args sunit
 adopath + "../ado"
 adopath + "ado"
 
-`#PREREQ' use "../SIPP/stats/output/SIPP5d_`sunit'.dta", clear
+use "../SIPP/stats/output/SIPP5d_`sunit'.dta", clear
 rename occ5d2010 soc5d2010
 drop nworkers_wt meanwage source
 
@@ -15,21 +15,21 @@ drop nworkers_wt meanwage source
 merge 1:1 soc5d2010 sector using "`telew'", nogen
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc5dvalues2010.dta"
+local blanks "../occupations/build/output/soc5dvalues2010.dta"
 appendblanks soc5d2010 using "`blanks'", over1(sector) values1(0 1 2)
 
 * Drop missing sector or occupation
 drop if missing(soc5d2010, sector)
 
 * Critical workers by occupation
-`#PREREQ' local critical "../CriticalInfrastructure/build/output/critical5d.dta"
+local critical "../CriticalInfrastructure/build/output/critical5d.dta"
 merge m:1 soc5d2010 using "`critical'", nogen keepusing(val_critical)
 gen critical = val_critical if sector == 2
 drop val_critical
 label variable critical "Critical occupation indicator"
 
 * Essential workers by occupation
-`#PREREQ' local essential "../industries/build/output/essential_share_by_occ5d.dta"
+local essential "../industries/stats/output/essential_share_by_occ5d.dta"
 merge m:1 soc5d2010 using "`essential'", nogen keepusing(essential)
 replace essential = . if inlist(sector, 0, 1)
 label variable essential "Share of workers in essential industries"
@@ -116,15 +116,15 @@ label variable teleworkable "Teleworkable, manual score"
 * Add 2- and 3-digit codes
 gen soc2d2010 = floor(soc5d2010 / 1000)
 label variable soc2d2010 "Occupation, 2-digit"
-`#PREREQ' do "../occupations/build/output/soc2dlabels2010.do"
+do "../occupations/build/output/soc2dlabels2010.do"
 label values soc2d2010 soc2d2010_lbl
 
 gen soc3d2010 = floor(soc5d2010 / 100)
 label variable soc3d2010 "Occupation, 3-digit"
-`#PREREQ' do "../occupations/build/output/soc3dlabels2010.do"
+do "../occupations/build/output/soc3dlabels2010.do"
 label values soc3d2010 soc3d2010_lbl
 
 order soc2d2010 soc3d2010 soc5d2010
 drop blankobs
 
-`#TARGET' save "build/output/merged5d_`sunit'.dta", replace
+save "build/temp/merged5d_`sunit'.dta", replace

@@ -4,11 +4,10 @@ occupation categories at the 2- and 3-digit level.
 */
 
 args occyear
-local occyear 2010
 
 clear
 
-`#PREREQ' local socpath "build/input/soc`occyear'.txt"
+local socpath "build/input/soc`occyear'.txt"
 infix str socstr 1-7 str slabel 8-100 using "`socpath'"
 
 replace slabel = strtrim(slabel)
@@ -64,12 +63,12 @@ replace soc5 = . if header2 | header3
 sort socstr
 drop if soc2 >= 55
 
-`#TARGET' local lab5d "build/output/soc5dlabels`occyear'.do"
-`#TARGET' local lab3d "build/output/soc3dlabels`occyear'.do"
-`#TARGET' local lab2d "build/output/soc2dlabels`occyear'.do"
-`#TARGET' local vals5d "build/output/soc5dvalues`occyear'.dta"
-`#TARGET' local vals3d "build/output/soc3dvalues`occyear'.dta"
-`#TARGET' local vals2d "build/output/soc2dvalues`occyear'.dta"
+local lab5d "build/output/soc5dlabels`occyear'.do"
+local lab3d "build/output/soc3dlabels`occyear'.do"
+local lab2d "build/output/soc2dlabels`occyear'.do"
+local vals5d "build/output/soc5dvalues`occyear'.dta"
+local vals3d "build/output/soc3dvalues`occyear'.dta"
+local vals2d "build/output/soc2dvalues`occyear'.dta"
 local digits 2 3 5
 foreach d of local digits {
 	* Save list of occupation codes and labels

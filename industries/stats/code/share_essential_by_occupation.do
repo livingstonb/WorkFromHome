@@ -1,11 +1,11 @@
-/* --- HEADER ---
+/*
 Computes the share of each 3-digit occupation working in
 essential industries according to OES data.
 */
 
 // PREPARE ESSENTIAL INDUSTRIES DATA
 clear
-`#PREREQ' local essential "build/input/essential_industries.csv"
+local essential "build/input/essential_industries.csv"
 import delimited "`essential'", varnames(1)
 gen essential = 1
 
@@ -16,7 +16,7 @@ save `essential_tmp', replace
 import excel "../OES/build/input/nat4d2017", clear firstrow
 
 * Clean
-`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017 1
+do "../OES/build/code/clean_oes_generic.do" 2017 1
 
 rename a_mean meanwage
 rename tot_emp emp_oes
@@ -37,12 +37,12 @@ rename emp_oes employment
 preserve
 keep if minor_level
 collapse (mean) essential (sum) employment=ones [iw=employment], by(soc3d2010)
-`#TARGET' save "build/output/essential_share_by_occ3d.dta", replace
+save "stats/output/essential_share_by_occ3d.dta", replace
 restore
 
 // Collapse at 5-digit level
 preserve
 keep if broad_level
 collapse (mean) essential (sum) employment=ones [iw=employment], by(soc5d2010)
-`#TARGET' save "build/output/essential_share_by_occ5d.dta", replace
+save "stats/output/essential_share_by_occ5d.dta", replace
 restore

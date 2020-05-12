@@ -1,10 +1,10 @@
-/* --- HEADER ---
-This script aggregates to the annual frequency by summing earnings over
+/*
+Aggregates to the annual frequency by summing earnings over
 the year and using assets reported in the last month. Argument passed is the
 desired sample unit, either person, hh, or fam.
 */
 
-`#PREREQ' use "build/temp/sipp_monthly2.dta", clear
+use "build/temp/sipp_monthly2.dta", clear
 
 args sunit
 
@@ -100,6 +100,7 @@ if ("`sunit'" == "hh") | ("`sunit'" == "fam") {
 		replace `var' = tmp_var
 		drop tmp_var
 	}
+
 	keep if main_earner
 	drop is_ref main_earner num_main_earners
 }
@@ -140,4 +141,4 @@ gen netliquid = liquid_wcash - ccdebt
 label variable netliquid "net liquid assets"
 
 drop person_wave
-`#TARGET' save "build/output/annual_`sunit'.dta", replace
+save "build/output/annual_`sunit'.dta", replace

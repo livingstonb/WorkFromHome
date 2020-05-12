@@ -1,9 +1,9 @@
-/* --- HEADER ---
-Reshapes merged datasets into wide format.
+/*
+Reshapes merged dataset into wide format.
 */
 
 adopath + "../ado"
-`#PREREQ' use "build/output/wfh_merged.dta", clear
+use "build/temp/merged3d.dta", clear
 
 tostring sector, replace force
 tostring source, replace force
@@ -72,11 +72,11 @@ foreach var of varlist *d6s* {
 order occ3d2010 oes*
 
 * Merge in essential workers data
-`#PREREQ' local ess "../industries/build/output/essential_share_by_occ3d.dta"
+local ess "../industries/stats/output/essential_share_by_occ3d.dta"
 rename occ3d2010 soc3d2010
 merge 1:1 soc3d2010 using "`ess'", nogen keep(1 3) keepusing(essential)
 rename soc3d2010 occ3d2010
 
 label variable essential "Share of workers in essential industries"
 
-`#TARGET' save "build/output/wfh_merged_wide.dta", replace
+save "build/output/merged3d.dta", replace

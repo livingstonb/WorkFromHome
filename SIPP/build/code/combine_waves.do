@@ -1,11 +1,6 @@
-/* --- HEADER ---
+/*
 Reads the .dta chunks of the raw data, extracting
 needed variables and combining waves.
-
-#PREREQ "build/input/sipp_raw_w1.dta"
-#PREREQ "build/input/sipp_raw_w2.dta"
-#PREREQ "build/input/sipp_raw_w3.dta"
-#PREREQ "build/input/sipp_raw_w4.dta"
 */
 
 clear
@@ -99,4 +94,4 @@ forvalues i = 1/4 {
 
 destring ssuid, replace
 compress
-`#TARGET' save "build/temp/sipp_monthly1.dta", replace
+save "build/temp/sipp_monthly1.dta", replace

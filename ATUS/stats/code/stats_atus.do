@@ -1,9 +1,8 @@
-/* --- HEADER ---
-This script computes WFH and other statistics by occupation
-and sector.
+/*-
+Computes WFH and other statistics by occupation and sector.
 */
 
-`#PREREQ' use "build/output/atus_cleaned.dta", clear
+use "build/output/atus_cleaned.dta", clear
 adopath + "../ado"
 
 rename occ3digit occ3d2010
@@ -17,7 +16,7 @@ gen meanwage = earnwk * 52 if (singjob_fulltime == 1)
 label variable meanwage "Mean (wkly earnings * 52), full-time single jobholders only"
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
+local blanks "../occupations/build/output/soc3dvalues2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`blanks'",
 	zeros(nworkers_wt) ones(normwt)
@@ -64,11 +63,11 @@ collapse (sum) nworkers_wt
 #delimit cr
 
 gen source = "ATUS"
-`#TARGET' save "stats/output/ATUSwfh.dta", replace
+save "stats/output/ATUSwfh.dta", replace
 restore
 
 * Collapse and make spreadsheet
-`#TARGET' local xlxname "stats/output/ATUS_wfh_by_occ.xlsx"
+local xlxname "stats/output/ATUS_wfh_by_occ.xlsx"
 
 .xlxnotes = .statalist.new
 .xlxnotes.append "Dataset: ATUS"

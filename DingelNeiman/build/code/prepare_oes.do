@@ -1,4 +1,4 @@
-/* --- HEADER ---
+/*
 Reads 2017 OES data into Stata and calls cleaning routines, then resaves.
 */
 
@@ -6,9 +6,9 @@ Reads 2017 OES data into Stata and calls cleaning routines, then resaves.
 import excel "../OES/build/input/nat3d2017", clear firstrow
 
 * Clean
-`#PREREQ' do "../OES/build/code/clean_oes_generic.do" 2017 1
+do "../OES/build/code/clean_oes_generic.do" 2017 1
 
 * Merge with sector
-`#PREREQ' do "../OES/build/code/merge_with_sector.do"
+do "../OES/build/code/merge_with_sector.do"
 
-`#TARGET' save "build/temp/nat3d2017.dta", replace
+save "build/temp/nat3d2017.dta", replace

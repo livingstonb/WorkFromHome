@@ -1,4 +1,4 @@
-/* --- HEADER ---
+/*
 Aggregates the teleworkable measure from a finer occupation classification to a
 broader classification. The teleworkable measure is aggregated up using an
 employment-weighted mean where possible.

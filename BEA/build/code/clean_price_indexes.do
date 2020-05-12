@@ -1,8 +1,12 @@
+/*
+Cleans industry-level price indexes from BEA.
+*/
+
 clear
 
 * 1947 - 1997
-tempfile value_added1947
-`#PREREQ 'import excel "build/input/value_added_1947_1997.xls", firstrow
+tempfile price1947
+import excel "build/input/price_indexes_1947_1997.xls", firstrow
 drop if missing(sector)
 
 drop line
@@ -10,41 +14,35 @@ foreach var of varlist * {
 	if !inlist("`var'", "title", "sector") {
 		local lab: variable label `var'
 		destring `var', force replace
-		rename `var' value_added`lab'
+		rename `var' price_index`lab'
 	}
 }
-save `value_added1947', replace
-
-/* --- HEADER ---
-Cleans industry-level value-added from BEA.
-*/
+save `price1947', replace
 
 * 1998 - 2019
 clear
-`#PREREQ 'import excel "build/input/value_added_1998_2019.xls", firstrow
+import excel "build/input/price_indexes_1998_2019.xls", firstrow
 drop if missing(sector)
 
 drop line
 foreach var of varlist * {
 	if !inlist("`var'", "title", "sector") {
 		local lab: variable label `var'
-		rename `var' value_added`lab'
+		rename `var' price_index`lab'
 	}
 }
-destring value_added2019, force replace
+destring price_index2019, force replace
 
 * Merge years
-merge 1:1 title using `value_added1947', nogen
+merge 1:1 title using `price1947', nogen
 
 label define sector_lbl 0 "C" 1 "S"
 label values sector sector_lbl
 
-reshape long value_added, i(title) j(year)
+reshape long price_index, i(title) j(year)
 
 * Split "Other transportation and support activities"
 expand 2 if (sector == 2), gen(iexpand)
-replace value_added = value_added / 2 if (sector == 2)
-
 replace title = title + " (1)" if (sector == 2) & !iexpand
 replace sector = 0 if (sector == 2) & !iexpand
 
@@ -54,4 +52,5 @@ drop iexpand
 
 * Save
 rename title industry
-`#TARGET' save "build/temp/value_added_long.dta", replace
+rename price_index price
+save "build/temp/price_indexes_long.dta", replace

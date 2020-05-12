@@ -1,5 +1,5 @@
-/* Dataset: SIPP */
-/* This script reads the raw data from the .dta file, drops some variables,
+/*
+Reads the raw data from the .dta file, drops some variables,
 compresses, and resaves as .dta files. Done in chunks of 50,000 observations. */
 
 /* Must first set the wave. */
