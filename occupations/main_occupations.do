@@ -18,9 +18,16 @@ if `build' {
 	capture mkdir "build/output"
 
 	* Create value labels and datasets containing all occ values
-	do "census_soc_labels.do" 2010
+	do "build/code/census_soc_labels.do" 2010
 	
 	* Create crosswalks from Census codes to SOC categories
-	do "census_to_soc2010.do" 2010
-	do "census_to_soc2018.do" 2018
+	do "build/code/census_to_soc2010.do" 2010
+	do "build/code/census_to_soc2010.do" 2018
+	
+	* Other crosswalks for OES data
+	do "build/code/occ2010_to_soc3d2010.do"
+	do "build/code/soc98_to_soc3d2010.do"
+	do "build/code/oes99_to_soc3d2010.do"
+	do "build/code/soc2000_to_soc3d2010.do"
+	
 }

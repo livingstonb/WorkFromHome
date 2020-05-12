@@ -1,10 +1,10 @@
-/* --- HEADER ---
+/*
 Creates a crosswalk from OES99 codes to 3-digit SOC2010 categories, using both
 an OES99-SOC98 crosswalk and a SOC98-SOC3D2010 crosswalk.
 */
 
 clear
-`#PREREQ' import excel "build/input/oes99_to_soc98.xls", firstrow
+import excel "build/input/oes99_to_soc98.xls", firstrow
 
 foreach var of varlist * {
 	replace `var' = strtrim(`var')
@@ -17,7 +17,7 @@ gen soc3d = substr(soc6d, 1, 3)
 gen soc4d = substr(soc6d, 1, 4)
 gen soc5d = substr(soc6d, 1, 5)
 
-`#PREREQ' local cw98 "../occupations/build/output/soc98_to_soc3d2010.dta"
+local cw98 "../occupations/build/output/soc98_to_soc3d2010.dta"
 forvalues d = 6(-1)3 {
 	destring soc`d'd, force replace
 	rename soc`d'd occsoc
@@ -45,4 +45,4 @@ duplicates drop oes99code, force
 keep soc3d2010 oes99code
 
 label data "Crosswalk from OES99 to SOC2010-3"
-`#TARGET' save "build/output/oes99_to_soc3d2010.dta", replace
+save "build/output/oes99_to_soc3d2010.dta", replace

@@ -1,9 +1,9 @@
-/* --- HEADER ---
+/*
 Creates a crosswalk from 1998 SOC codes to 3-digit SOC 2010 codes (occ3d2010).
 */
 
 * Read raw dataset
-`#PREREQ' use if (year == 2000) using "../ACS/build/input/acs_raw.dta", clear
+use if (year == 2000) using "../ACS/build/input/acs_raw.dta", clear
 keep occsoc occ2010
 
 * Clean occsoc
@@ -15,7 +15,7 @@ drop if occsoc == ""
 recode occ2010 (1230 = 1240)
 
 * Check mapping between occsoc and soc3d2010
-`#PREREQ' local cwalk "build/output/census2010_to_soc2010.dta"
+local cwalk "build/output/census2010_to_soc2010.dta"
 rename occ2010 census2010
 merge m:1 census2010 using "`cwalk'", keepusing(soc3d2010) keep(1 3)
 
@@ -43,4 +43,4 @@ duplicates drop occsoc soc3d2010, force
 keep occsoc soc3d2010
 
 label data "Crosswalk from SOC1998 TO SOC2010-3"
-`#TARGET' save "build/output/soc98_to_soc3d2010.dta", replace
+save "build/output/soc98_to_soc3d2010.dta", replace

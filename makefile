@@ -1,52 +1,41 @@
-STATA = ../misc/statab do
-# MATLAB := matlab -nodisplay -batch -logfile -batch
 MODULES := occupations industries OES ACS \
 	SIPP ATUS DingelNeiman SHED merges BEA \
-	Google
-SUBDIRS :=
-OBJDIRS :=
+	Google OpenTable CriticalInfrastructure
 
-all : $(MODULES) readme
+.PHONY: all clean backup readme tex
 
-%.mk : %.do misc/make_tools.py
-	@python misc/make_tools.py $<
+all : readme tex
 
-ifeq (, $(findstring clean, $(MAKECMDGOALS)))
-include $(addsuffix /module.make, $(MODULES))
-endif
-
-.PHONY : clean clean_mk clean_temp clean_output all mkirs \
-	clean_module procedures clean_procedures \
-	all_with_procedures readme tex $(MODULES)
-
-clean : clean_logs clean_mk clean_temp \
-	clean_output clean_procedures
-
-clean_mk :
-	rm -f $(shell find . -name "*.mk")
-
-clean_logs :
-	rm -f $(shell find . -name "*.log")
+clean :
+	rm -rf $(shell find . -depth -name "output")
+	rm -rf $(shell find . -depth -name "temp")
 	rm -rf $(shell find . -depth -name "logs")
 
-clean_temp :
-	rm -rf $(shell find . -depth -name "temp")
+objdirs = $(shell find . -depth -name "output")
+objdirs += $(shell find . -depth -name "temp")
+objdirs := $(subst ./, , $(objdirs))
+backup :
+	-mkdir backup
+	for d in $(MODULES) ; do \
+		mkdir backup/$$d ;\
+		mkdir backup/$$d/build ;\
+		mkdir backup/$$d/stats ;\
+	done
 
-clean_output :
-	rm -rf $(shell find . -depth -name "output")
-
-clean_procedures :
-	rm -rf misc/procedures
-
-procedures = $(addprefix misc/procedures/, $(MODULES))
-procedures := $(addsuffix .txt, $(procedures))
-procedures : $(procedures)
-
-misc/procedures/%.txt :
-	mkdir -p misc/procedures
-	$(MAKE) $* -B --dry-run | python misc/list_do_tasks.py > $@
+	echo $(objdirs)
+	for d in $(objdirs) ; do \
+		cp -r $$d  backup/$$d ;\
+	done
 
 readme :
 	-pandoc readme.md -o readme.pdf
 
-include tex/module.make
+texloc = tex/data_methods/data_methods
+texexts = .aux .bbl .blg .log .out .pdf
+texfiles := $(addprefix $(texloc), texexts)
+tex :
+	rm -f $(texfiles)
+	cd tex/data_methods && pdflatex data_methods
+	cd tex/data_methods && bibtex data_methods
+	cd tex/data_methods && pdflatex data_methods
+	cd tex/data_methods && pdflatex data_methods

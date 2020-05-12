@@ -1,9 +1,8 @@
-/* --- HEADER ---
+/*
 Creates a crosswalk from OCC2010 to soc3d2010 for the ACS.
 */
 
-clear
-`#PREREQ' import excel "build/input/occ2010_to_occ.xlsx", firstrow
+import excel "build/input/occ2010_to_occ.xlsx", clear firstrow
 keep occ2010 census2010
 
 replace occ2010 = strtrim(occ2010)
@@ -19,7 +18,7 @@ replace census2010 = 3955 if (census2010 == 3950)
 replace census2010 = 9050 if (census2010 == 4550)
 drop if census2010 >= 9800
 
-`#PREREQ' merge m:1 census2010 using "build/output/census2010_to_soc2010.dta"
+merge m:1 census2010 using "build/output/census2010_to_soc2010.dta"
 
 * Some occ2010 codes correspond with multiple census2010 codes
 * and some census2010 codes are not used for ACS < 2012
@@ -39,4 +38,4 @@ drop if (occ2010 == 4000) & (soc3d2010 == 351)
 drop if (occ2010 == 9050) & (soc3d2010 == 536)
 
 label data "Crosswalk from OCC2010 to SOC2010-3"
-`#TARGET' save "build/output/occ2010_to_soc3d2010.dta", replace
+save "build/output/occ2010_to_soc3d2010.dta", replace

@@ -22,7 +22,7 @@ program dta_compare
 			continue
 		}
 
-		capture quietly by `index': gen diff`i' = `var'[2] - `var'[1]
+		capture quietly by `index': gen diff`i' = `var'[1] - `var'[2]
 		
 		if _rc > 0 {
 			gen diff`i' = .
@@ -31,7 +31,7 @@ program dta_compare
 		label variable diff`i' "`var'"
 
 		tempvar bothmissing
-		quietly by `index': gen `bothmissing' = missing(`var'[2]) & missing(`var'[1])
+		quietly by `index': gen `bothmissing' = missing(`var'[1]) & missing(`var'[2])
 		quietly replace diff`i' = 0 if `bothmissing'
 		drop `bothmissing'
 

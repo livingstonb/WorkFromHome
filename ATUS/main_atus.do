@@ -24,5 +24,6 @@ if `build' {
 
 // STATS
 if `stats' {
+	capture mkdir "stats/output"
 	do "stats/code/stats_atus.do"
 }

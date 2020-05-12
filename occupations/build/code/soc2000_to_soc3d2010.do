@@ -1,9 +1,9 @@
-/* --- HEADER ---
+/*
 Creates a crosswalk between SOC 2000 and SOC 2010 three-digit occupation codes.
 */
 
 clear
-`#PREREQ' local soc_cwalk "build/input/soc_2000_to_2010_crosswalk.csv"
+local soc_cwalk "build/input/soc_2000_to_2010_crosswalk.csv"
 import delimited "`soc_cwalk'", varname(1)
 drop if _n == 1
 
@@ -33,4 +33,4 @@ foreach yr of numlist 2000 2010 {
 keep soc*
 
 label data "Crosswalk from SOC2000-3 to SOC2010-3"
-`#TARGET' save "build/output/soc2000_to_soc3d2010.dta", replace
+save "build/output/soc2000_to_soc3d2010.dta", replace

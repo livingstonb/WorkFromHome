@@ -27,5 +27,5 @@ if `stats' {
 	capture mkdir "stats/output"
 
 	* Compute share of each occupation deemed essential
-	do "build/stats/code/share_essential_by_occupation.do"
+	do "stats/code/share_essential_by_occupation.do"
 }
