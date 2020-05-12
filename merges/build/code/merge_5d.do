@@ -11,7 +11,7 @@ use "../SIPP/stats/output/SIPP5d_`sunit'.dta", clear
 rename occ5d2010 soc5d2010
 drop nworkers_wt meanwage source
 
-`#PREREQ' local telew "../DingelNeiman/build/output/DN_5d_manual_scores.dta"
+local telew "../DingelNeiman/build/output/DN_5d_manual_scores.dta"
 merge 1:1 soc5d2010 sector using "`telew'", nogen
 
 * Add blanks

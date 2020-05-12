@@ -33,7 +33,7 @@ keep if (tulineno == 1)
 save "build/temp/cps2017.dta", replace
 
 clear
-`#PREREQ' do "build/input/atuscps_2018.do"
+do "build/input/atuscps_2018.do"
 
 keep `cpsvars'
 keep if (tulineno == 1)

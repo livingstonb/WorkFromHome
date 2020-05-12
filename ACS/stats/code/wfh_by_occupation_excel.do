@@ -8,7 +8,7 @@ clear
 adopath + "../ado"
 
 // WFH BY OCCUPATION, THREE DIGIT
-`#PREREQ' local cleaned "build/output/acs_cleaned.dta"
+local cleaned "build/output/acs_cleaned.dta"
 use "`cleaned'" if inrange(year, 2013, 2017), clear
 drop if missing(sector, occ3d2010)
 
@@ -18,7 +18,7 @@ capture label define bin_pct_lbl 0 "No" 100 "Yes"
 gen nworkers_wt = 1
 
 * Add blanks
-`#PREREQ' local blanks "../occupations/build/output/soc3dvalues2010.dta"
+local blanks "../occupations/build/output/soc3dvalues2010.dta"
 
 #delimit ;
 appendblanks soc3d2010 using "`blanks'",
@@ -51,7 +51,7 @@ local cvars .nworkers_wt .pct_workfromhome .incwage .blankobs
 .xlxnotes.append "Sample: 2013-2017 pooled"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-`#TARGET' local pooledxlx "stats/output/ACS_wfh_pooled.xlsx"
+local pooledxlx "stats/output/ACS_wfh_pooled.xlsx"
 
 .descriptions = .statalist.new
 .descriptions.append "Sector S"
@@ -88,7 +88,7 @@ forvalues sval = 0/2 {
 .xlxnotes.append "Sample: 2013-2017, separated by year"
 .xlxnotes.append "Description: WFH statistics by 3-digit occupation"
 
-`#TARGET' local yearly "stats/output/ACS_wfh_yearly.xlsx"
+local yearly "stats/output/ACS_wfh_yearly.xlsx"
 
 .descriptions = .statalist.new
 forvalues yr = 2013/2017 {

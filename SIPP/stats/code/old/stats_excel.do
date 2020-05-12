@@ -1,11 +1,11 @@
-/* --- HEADER ---
+/*
 This script computes various asset, earnings, and WFH statistics
 for SIPP and outputs them to a spreadsheet.
 */
 
 adopath + "../ado"
 
-`#PREREQ' use "build/output/sipp_cleaned.dta", clear
+use "build/output/sipp_cleaned.dta", clear
 
 // MEAN AND MEDIAN VARIABLES FOR COLLAPSE
 #delimit ;
@@ -54,7 +54,7 @@ label variable nworkers_wt "Total"
 .employment = .collapsevar.new employment
 
 * Add blanks
-`#PREREQ' local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
+local occ2010 "../occupations/build/output/census2010_to_soc2010.dta"
 #delimit ;
 appendblanks soc3d2010 using "`occ2010'",
 	gen(blankobs) over1(sector) values1(0 1)
@@ -68,7 +68,7 @@ replace nworkers_unw = 0 if blankobs
 // COLLAPSE TO EXCEL
 foreach wave of numlist 1 2 3 4 0 {
 if `wave' == 0 {
-`#TARGET' local xlxname "stats/output/SIPP_wfh_pooled.xlsx"
+local xlxname "stats/output/SIPP_wfh_pooled.xlsx"
 	local samples "Waves 1-4"
 }
 else {

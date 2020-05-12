@@ -57,5 +57,5 @@ if `censusyear' == 2018 {
 	drop soc2010
 }
 
-`#TARGET' local final "build/output/census`censusyear'_to_soc2010.dta"
+local final "build/output/census`censusyear'_to_soc2010.dta"
 save "`final'", replace
