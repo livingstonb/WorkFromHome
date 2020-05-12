@@ -1,12 +1,12 @@
-/* --- HEADER ---
+/*
 Performs OLS estimation of mobility regressions.
 */
 
 estimates clear
 
 * Read and prepare dataset
-use `#PREREQ' "build/output/mobility_cleaned.dta", clear
-`#PREREQ' do "stats/code/pre_estimation.do"
+use "build/output/mobility_cleaned.dta", clear
+do "stats/code/pre_estimation.do"
 
 * Declare panel
 tsset stateid date
@@ -47,7 +47,7 @@ foreach var of local names {
 }
 
 * Create regression table
-`#TARGET' esttab using "stats/output/reg_table.tex", label replace
+esttab using "stats/output/reg_table.tex", label replace
 
 * Table of changes, by state
 duplicates drop statename, force
@@ -57,7 +57,7 @@ label variable total_change_work "Total, work"
 label variable statename "State"
 
 #delimit ;
-`#TARGET' export excel statename explained* total*
+export excel statename explained* total*
 	using "stats/output/mobility_changes.xlsx",
 	replace firstrow(varlabels);
 #delimit cr

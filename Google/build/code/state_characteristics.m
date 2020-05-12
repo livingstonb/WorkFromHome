@@ -32,15 +32,17 @@ population = readtable('build/input/state_data.xlsx');
 population.('state') = cellfun(@(x) strrep(x, '.', ''),...
     population.('state'), 'UniformOutput', false);
 population = population(~strcmp(population.('state'), 'District of Columbia'),:);
-population.Properties.VariableNames{'pop2018'} = 'population';
+population.Properties.VariableNames{'pop2019'} = 'population';
+population.('persons_per_sqmi') = population.population ./ population.land;
 population = rmmissing(population, 'DataVariables', 'density');
 population.('land') = [];
+population.('pop2018') = [];
 
-values = unique(population.('density'));
+values = unique(population.('persons_per_sqmi'));
 pop_ranks = table(values, (numel(values):-1:1)', 'VariableNames',...
-    {'density', 'rank'});
-population = join(population, pop_ranks, 'Keys', 'density');
-population.Properties.VariableNames{'density'} = 'persons_per_sqmi';
+    {'persons_per_sqmi', 'rank'});
+population = join(population, pop_ranks, 'Keys', 'persons_per_sqmi');
+population.('density') = [];
 
 %% Dining room bans
 filepath = 'build/input/dine_in_bans.csv';

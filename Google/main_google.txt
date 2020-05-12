@@ -1,0 +1,12 @@
+
+Preparing the data for MATLAB:
+(1) clean_raw_mobility_report.do
+(2) state_characteristics.m
+
+Analysis with MATLAB:
+(1) stats.m
+(2) figures.m
+
+Preparing the data for STATA:
+(1) clean_for_stata.do
+

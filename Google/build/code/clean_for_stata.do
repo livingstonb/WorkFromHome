@@ -1,10 +1,10 @@
-/* --- HEADER ---
+/*
 Cleans the MATLAB time series of state-level Google mobility data and resaves
 in Stata format.
 */
 
 clear
-`#PREREQ' local csvpath "build/output/state_time_series.csv"
+local csvpath "build/output/state_time_series.csv"
 import delimited "`csvpath'"
 drop grocery* parks transit* residential
 
@@ -32,4 +32,4 @@ foreach var of varlist
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
 
-`#TARGET' save "build/output/mobility_cleaned.dta", replace
+save "build/output/mobility_cleaned.dta", replace
