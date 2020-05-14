@@ -1,6 +1,8 @@
 
 * Read
 use "build/temp/cleaned_mobility.dta", clear
+label variable mobility_rr "Mobility, retail and rec"
+label variable mobility_work "Mobility, workplaces"
 
 * Merge with NPIS data
 merge m:1 state using "build/temp/cleaned_npis.dta", nogen keep(1 3)
@@ -22,6 +24,9 @@ replace deaths = 0 if missing(deaths)
 merge m:1 state using "build/temp/populations.dta", nogen
 replace cases = 10000 * cases / population
 replace deaths = 10000 * deaths / population
+
+label variable cases "Infections per 10,000 people"
+label variable deaths "Deaths per 10,000 people"
 
 * Declare panel
 rename state statename
