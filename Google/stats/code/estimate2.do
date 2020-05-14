@@ -7,27 +7,36 @@ adopath + "../ado"
 
 * Read
 use "build/output/cleaned_final.dta", clear
+drop if statename == "District of Columbia"
 
 * Declare panel
 tsset stateid date
 
-* Drop some states
+* Set final date for each state
+gen before_shelter_in_place = (date <= shelter_in_place) if !missing(shelter_in_place)
+quietly sum shelter_in_place
+
+gen in_sample = before_shelter_in_place
+replace in_sample = 0 if missing(shelter_in_place)
+replace in_sample = 1 if (date <= `r(max)') & missing(shelter_in_place)
+
+* Use dates after President's day
+replace in_sample = 0 if date < date("2020-02-24", "YMD")
+
+keep if in_sample
+drop before_shelter_in_place in_sample
+
+* Check for invalid daily infections
 gen neg_cases = (d.cases < 0)
 gen neg_deaths = (d.deaths < 0)
 
 by stateid: egen invalid_cases = max(neg_cases)
 by stateid: egen invalid_deaths = max(neg_deaths)
 
-drop if statename == "District of Columbia"
-
-// egen excluded = tag(stateid) if invalid_deaths | missing(shelter_in_place)
-drop if invalid_cases | missing(shelter_in_place)
-
-* Use dates after President's day
-keep if date >= date("2020-02-24", "YMD")
+drop if invalid_cases
+drop invalid_cases invalid_deaths
 
 * New variables
-gen before_shelter_in_place = (date <= shelter_in_place)
 gen day_of_week = dow(date)
 
 label define day_of_week_lbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday"
@@ -45,52 +54,82 @@ label variable d_dine_in_ban "Dine-in ban"
 label variable d_shelter_in_place "Shelter-in-place order"
 label variable d_non_essential_closure "Non-essential services closure"
 
-#delimit ;
-reg d.mobility_work
-	d.cases
-	d_school_closure d_dine_in_ban d_shelter_in_place d_non_essential_closure
-	i.stateid#day_of_week
-	if before_shelter_in_place, robust;
+gen dmobility_work = d.mobility_work
+label variable dmobility_work "Change in mobility, workplaces"
+
+gen dmobility_rr = d.mobility_rr
+label variable dmobility_rr "Change in mobility, retail and rec"
+
+local mobvars work rr
+
+foreach suffix of local mobvars {
+	#delimit ;
+	eststo REG_`suffix': reg dmobility_`suffix'
+		d.cases
+		d_school_closure d_dine_in_ban d_shelter_in_place d_non_essential_closure
+		i.stateid#day_of_week
+		, robust noconstant;
+	#delimit cr
 	
-esttab using "stats/output/mobility_regressions.tex", 
-	replace label nonumbers compress booktabs wide
-	keep(D.cases d_school_closure d_dine_in_ban d_shelter_in_place d_non_essential_closure _cons)
-	r2 ar2 scalars(N);
+	predict fitted_change_`suffix', xb
+}
+
+#delimit ;
+esttab REG_work REG_rr using "stats/output/mobility_regressions.tex", 
+		replace label nonumbers compress booktabs wide
+		keep(D.cases d_school_closure d_dine_in_ban d_shelter_in_place d_non_essential_closure)
+		r2 ar2 scalars(N);
 #delimit cr
 
 * Predict
-predict fitted_change if before_shelter_in_place, xb
-
-gen dmob = d.mobility_work
-label variable dmob "Change in mobility, workplaces"
-
-do "stats/code/compute_state_R2.do" R2 dmob fitted_change before_shelter_in_place
+do "stats/code/compute_state_R2.do" R2 dmobility_work fitted_change_work
 
 * Generated fitted levels
-gen tmp_levels = fitted_change
+gen tmp_levels = fitted_change_work
 replace tmp_levels = mobility_work if date == date("2020-02-24", "YMD")
-bysort stateid (date): gen fitted_mobility = sum(tmp_levels)
-label variable fitted_mobility "Fitted mobility, workplaces"
+bysort stateid (date): gen fitted_mobility_work = sum(tmp_levels)
+label variable fitted_mobility_work "Fitted mobility, workplaces"
+
+* Order states by number of infections
+bysort stateid (date): gen state_cases = cases[_N] - cases[1]
+egen rank_cases = rank(state_cases) if date == date("2020-02-24", "YMD")
+
+levelsof statename if inlist(rank_cases, 1, 2, 3, 48, 49, 50) & !missing(rank_cases), local(ranked)
 
 * Plot fitted vs actual
 label variable mobility_work "Mobility, workplaces"
 
-local states Nevada Montana Wyoming California Washington Tennessee Alaska Alabama
-
-foreach state of local states {
-	quietly sum R2 if statename == "`state'"
-	local R2 = `r(max)'
+foreach state of local ranked {
+	quietly sum state_cases if statename == "`state'"
+	local num_cases = `r(max)'
 
 	#delimit ;
-	twoway line mobility_work date if statename == "`state'" & before_shelter_in_place
-		|| line fitted_mobility date if statename == "`state'" & before_shelter_in_place,
-		graphregion(color(gs16)) title("`state', R2 = `R2'");
+	twoway line mobility_work date if statename == "`state'"
+		|| line fitted_mobility_work date if statename == "`state'",
+		graphregion(color(gs16)) title("`state', cases per 10,000 = `num_cases'");
 	#delimit cr
 	
 	capture mkdir "stats/output/figs"
 	graph export "stats/output/figs/`state'_model_fit.png", replace
 	graph close
 }
+
+// local states Nevada Montana Wyoming California Washington Tennessee Alaska Alabama
+
+// foreach state of local states {
+// 	quietly sum R2 if statename == "`state'"
+// 	local R2 = `r(max)'
+//
+// 	#delimit ;
+// 	twoway line mobility_work date if statename == "`state'"
+// 		|| line fitted_mobility date if statename == "`state'",
+// 		graphregion(color(gs16)) title("`state', R2 = `R2'");
+// 	#delimit cr
+//	
+// 	capture mkdir "stats/output/figs"
+// 	graph export "stats/output/figs/`state'_model_fit.png", replace
+// 	graph close
+// }
 
 // bysort stateid: egen meany = mean(dmob) if before_shelter_in_place
 //
