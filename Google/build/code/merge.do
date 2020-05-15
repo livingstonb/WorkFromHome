@@ -22,14 +22,28 @@ replace deaths = 0 if missing(deaths)
 
 * Merge with populations
 merge m:1 state using "build/temp/populations.dta", nogen
-replace cases = 10000 * cases / population
-replace deaths = 10000 * deaths / population
-
-label variable cases "Infections per 10,000 people"
-label variable deaths "Deaths per 10,000 people"
 
 * Declare panel
 rename state statename
 encode statename, gen(stateid)
+
+drop if statename == "District of Columbia"
+bysort date: egen agg_cases = total(cases)
+bysort date: egen agg_pop = total(population)
+replace agg_cases = agg_cases / agg_pop
+drop agg_pop
+
+replace cases = cases / population
+replace deaths = deaths / population
+
+label variable cases "Cases per person"
+label variable deaths "Deaths per person"
+
+* Change mobility definition
+replace mobility_work = log(1 + mobility_work / 100)
+replace mobility_rr = log(1 + mobility_rr / 100)
+
+label variable mobility_work "Log mobility, workplaces"
+label variable mobility_rr "Log mobility, retail and rec"
 
 save "build/output/cleaned_final.dta", replace

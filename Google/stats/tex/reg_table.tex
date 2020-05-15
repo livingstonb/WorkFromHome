@@ -4,6 +4,7 @@
 \usepackage{booktabs}
 \usepackage[margin=0.5in]{geometry}
 \pagestyle{empty}
+\usepackage{pdflscape}
 
 \title{Mobility and policy interventions}
 \author{}
@@ -11,10 +12,27 @@
 
 \begin{document}
 
-\section{Model}
 
-\section{Regression tables}
-\input{../output/mobility_regressions.tex}
+\begin{landscape}
+\input{../output/levels_mobility_work_regressions.tex}
+\end{landscape}
+
+
+\begin{landscape}
+\input{../output/FD_mobility_work_regressions.tex}
+\end{landscape}
+
+\iffalse
+\begin{landscape}
+\input{../output/levels_mobility_rr_regressions.tex}
+\end{landscape}
+
+\begin{landscape}
+\input{../output/FD_mobility_rr_regressions.tex}
+\end{landscape}
+\fi
+
+
 
 
 \end{document}
