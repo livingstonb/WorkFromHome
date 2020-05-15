@@ -23,12 +23,6 @@ label variable natl_cases "US cases per person"
 gen sq_cases = cases ^ 2
 label variable sq_cases "Sq state cases per person"
 
-gen dcases = d.cases
-label variable dcases "Change in state cases per person"
-
-gen d_sq_cases = d.sq_cases
-label variable d_sq_cases "Change in square of state cases"
-
 * New York cases
 gen tmp_ny = cases if statename == "New York"
 bysort date: egen ny_cases = max(tmp_ny)
@@ -52,9 +46,6 @@ replace in_sample = 0 if date < date("2020-02-24", "YMD")
 
 keep if in_sample
 drop before_shelter_in_place in_sample
-
-* Average max of cases per 10,000
-bysort stateid: egen max_cases = max(cases)
 
 * Linear time trend
 tsset stateid date
@@ -107,7 +98,13 @@ label variable d_ge_march13 "March 13th or later"
 * Loop over regression models
 do "stats/code/make_regression_tables.do" make_plots
 
+* Peak cases nationally
+sum natl_cases
 
+* Peak cases by state
+collapse (max) cases (firstnm) population, by(stateid)
+
+bysort stateid: egen peak_cases_states = max(cases)
 
 
 // * Plot fitted vs actual for states with few/many infections

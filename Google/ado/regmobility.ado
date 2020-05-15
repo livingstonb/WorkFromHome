@@ -1,7 +1,11 @@
 program regmobility
+	#delimit ;
+	syntax [anything], [FD(integer 0)] [NATL(integer 0)] [QUAD(integer 0)]
+		[TIMETREND(string)] [SUFFIX(string)] [ESTNAME(string)]
+		[POPWGT(varlist)] [POLICYLAGS(integer 0)]
+		[STATEPOLICIES(integer 0)];
+	#delimit cr
 
-	syntax [anything], [FD(integer 0)] [NATL(integer 0)] [QUAD(integer 0)] [TIMETREND(string)] [SUFFIX(string)] [ESTNAME(string)] [POPWGT(varlist)] [POLICYLAGS(integer 0)]
-	
 	local prefix = cond(`fd', "D.", "")
 	local depvar `prefix'mobility_`suffix'
 	
@@ -15,6 +19,14 @@ program regmobility
 	local policies d_`dt'school_closure d_`dt'dine_in_ban d_`dt'non_essential_closure
 	if `policylags' {
 		local policies `policies' L.d_`dt'school_closure L.d_`dt'dine_in_ban L.d_`dt'non_essential_closure
+	}
+	
+	if `statepolicies' {
+		local tmp_policies `policies'
+		local policies
+		foreach var of local tmp_policies {
+			local policies `policies' i.stateid#c.`var'
+		}
 	}
 
 	#delimit ;

@@ -4,6 +4,8 @@ capture mkdir "stats/output/figs"
 
 args make_plots
 
+local state_specific_policies = 0
+
 local mobvars work
 tsset stateid date
 forvalues fd = 0/1 {
@@ -22,6 +24,10 @@ foreach suffix of local mobvars {
 		local type "levels"
 		local policies d_ge_school_closure d_ge_dine_in_ban d_ge_non_essential_closure
 		local march_var d_ge_march13
+	}
+	
+	if `state_specific_policies' {
+		local policies
 	}
 	
 	* For tex output
@@ -51,16 +57,24 @@ foreach suffix of local mobvars {
 		}
 		
 		capture mkdir "stats/output/logs"
+
 		log using "stats/output/logs/`suffix'_`type'_M`ii'.txt", name(reg_log) text replace
-		regmobility, fd(`fd') natl(`natl') quad(`quadratic') timetrend(`timevar') suffix(`suffix') estname("EST`ii'") `wgt_expr'
 		
+		#delimit ;
+		regmobility, fd(`fd') natl(`natl') quad(`quadratic') timetrend(`timevar')
+			suffix(`suffix') estname("EST`ii'") `wgt_expr'
+			statepolicies(`state_specific_policies');
+		#delimit cr
+		
+		log close reg_log
+
 		if "`make_plots'" == "make_plots" {
 			local states = `" "California" "Georgia" "New Mexico" "New York" "Pennsylvania" "West Virginia" "'
 			foreach state in `states' {
 				plt_fitted `state', suffix("`suffix'") savedir("stats/output/figs/`suffix'_`type'_M`ii'") fd(`fd')
 			}
 		}
-		log close reg_log
+		
 		
 		local mtitle = cond(`popweight', "Wtd", "Unwtd")
 		
