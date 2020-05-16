@@ -35,6 +35,7 @@ label variable sq_natl_cases "Sq US cases per person"
 
 * Set final date for each state
 gen before_shelter_in_place = (date <= shelter_in_place) if !missing(shelter_in_place)
+// gen before_shelter_in_place = (date <= date("2020-04-01", "YMD"))
 quietly sum shelter_in_place
 
 gen in_sample = before_shelter_in_place
@@ -54,13 +55,6 @@ label variable ndays "Number of days after 2/24"
 
 by stateid: gen tstate = _N
 label variable tstate "Number of observations for state"
-
-* New variables
-gen day_of_week = dow(date)
-
-label define day_of_week_lbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday"
-label define day_of_week_lbl 4 "Thursday" 5 "Friday" 6 "Saturday", add
-label values day_of_week day_of_week_lbl
 
 * Policy dummies
 gen d_school_closure = (date == school_closure)
@@ -95,8 +89,26 @@ gen d_ge_march13 = date >= date("2020-03-13", "YMD")
 label variable d_march13 "March 13th"
 label variable d_ge_march13 "March 13th or later"
 
+* Day-of-week dummies
+gen day_of_week = dow(date)
+
+label define day_of_week_lbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday"
+label define day_of_week_lbl 4 "Thursday" 5 "Friday" 6 "Saturday", add
+label values day_of_week day_of_week_lbl
+
+* Day-of-week and period interaction
+tab day_of_week, gen(d_day)
+
+forvalues i = 0/6 {
+	gen d_period1_day`i' = (day_of_week == `i') & !d_ge_march13
+	gen d_period2_day`i' = (day_of_week == `i') & d_ge_march13
+}
+
+* 
+
+
 * Loop over regression models
-do "stats/code/make_regression_tables.do" make_plots
+do "stats/code/make_regression_tables.do"
 
 * Peak cases nationally
 sum natl_cases

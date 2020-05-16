@@ -23,7 +23,7 @@ replace deaths = 0 if missing(deaths)
 * Merge with populations
 merge m:1 state using "build/temp/populations.dta", nogen
 
-* Declare panel
+
 rename state statename
 encode statename, gen(stateid)
 
@@ -45,5 +45,14 @@ replace mobility_rr = log(1 + mobility_rr / 100)
 
 label variable mobility_work "Log mobility, workplaces"
 label variable mobility_rr "Log mobility, retail and rec"
+
+* Create recovery-adjusted cases
+tsset stateid date
+
+rename cases tmp_cases
+rename agg_cases tmp_agg_cases
+gen cases = tmp_cases - 0.1 * L.tmp_cases
+gen agg_cases = tmp_agg_cases - 0.1 * L.tmp_agg_cases
+drop tmp_*
 
 save "build/output/cleaned_final.dta", replace

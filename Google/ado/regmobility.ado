@@ -1,39 +1,46 @@
-program regmobility
+program regmobility, rclass
 	#delimit ;
 	syntax [anything], [FD(integer 0)] [NATL(integer 0)] [QUAD(integer 0)]
-		[TIMETREND(string)] [SUFFIX(string)] [ESTNAME(string)]
-		[POPWGT(varlist)] [POLICYLAGS(integer 0)]
-		[STATEPOLICIES(integer 0)];
+		[SUFFIX(string)] [ESTNUM(integer 0)] [STATE(integer 0)]
+		[POPWGT(integer 0)] [NATQUAD(integer 0)]
+		[POLICYVARS(string)];
 	#delimit cr
+	
+	* PREFIX FOR FD
+	local FD = cond(`fd', "D.", "")
+	
+	* DEPENDENT VARIABLE
+	local depvar `FD'mobility_`suffix'
+	
+	* CASES VARIABLES
+	local varcases = cond(`state', "`FD'cases", "")
 
-	local prefix = cond(`fd', "D.", "")
-	local depvar `prefix'mobility_`suffix'
+	local varcases = cond(`quad', "`varcases' `FD'sq_cases", "`varcases'")
+	local varcases = cond(`natl', "`varcases' `FD'natl_cases", "`varcases'")
+	local varcases = cond(`natquad', "`varcases' `FD'sq_natl_cases", "`varcases'")
 	
-	local natstr = cond(`natl', "natl_", "")
-	local varcases `prefix'`natstr'cases
-	local varcases_sq = cond(`quad', "`prefix'sq_`natstr'cases", "")
+	* POPULATION WEIGHTS
+	local wgt_macro = cond(`popwgt', "[aw=wgt]", "")
 	
-	local wgt_macro = cond("`popwgt'"=="", "", "[aw=`popwgt']")
+	* MARCH 13 INDICATOR
+	local march13 = cond(`fd', "i.stateid#c.d_march13", "i.stateid#c.d_ge_march13")
 	
-	local dt = cond(`fd', "", "ge_")
-	local policies d_`dt'school_closure d_`dt'dine_in_ban d_`dt'non_essential_closure
-	if `policylags' {
-		local policies `policies' L.d_`dt'school_closure L.d_`dt'dine_in_ban L.d_`dt'non_essential_closure
-	}
-	
-	if `statepolicies' {
-		local tmp_policies `policies'
-		local policies
-		foreach var of local tmp_policies {
-			local policies `policies' i.stateid#c.`var'
-		}
-	}
+	* DAY-OF-WEEK DUMMIES
+// 	if `fd' {
+// 		forvalues i = 1/2 {
+// 		forvalues j = 0/6 {
+// 			local day_dummies `day_dummies' i.stateid#day_of_week
+// 		}
+// 		}
+// 	}
+	local day_dummies i.stateid#day_of_week
 
 	#delimit ;
-	eststo `estname': reg `depvar'
-		`varcases' `varcases_sq'
-		`policies' d_shelter_in_place `timetrend'
-		i.stateid#day_of_week
+	eststo EST`estnum': reg `depvar'
+		`varcases'
+		`policyvars'
+		`march13'
+		`day_dummies'
 		`wgt_macro', robust noconstant;
 	#delimit cr
 end
