@@ -23,7 +23,7 @@ program regmobility, rclass
 	local wgt_macro = cond(`popwgt', "[aw=wgt]", "")
 	
 	* MARCH 13 INDICATOR
-	local march13 = cond(`fd', "i.stateid#c.d_march13", "i.stateid#c.d_ge_march13")
+	local march13 i.stateid#c.`FD'd_march13
 	
 	* DAY-OF-WEEK DUMMIES
 // 	if `fd' {
@@ -41,6 +41,6 @@ program regmobility, rclass
 		`policyvars'
 		`march13'
 		`day_dummies'
-		`wgt_macro', robust noconstant;
+		`wgt_macro', robust;
 	#delimit cr
 end

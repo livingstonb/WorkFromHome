@@ -55,4 +55,20 @@ gen cases = tmp_cases - 0.1 * L.tmp_cases
 gen agg_cases = tmp_agg_cases - 0.1 * L.tmp_agg_cases
 drop tmp_*
 
+* Linear time trend
+tsset stateid date
+by stateid: gen ndays = _n - 1
+label variable ndays "Number of days after 2/24"
+
+* Policy dummies
+gen d_shelter_in_place = (date >= shelter_in_place) & !missing(shelter_in_place)
+gen d_school_closure = (date >= school_closure) & !missing(school_closure)
+gen d_dine_in_ban = (date >= dine_in_ban) & !missing(dine_in_ban)
+gen d_non_essential_closure = (date >= non_essential_closure) & !missing(non_essential_closure)
+
+label variable d_school_closure "School closure"
+label variable d_dine_in_ban "Dine-in ban"
+label variable d_shelter_in_place "Shelter-in-place order"
+label variable d_non_essential_closure "Non-essential services closure"
+
 save "build/output/cleaned_final.dta", replace

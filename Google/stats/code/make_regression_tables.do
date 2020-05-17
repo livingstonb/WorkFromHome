@@ -6,11 +6,11 @@ args make_plots
 
 local state_specific_policies = 0
 
-forvalues fd = 0/1 {
+forvalues fd = 1/1 {
 
 	local ii = 0
 	local type = cond(`fd', "FD", "levels")
-	local prefix = cond(`fd', "D.", "")
+	local FD = cond(`fd', "D.", "")
 	local suffix = "work"
 	
 	local model_titles
@@ -22,7 +22,7 @@ forvalues fd = 0/1 {
 	
 	* POLICY DUMMIES
 	local dt = cond(`fd', "", "ge_")
-	local policyvars d_`dt'school_closure d_`dt'dine_in_ban d_`dt'non_essential_closure d_shelter_in_place
+	local policyvars `FD'd_school_closure `FD'd_dine_in_ban `FD'd_non_essential_closure `FD'd_shelter_in_place
 	
 	if `state_specific_policies' {
 		local tmp_policyvars `policyvars'
@@ -85,7 +85,7 @@ forvalues fd = 0/1 {
 	#delimit ;
 	esttab using "stats/output/`type'_mobility_`suffix'_regressions.tex", 
 			replace label compress booktabs not
-			keep(`prefix'cases `prefix'natl_cases
+			keep(``FD''cases ``FD''natl_cases
 			`policyvars')
 			r2 ar2 scalars(N)
 			mtitles(`"`model_titles'"')

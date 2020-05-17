@@ -1,4 +1,5 @@
 
+* State-level
 clear
 import delimited using "build/input/Global_Mobility_Report.csv", varnames(1)
 keep if country_region_code == "US"
@@ -20,3 +21,27 @@ rename workplaces_percent_change_from_b mobility_work
 
 keep state mobility* date
 save "build/temp/cleaned_mobility.dta", replace
+
+* County level
+clear
+import delimited using "build/input/Global_Mobility_Report.csv", varnames(1)
+keep if country_region_code == "US"
+keep if sub_region_1 != ""
+keep if sub_region_2 != ""
+drop country_region*
+rename sub_region_1 state
+rename sub_region_2 county
+
+rename date tmp_date
+gen date = date(tmp_date, "YMD")
+format date %td
+drop tmp_date
+
+rename retail_and_recreation_percent_ch mobility_rr
+rename workplaces_percent_change_from_b mobility_work
+
+replace county = subinstr(county, " County", "", .)
+replace county = subinstr(county, " Parish", "", .)
+
+keep state county mobility* date
+save "build/temp/mobility_counties.dta", replace

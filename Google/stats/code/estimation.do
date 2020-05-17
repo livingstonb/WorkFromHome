@@ -23,71 +23,37 @@ label variable natl_cases "US cases per person"
 gen sq_cases = cases ^ 2
 label variable sq_cases "Sq state cases per person"
 
-* New York cases
-gen tmp_ny = cases if statename == "New York"
-bysort date: egen ny_cases = max(tmp_ny)
-drop tmp_ny
-tsset stateid date
-
-* Aggregate cases
 gen sq_natl_cases = natl_cases ^ 2
 label variable sq_natl_cases "Sq US cases per person"
 
-* Set final date for each state
-gen before_shelter_in_place = (date <= shelter_in_place) if !missing(shelter_in_place)
-// gen before_shelter_in_place = (date <= date("2020-04-01", "YMD"))
-quietly sum shelter_in_place
+* Set period of sample
+keep if date >= date("2020-02-24", "YMD")
 
-gen in_sample = before_shelter_in_place
-replace in_sample = 0 if missing(shelter_in_place)
-replace in_sample = 1 if (date <= `r(max)') & missing(shelter_in_place)
+local final_date // "2020-04-01"
 
-* Use dates after President's day
-replace in_sample = 0 if date < date("2020-02-24", "YMD")
+if "`final_date'" == "" {
+	gen before_shelter_in_place = (date <= shelter_in_place) if !missing(shelter_in_place)
 
-keep if in_sample
-drop before_shelter_in_place in_sample
+	quietly sum shelter_in_place
+	gen in_sample = before_shelter_in_place
+	replace in_sample = 0 if missing(shelter_in_place)
+	replace in_sample = 1 if (date <= `r(max)') & missing(shelter_in_place)
+	keep if in_sample
+	drop before_shelter_in_place in_sample
+}
+else {
+	keep if (date <= date("`final_date'", "YMD"))
+}
 
-* Linear time trend
-tsset stateid date
-by stateid: gen ndays = _n - 1
-label variable ndays "Number of days after 2/24"
 
 by stateid: gen tstate = _N
 label variable tstate "Number of observations for state"
 
-* Policy dummies
-gen d_school_closure = (date == school_closure)
-gen d_dine_in_ban = (date == dine_in_ban)
-gen d_shelter_in_place = (date == shelter_in_place)
-gen d_non_essential_closure = (date == non_essential_closure)
-gen d_ge_school_closure = (date >= school_closure)
-gen d_ge_dine_in_ban = (date >= dine_in_ban)
-gen d_ge_non_essential_closure = (date >= non_essential_closure)
-
-label variable d_school_closure "School closure"
-label variable d_dine_in_ban "Dine-in ban"
-label variable d_shelter_in_place "Shelter-in-place order"
-label variable d_non_essential_closure "Non-essential services closure"
-label variable d_ge_school_closure "School closure"
-label variable d_ge_dine_in_ban "Dine-in ban"
-label variable d_ge_non_essential_closure "Non-essential services closure"
-
-gen dmobility_work = d.mobility_work
-label variable dmobility_work "Change in mobility, workplaces"
-
-gen dmobility_rr = d.mobility_rr
-label variable dmobility_rr "Change in mobility, retail and rec"
-
-local mobvars work rr
 gen wgt = population / (tstate * 1000)
 
-* March 12 dummy
-gen d_march13 = date == date("2020-03-13", "YMD")
-gen d_ge_march13 = date >= date("2020-03-13", "YMD")
-
-label variable d_march13 "March 13th"
-label variable d_ge_march13 "March 13th or later"
+* March 13 dummy
+gen d_march13 = date >= date("2020-03-13", "YMD")
+label variable d_march13 "March 13th or later"
 
 * Day-of-week dummies
 gen day_of_week = dow(date)
@@ -100,15 +66,21 @@ label values day_of_week day_of_week_lbl
 tab day_of_week, gen(d_day)
 
 forvalues i = 0/6 {
-	gen d_period1_day`i' = (day_of_week == `i') & !d_ge_march13
-	gen d_period2_day`i' = (day_of_week == `i') & d_ge_march13
+	gen d_period1_day`i' = (day_of_week == `i') & !d_march13
+	gen d_period2_day`i' = (day_of_week == `i') & d_march13
 }
-
-* 
-
 
 * Loop over regression models
 do "stats/code/make_regression_tables.do"
+
+
+
+
+
+
+
+
+
 
 * Peak cases nationally
 sum natl_cases
@@ -117,6 +89,16 @@ sum natl_cases
 collapse (max) cases (firstnm) population, by(stateid)
 
 bysort stateid: egen peak_cases_states = max(cases)
+
+
+
+
+
+* Plot all mobility values
+#delimit ;
+xtline mobility_work, overlay graphregion(color(gs16)) ytitle("")
+	title("Log mobility by state");
+#delimit cr
 
 
 // * Plot fitted vs actual for states with few/many infections
