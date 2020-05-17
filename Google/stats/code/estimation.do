@@ -20,16 +20,21 @@ rename agg_cases raw_natl_cases
 moving_average raw_natl_cases, time(date) panelid(stateid) gen(natl_cases) nperiods(3)
 label variable natl_cases "US cases per person"
 
-gen sq_cases = cases ^ 2
+gen sq_cases = (cases - 0.02) ^ 2
 label variable sq_cases "Sq state cases per person"
 
 gen sq_natl_cases = natl_cases ^ 2
 label variable sq_natl_cases "Sq US cases per person"
 
+gen exp_cases = F7.cases
+replace exp_cases = 0 if date < date("2020-03-13", "YMD")
+
+gen sq_exp_cases = exp_cases ^ 2
+
 * Set period of sample
 keep if date >= date("2020-02-24", "YMD")
 
-local final_date // "2020-04-01"
+local final_date // "2020-04-15"
 
 if "`final_date'" == "" {
 	gen before_shelter_in_place = (date <= shelter_in_place) if !missing(shelter_in_place)
@@ -62,6 +67,8 @@ label define day_of_week_lbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday"
 label define day_of_week_lbl 4 "Thursday" 5 "Friday" 6 "Saturday", add
 label values day_of_week day_of_week_lbl
 
+gen weekend = inlist(day_of_week, 0, 6)
+
 * Day-of-week and period interaction
 tab day_of_week, gen(d_day)
 
@@ -71,6 +78,7 @@ forvalues i = 0/6 {
 }
 
 * Loop over regression models
+keep if !weekend
 do "stats/code/make_regression_tables.do"
 
 

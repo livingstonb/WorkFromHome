@@ -6,7 +6,7 @@ args make_plots
 
 local state_specific_policies = 0
 
-forvalues fd = 1/1 {
+forvalues fd = 0/0 {
 
 	local ii = 0
 	local type = cond(`fd', "FD", "levels")
@@ -15,10 +15,10 @@ forvalues fd = 1/1 {
 	
 	local model_titles
 	
-	local weight_vals 0 1
-	local nat_vals 0 1 
-	local state_vals 1 0
-	local quad_vals 0
+	local weight_vals 0
+	local nat_vals 0
+	local state_vals 1
+	local quad_vals 1
 	
 	* POLICY DUMMIES
 	local dt = cond(`fd', "", "ge_")

@@ -40,8 +40,17 @@ drop tmp_date
 rename retail_and_recreation_percent_ch mobility_rr
 rename workplaces_percent_change_from_b mobility_work
 
+replace county = "Baltimore city" if county == "Baltimore" & state == "Maryland"
+replace county = "St. Louis city" if county == "St. Louis" & state == "Missouri"
+replace county = "Fairfax city" if county == "Fairfax" & state == "Virginia"
+replace county = "Franklin city" if county == "Franklin" & state == "Virginia"
+replace county = "Richmond city" if county == "Richmond" & state == "Virginia"
+replace county = "Roanoke city" if county == "Roanoke" & state == "Virginia"
+
 replace county = subinstr(county, " County", "", .)
 replace county = subinstr(county, " Parish", "", .)
 
 keep state county mobility* date
+sort state county date
+order state county date
 save "build/temp/mobility_counties.dta", replace
