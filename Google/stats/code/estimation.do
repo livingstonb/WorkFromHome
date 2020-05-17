@@ -77,8 +77,24 @@ forvalues i = 0/6 {
 	gen d_period2_day`i' = (day_of_week == `i') & d_march13
 }
 
+* Date of first case
+tsset stateid date
+by stateid: gen iobs = sum(cases > 0)
+gen tmp_firstcase = date if (iobs == 1)
+by stateid: egen firstcase = min(tmp_firstcase)
+drop iobs tmp_firstcase
+format %td firstcase
+
+
+* Growth rate, extrapolated backward to first case
+tsset stateid date
+gen gcases = (cases - L.cases) / L.cases
+replace gcases = 0 if (cases == L.cases)
+replace gcases = F.gcases if date == firstcase
+replace gcases = 0 if missing(gcases)
+
 * Loop over regression models
-keep if !weekend
+// keep if !weekend
 do "stats/code/make_regression_tables.do"
 
 

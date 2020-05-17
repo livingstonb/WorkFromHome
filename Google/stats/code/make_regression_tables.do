@@ -8,7 +8,7 @@ args make_plots
 local state_specific_policies = 0
 
 * Loop over tables
-forvalues fd = 0/0 {
+forvalues fd = 0/1 {
 
 	
 	local type = cond(`fd', "FD", "levels")
@@ -28,6 +28,7 @@ forvalues fd = 0/0 {
 	local weight_vals	0 1
 	local nat_vals 		0 0
 	local state_vals	1 1
+	local stdiff_vals	0 0
 	local quad_vals		0 0
 	
 	* Macro to store model titles
@@ -39,6 +40,7 @@ forvalues fd = 0/0 {
 		local natl: word `ii' of `nat_vals'
 		local state: word `ii' of `state_vals'
 		local quad: word `ii' of `quad_vals'
+		local state_diff: word `ii' of `stdiff_vals'
 		
 		* Log to store full regression results
 		capture mkdir "stats/output/logs"
@@ -48,7 +50,7 @@ forvalues fd = 0/0 {
 		* Regression
 		#delimit ;
 		regmobility, fd(`fd') natl(`natl') state(`state') quad(`quad')
-			suffix("`suffix'") estnum(`ii') popwgt(`popwgt')
+			suffix("`suffix'") estnum(`ii') popwgt(`popwgt') stdiff(`state_diff')
 			policyvars("`policyvars'");
 		#delimit cr
 		log close reg_log
@@ -80,7 +82,7 @@ forvalues fd = 0/0 {
 	#delimit ;
 	esttab using "stats/output/`type'_mobility_`suffix'_regressions.tex", 
 			replace label compress booktabs not
-			keep(``FD''cases
+			keep(`FD'cases
 			`policyvars')
 			r2 ar2 scalars(N)
 			mtitles(`"`model_titles'"')
