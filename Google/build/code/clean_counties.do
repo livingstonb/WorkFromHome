@@ -9,6 +9,14 @@ gen date = date(tmp_date, "YMD")
 format date %td
 drop tmp_date
 
+#delimit ;
+replace county = subinstr(county, " city", "", .)
+	if !(inlist(county, "Fairfax city", "Franklin city",
+	"Richmond city", "Roanoke city") & (state == "Virginia"))
+	& !(county == "Baltimore city" & state=="Maryland")
+	& !(county == "St. Louis city" & state=="Missouri");
+#delimit cr
+
 * Merge with mobility
 sort state county date
 merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen
@@ -33,6 +41,16 @@ rename popestimate2019 population
 
 replace county = subinstr(county, " County", "", .)
 replace county = subinstr(county, " Parish", "", .)
+
+#delimit ;
+replace county = subinstr(county, " city", "", .)
+	if !(inlist(county, "Fairfax city", "Franklin city",
+	"Richmond city", "Roanoke city") & (state == "Virginia"))
+	& !(county == "Baltimore city" & state=="Maryland")
+	& !(county == "St. Louis city" & state=="Missouri");
+#delimit cr
+
+replace county = "Anchorage" if county == "Anchorage Municipality"
 
 keep state county population fips
 
