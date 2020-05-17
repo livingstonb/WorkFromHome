@@ -23,7 +23,7 @@ program regmobility, rclass
 	local wgt_macro = cond(`popwgt', "[aw=wgt]", "")
 	
 	* MARCH 13 INDICATOR
-	local march13 `FD'd_march13
+	local march13 i.stateid#c.`FD'd_march13
 	
 	* DAY-OF-WEEK DUMMIES
 // 	if `fd' {
@@ -33,9 +33,7 @@ program regmobility, rclass
 // 		}
 // 		}
 // 	}
-	gen sip_cases = cases * ndays
-	local varcases cases exp_cases sq_exp_cases
-	local day_dummies i.day_of_week
+	local day_dummies i.stateid#day_of_week
 
 	#delimit ;
 	eststo EST`estnum': reg `depvar'
