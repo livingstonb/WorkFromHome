@@ -6,8 +6,8 @@ estimates clear
 
 * Common coefficients on policies
 #delimit ; 
-eststo: reg mobility_work cases c.cases#c.population d_school_closure d_dine_in_ban
-	d_non_essential_closure d_shelter_in_place if restr_sample, noconstant vce(cluster stateid);
+eststo: reg mobility_work cases d_school_closure d_dine_in_ban
+	d_non_essential_closure d_shelter_in_place if restr_sample & d_march25, noconstant vce(cluster stateid);
 #delimit cr
 
 * Common coefficients on policies, full sample

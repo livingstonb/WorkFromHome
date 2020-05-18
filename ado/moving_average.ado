@@ -15,9 +15,12 @@ program moving_average
 	local t2 = `nperiods'
 	while (`t2' <= `tf') {
 		tempvar tmp_mean
-		by `panelid': egen `tmp_mean' = mean(`varlist') if inrange(`tvar', `t1', `t2')
-		by `panelid': replace `gen' = `tmp_mean' if `tvar' == floor((`t2'+`t1') / 2)
-		drop `tmp_mean'
+		
+		quietly {
+			by `panelid': egen `tmp_mean' = mean(`varlist') if inrange(`tvar', `t1', `t2')
+			by `panelid': replace `gen' = `tmp_mean' if `tvar' == floor((`t2'+`t1') / 2)
+			drop `tmp_mean'
+		}
 		
 		local ++t1
 		local ++t2

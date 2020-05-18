@@ -71,4 +71,54 @@ label variable d_dine_in_ban "Dine-in ban"
 label variable d_shelter_in_place "Shelter-in-place order"
 label variable d_non_essential_closure "Non-essential services closure"
 
-save "build/output/cleaned_final.dta", replace
+* Use moving average of cases
+rename cases raw_cases
+moving_average raw_cases, time(date) panelid(stateid) gen(cases) nperiods(3)
+label variable cases "State cases per person"
+
+rename agg_cases raw_natl_cases
+moving_average raw_natl_cases, time(date) panelid(stateid) gen(natl_cases) nperiods(3)
+label variable natl_cases "US cases per person"
+
+* Other variables
+gen sq_cases = cases ^ 2
+label variable sq_cases "Sq state cases per person"
+
+gen sq_natl_cases = natl_cases ^ 2
+label variable sq_natl_cases "Sq US cases per person"
+
+* March 13 dummy
+gen d_march13 = date >= date("2020-03-13", "YMD")
+label variable d_march13 "March 13th or later"
+
+* Day-of-week dummies
+gen day_of_week = dow(date)
+
+label define day_of_week_lbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday"
+label define day_of_week_lbl 4 "Thursday" 5 "Friday" 6 "Saturday", add
+label values day_of_week day_of_week_lbl
+
+gen weekend = inlist(day_of_week, 0, 6)
+
+* Day-of-week condl on after March 12th
+tab day_of_week, gen(d_day)
+
+local days Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+forvalues i = 0/6 {
+	gen d_dow`i' = (day_of_week == `i') & d_march13
+	
+	local j = `i' + 1
+	local day: word `j' of `days'
+	label variable d_dow`i' "`day' after 3/12"
+}
+
+* Date of first case
+tsset stateid date
+by stateid: gen iobs = sum(cases > 0)
+gen tmp_firstcase = date if (iobs == 1)
+by stateid: egen firstcase = min(tmp_firstcase)
+drop iobs tmp_firstcase
+format %td firstcase
+
+
+save "build/output/cleaned_states.dta", replace

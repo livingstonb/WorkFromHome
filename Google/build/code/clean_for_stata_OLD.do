@@ -3,6 +3,8 @@ Cleans the MATLAB time series of state-level Google mobility data and resaves
 in Stata format.
 */
 
+// OLD
+
 clear
 local csvpath "build/output/state_time_series.csv"
 import delimited "`csvpath'"
