@@ -2,9 +2,14 @@
 
 program plt_fitted
 	
-	syntax [anything], [SUFFIX(string)] [SAVEDIR(string)] [FD(integer 0)]
+	syntax [anything], [SUFFIX(string)] [SAVEDIR(string)] [FD(integer 0)] [FULLSAMPLE(integer 0)]
 	
 	local state "`anything'"
+	
+	preserve
+	if !`fullsample' {
+		keep if restr_sample
+	}
 
 	tempvar yhat
 	predict `yhat', xb
@@ -33,8 +38,8 @@ program plt_fitted
 	local num_cases: di %7.5g `=`num_cases''
 
 	#delimit ;
-	twoway line mobility_`suffix' date if statename == "`state'"
-		|| line `fitted_levels' date if statename == "`state'",
+	twoway scatter mobility_`suffix' date if statename == "`state'"
+		|| scatter `fitted_levels' date if statename == "`state'",
 		graphregion(color(gs16)) title("`state', cases/cap = `num_cases'");
 	#delimit cr
 	
@@ -43,4 +48,6 @@ program plt_fitted
 		graph export "`savedir'/`state'.png", replace
 		graph close
 	}
+	
+	restore
 end

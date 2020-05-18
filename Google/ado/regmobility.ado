@@ -3,7 +3,7 @@ program regmobility, rclass
 	syntax [anything], [FD(integer 0)] [NATL(integer 0)] [QUAD(integer 0)]
 		[SUFFIX(string)] [ESTNUM(integer 0)] [STATE(integer 0)]
 		[POPWGT(integer 0)] [NATQUAD(integer 0)] [STDIFF(integer 0)]
-		[POLICYVARS(string)];
+		[POLICYVARS(string)] [STDOW(integer 0)] [FULLSAMPLE(integer 0)];
 	#delimit cr
 	
 	* PREFIX FOR FD
@@ -23,18 +23,23 @@ program regmobility, rclass
 	* POPULATION WEIGHTS
 	local wgt_macro = cond(`popwgt', "[aw=wgt]", "")
 	
-	* MARCH 13 INDICATOR
-	local march13 i.stateid#c.`FD'd_march13
-	
 	* DAY-OF-WEEK DUMMIES
-	local day_dummies i.stateid#day_of_week
+	local DST = cond(`stdow', "i.stateid#c.", "")
+// 	#delimit ;
+// 	local day_dummies `DST'd_dow0 `DST'd_dow1 `DST'd_dow2 `DST'd_dow3
+// 		`DST'd_dow4 `DST'd_dow5 `DST'd_dow6;
+// 	#delimit cr
+// 	local day_dummies `DST'd_dow0 `DST'd_dow6
+	
+	
+	* SAMPLE RESTRICTION
+	local sample_macro = cond(`fullsample', "", "if restr_sample")
 
 	#delimit ;
 	eststo EST`estnum': reg `depvar'
 		`varcases'
 		`policyvars'
-		`march13'
-		`day_dummies'
+		`sample_macro'
 		`wgt_macro', vce(cluster stateid);
 	#delimit cr
 end

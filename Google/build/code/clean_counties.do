@@ -94,3 +94,29 @@ rename stay_at_home shelter_in_place
 
 * Merge with dine-in-bans
 merge m:1 state using "build/temp/dine_in_bans.dta", nogen keep(1 3)
+
+* County id
+egen ctyid = group(state county)
+
+* Recode mobility
+replace mobility_rr = log(1 + mobility_rr / 100)
+replace mobility_work = log(1 + mobility_work / 100)
+
+label variable mobility_work "Log mobility, workplaces"
+label variable mobility_rr "Log mobility, retail and rec"
+
+* Recode cases
+bysort ctyid: egen tmp_cases = total(cases), missing
+replace cases = 0 if missing(cases) & !missing(tmp_cases)
+drop tmp_cases
+replace cases = cases / population
+
+* Create recovery-adjusted cases
+tsset ctyid date
+
+rename cases tmp_cases
+gen cases = tmp_cases - 0.1 * L.tmp_cases
+drop tmp_cases
+
+* Save
+save "build/output/cleaned_counties.dta", replace
