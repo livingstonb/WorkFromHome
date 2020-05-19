@@ -200,12 +200,14 @@ gen Fd_non_essential_closure = FD.d_non_essential_closure
 gen Ld_school_closure = LD.d_school_closure
 gen Fd_school_closure = FD.d_school_closure
 gen Ld_dine_in_ban = LD.d_dine_in_ban
-gen Fd_dine_in_ban = Fd.d_dine_in_ban
-gen Fd_shelter_in_place = Fd.d_shelter_in_place
+gen Fd_dine_in_ban = FD.d_dine_in_ban
+gen Ld_shelter_in_place = LD.d_shelter_in_place
+gen Fd_shelter_in_place = FD.d_shelter_in_place
 
 label variable Ld_non_essential_closure "Lag, non-essential closure"
 label variable Ld_school_closure "Lag, school closure"
 label variable Ld_dine_in_ban "Lag, dine-in ban"
+label variable Ld_shelter_in_place "Lag, shelter-in-place"
 
 label variable Fd_non_essential_closure "Lead, non-essential closure"
 label variable Fd_shelter_in_place "Lead, shelter-in-place"

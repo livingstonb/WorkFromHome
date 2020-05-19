@@ -12,21 +12,6 @@ directories for the input, output, logs, and intermediate files.
 
 Code in each module expects the current working directory to be the module directory. E.g. to run code in the ACS module, first cd into *WorkFromHome/ACS*.
 
-## Make
-
-### Matlab code
-
-Most of the code is in Stata, but in some cases we use Matlab. Matlab code used in this repository is not as tightly integrate
-
-### Interdependencies
-
-Since there are interdependencies between the datasets, I rely heavily on GNU make to manage the code. If you would like to run the Stata code without the use of make, you can account for these dependencies by looking in the *misc/procedures/* directory, which provides for each dataset a potential order in which the code can be run without missing any dependencies. The *all.txt* file contains a suggested order of commands if you would like to run code for all of the datasets.
-
-### A note about how I use make
-
-In most Stata do-files, I include commands which have no effect in Stata but can be parsed by python to keep track of dependencies and targets. The keywords *#PREREQ* and *#TARGET*,
-when found in a given line, will tell python to look for a filename enclosed in double quotes on the same line. These filenames are then used to create a .mk file corresponding with the do-file which contains rules for make. I create these files dynamically and include them in the makefile.
-
 # Modules
 
 ## ACS
