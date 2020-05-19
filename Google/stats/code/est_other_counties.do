@@ -3,11 +3,11 @@ estimates clear
 
 
 
-* Benchmark
-local policyvars d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
-#delimit ;
-eststo: reg mobility_work cases `policyvars' if restr_sample, vce(cluster stateid);
-#delimit cr
+// * Benchmark
+// local policyvars d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+// #delimit ;
+// eststo: reg mobility_work cases `policyvars' if restr_sample, vce(cluster stateid);
+// #delimit cr
 
 local mtitles `"Benchmark"'
 
@@ -57,6 +57,67 @@ foreach pow of local powers {
 }
 }
 
+* Loop over weights and alpha
+estimates clear
+
+local lags 1
+
+local policyvars d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+if `lags' {
+	#delimit ;
+	local policyvars `policyvars' Fd_shelter_in_place
+		Ld_dine_in_ban Ld_school_closure Ld_non_essential_closure
+		Fd_dine_in_ban Fd_school_closure Fd_non_essential_closure;
+	#delimit cr
+}
+
+local alphas 0.8 0.9 1
+
+capture gen adj_cases100 = cases
+capture gen wgts = population / 10000
+
+local ii = 0
+forvalues usewgts = 0/1 {
+foreach alpha of local alphas {
+	local ++ii
+
+	local suff = "`=round(`alpha' * 100)'"
+	local recovery = 1 - `alpha'
+	capture gen pow_cases`suff' = adj_cases`suff' ^ 0.25
+	label variable pow_cases`suff' "$\text{Cases}^{0.25}$, recov = `recovery'"
+	
+	local wgt_macro = cond(`usewgts', "[aw=wgts]", "")
+	
+	eststo: reg mobility_work pow_cases`suff' `policyvars' if restr_sample `wgt_macro', vce(cluster stateid)
+	
+	local title1 = "recov = `recovery'"
+	local title2 = cond(`usewgts', ", wtd", "")
+	local title = "`title1'`title2'"
+	
+	if `ii' == 1 {
+		local mtitles `"`title'"'
+	}
+	else {
+		local mtitles `"`mtitles'"' `"`title'"'
+	}
+}
+}
+
+local regnum = cond(`lags', 2, 1)
+
+local regtitle = "Recovery rate and population weights"
+local regtitle = cond(`lags', "`regtitle', leads and lags", "`regtitle'")
+
+#delimit ;
+esttab using "stats/output/county_regressions`regnum'.tex", 
+		replace label compress booktabs not
+		keep(pow_cases80 pow_cases90 pow_cases100
+		`policyvars')
+		r2 ar2 scalars(N)
+		mtitles(`"`mtitles'"')
+		title("`regtitle'");
+#delimit cr
+
 * Mean cases values
 preserve
 
@@ -80,11 +141,7 @@ restore
 #delimit ;
 esttab using "stats/output/county_regressions.tex", 
 		replace label compress booktabs not
-		addnotes("Pop-weighted mean of peak cases = `mean_max_cases'"
-		"Pop-weighted mean of $(\text{peak cases}) ^ {0.25}$ = `mean_max_cases_pow1'"
-		"Pop-weighted mean of $(\text{peak cases}) ^ {0.5}$ = `mean_max_cases_pow2'"
-		"Pop-weighted mean of $(\text{peak cases}) ^ {0.75}$ = `mean_max_cases_pow3'")
-		keep(cases pow_cases1 pow_cases2 pow_cases3
+		keep(cases pow_cases80 pow_cases90 pow_cases100
 		d_school_closure Ld_school_closure Fd_school_closure
 		d_dine_in_ban Ld_dine_in_ban Fd_dine_in_ban
 		d_non_essential_closure Ld_non_essential_closure Fd_non_essential_closure

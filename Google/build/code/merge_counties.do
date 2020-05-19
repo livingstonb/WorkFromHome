@@ -169,20 +169,19 @@ label variable cases "County cases p.c."
 tsset ctyid date
 
 gen dcases = D.cases
+replace dcases = 0 if (cases == 0) & missing(L.cases)
 
-gen cases90 = cases if date <= date("2020-02-24", "YMD")
-by ctyid: replace cases90 = cond(date > date("2020-02-24", "YMD"), dcases + 0.9 * cases90[_n-1], cases90)
-replace cases90 = 0 if missing(dcases) & (cases == 0)
+gen adj_cases90 = cases if date <= date("2020-02-24", "YMD")
+by ctyid: replace adj_cases90 = cond(date > date("2020-02-24", "YMD"), max(dcases + 0.9 * adj_cases90[_n-1], 0), adj_cases90)
 
-gen cases80 = cases if date <= date("2020-02-24", "YMD")
-by ctyid: replace cases80 = cond(date > date("2020-02-24", "YMD"), dcases + 0.8 * cases80[_n-1], cases80)
-replace cases80 = 0 if missing(dcases) & (cases == 0)
+gen adj_cases80 = cases if date <= date("2020-02-24", "YMD")
+by ctyid: replace adj_cases80 = cond(date > date("2020-02-24", "YMD"), max(dcases + 0.8 * adj_cases80[_n-1], 0), adj_cases80)
 
 drop dcases
 
 label variable cases "County cases p.c."
-label variable cases90 "County cases p.c. (0.1 rec rate)"
-label variable cases80 "County cases p.c. (0.2 rec rate)"
+label variable adj_cases90 "County cases p.c. (0.1 rec rate)"
+label variable adj_cases80 "County cases p.c. (0.2 rec rate)"
 
 * Dummies
 gen d_non_essential_closure = date >= non_essential_closure & !missing(non_essential_closure)
@@ -215,6 +214,10 @@ label variable Fd_dine_in_ban "Lead, dine-in ban"
 
 * March 13th dummy
 gen d_march13 = date >= date("2020-03-13", "YMD")
+
+* State identifier
+rename state statename
+encode statename, gen(stateid)
 
 * Save
 save "build/output/cleaned_counties.dta", replace
