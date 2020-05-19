@@ -150,3 +150,17 @@ esttab using "stats/output/county_regressions.tex",
 		mtitles(`"`mtitles'"')
 		title("Workplaces, levels");
 #delimit cr
+
+
+
+
+
+
+
+* NL
+capture gen wgts = population / 10000
+
+gen nl_sample = restr_sample & !missing(d_dine_in_ban, d_school_closure, d_non_essential_closure, d_shelter_in_place, cases, mobility_work)
+local policyvars d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+local linear xb: `policyvars'
+nl (mobility_work = {b0=-1} * adj_cases90 ^ {b1=0.25} + {`linear'}) if nl_sample, vce(cluster stateid)
