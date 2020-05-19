@@ -48,15 +48,19 @@ else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))
 }
 
-* Only use counties with no non-missing mobility values
-by ctyid: egen nmiss = total(missing(mobility_work)) if restr_sample
-replace restr_sample = 0 if (nmiss > 0)
-drop nmiss
 
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
 replace restr_sample = 0 if weekend
+
+* Identify counties with all missing
+by ctyid: egen nmiss = count(mobility_work) if restr_sample
+replace restr_sample = 0 if (nmiss == 0)
+drop nmiss
+
+// * Add Mondays following shelter-in-place, if SIP was over weekend
+// gen sip_weekend = inlist(dow(shelter_in_place), 0, 6)
 
 * Week
 gen wk = week(date)

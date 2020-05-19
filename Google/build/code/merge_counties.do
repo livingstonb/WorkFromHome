@@ -10,6 +10,23 @@ gen date = date(tmp_date, "YMD")
 format date %td
 drop tmp_date
 
+tempfile covidtmp
+save `covidtmp'
+
+duplicates drop state county, force
+keep county state
+local d1 = date("2020-02-15", "YMD")
+local d2 = date("2020-05-01", "YMD")
+
+local diff = `d2' - `d1' + 1
+expand `diff'
+
+gen date = date("2020-02-14", "YMD")
+bysort state county: replace date = date + _n
+format %td date
+
+merge 1:1 state county date using `covidtmp', nogen keep(1 3)
+
 #delimit ;
 replace county = subinstr(county, " city", "", .)
 	if !(inlist(county, "Fairfax city", "Franklin city",
@@ -20,10 +37,17 @@ replace county = subinstr(county, " city", "", .)
 
 * Merge with mobility
 sort state county date
-merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen
-
-drop if date < date("2020-02-15", "YMD") | date > date("2020-05-02", "YMD")
+merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen keep(1 3)
 drop if county == "Unknown"
+
+* Missing cases means county was not listed for a date --> zero cases
+bysort state county: egen cases_present = count(cases)
+gen make_change = cases_present & missing(cases)
+replace cases = 0 if make_change
+replace deaths = 0 if make_change
+replace master = 1 if make_change
+drop make_change cases_present
+drop if missing(cases)
 
 * Merge with population
 preserve
@@ -133,11 +157,7 @@ replace mobility_work = log(1 + mobility_work / 100)
 label variable mobility_work "Log mobility, workplaces"
 label variable mobility_rr "Log mobility, retail and rec"
 
-* Recode cases
-bysort ctyid: egen tmp_cases = total(cases), missing
-replace cases = 0 if missing(cases) & !missing(tmp_cases)
-drop tmp_cases
-
+* Recode cases as per capita
 replace cases = cases / population
 
 * Use moving average of cases
@@ -145,21 +165,24 @@ rename cases raw_cases
 moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(3)
 label variable cases "County cases p.c."
 
-
 * Create recovery-adjusted cases
 tsset ctyid date
 
-rename cases tmp_cases
-// gen cases = tmp_cases - 0.1 * L.tmp_cases
-// drop tmp_cases
-gen dcases = D.tmp_cases
+gen dcases = D.cases
 
-gen cases = tmp_cases if date == date("2020-02-24", "YMD")
-by ctyid: replace cases = dcases + 0.9 * cases[_n-1] in 2/l if date >= date("2020-02-24", "YMD")
-replace cases = tmp_cases if date == date("2020-02-24", "YMD")
+gen cases90 = cases if date <= date("2020-02-24", "YMD")
+by ctyid: replace cases90 = cond(date > date("2020-02-24", "YMD"), dcases + 0.9 * cases90[_n-1], cases90)
+replace cases90 = 0 if missing(dcases) & (cases == 0)
+
+gen cases80 = cases if date <= date("2020-02-24", "YMD")
+by ctyid: replace cases80 = cond(date > date("2020-02-24", "YMD"), dcases + 0.8 * cases80[_n-1], cases80)
+replace cases80 = 0 if missing(dcases) & (cases == 0)
+
 drop dcases
 
 label variable cases "County cases p.c."
+label variable cases90 "County cases p.c. (0.1 rec rate)"
+label variable cases80 "County cases p.c. (0.2 rec rate)"
 
 * Dummies
 gen d_non_essential_closure = date >= non_essential_closure & !missing(non_essential_closure)
