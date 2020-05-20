@@ -50,11 +50,10 @@ by ctyid: egen avg_gcases = mean(gcases) if restr_sample
 replace avg_gcases = 0 if adj_cases90 == 0
 replace gcases = 0 if missing(gcases)
 
-
-
-
-
-
+* Generate first-differenced variables
+foreach var of varlist *d_* mobility_work {
+	gen FD_`var' = D.`var'
+}
 
 
 

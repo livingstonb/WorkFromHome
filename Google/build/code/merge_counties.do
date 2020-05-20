@@ -166,7 +166,7 @@ replace cases = cases / population
 
 * Use moving average of cases
 rename cases raw_cases
-moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(3)
+moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(5)
 label variable cases "County cases p.c."
 
 * Create recovery-adjusted cases
@@ -188,23 +188,26 @@ label variable adj_cases90 "County cases p.c. (0.1 rec rate)"
 label variable adj_cases80 "County cases p.c. (0.2 rec rate)"
 
 * Dummies
-gen d_non_essential_closure = date >= non_essential_closure & !missing(non_essential_closure)
-gen d_shelter_in_place = date >= shelter_in_place & !missing(shelter_in_place)
-gen d_school_closure = date >= school_closure & !missing(school_closure)
-gen d_dine_in_ban = date >= dine_in_ban & !missing(dine_in_ban)
+tsset ctyid date
+
+local policies non_essential_closure school_closure dine_in_ban shelter_in_place
+foreach policy of local policies {
+// 	by ctyid: gen L`var' = `var'[_n-1]
+// 	by ctyid: gen F`var' = `var'[_n+1]
+	gen d_`policy' = (date >= `policy') if !missing(`policy')
+	gen Ld_`policy' = (date > `policy') if !missing(`policy')
+	gen Fd_`policy' = (date == `policy' - 1) if !missing(`policy')
+}
+
+// gen d_non_essential_closure = date >= non_essential_closure & !missing(non_essential_closure)
+// gen d_shelter_in_place = date >= shelter_in_place & !missing(shelter_in_place)
+// gen d_school_closure = date >= school_closure & !missing(school_closure)
+// gen d_dine_in_ban = date >= dine_in_ban & !missing(dine_in_ban)
 
 label variable d_non_essential_closure "Non-essential closure"
 label variable d_shelter_in_place "Shelter-in-place"
 label variable d_school_closure "School closure"
 label variable d_dine_in_ban "Dine-in ban"
-
-* Leads and lags
-tsset ctyid date
-
-foreach var of varlist d_non_essential_closure d_school_closure d_dine_in_ban d_shelter_in_place {
-	by ctyid: gen L`var' = `var'[_n-1]
-	by ctyid: gen F`var' = `var'[_n+1]
-}
 
 label variable Ld_non_essential_closure "Lag, non-essential closure"
 label variable Ld_school_closure "Lag, school closure"
