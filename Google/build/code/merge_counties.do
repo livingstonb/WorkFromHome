@@ -47,9 +47,15 @@ drop mob_merged
 bysort state county: egen cases_present = count(cases)
 gen make_change = cases_present & missing(cases)
 replace cases = 0 if make_change
-replace deaths = 0 if make_change
 replace master = 1 if make_change
 drop make_change cases_present
+
+bysort state county: egen deaths_present = count(deaths)
+gen make_change = deaths_present & missing(deaths)
+replace deaths = 0 if make_change
+// replace master = 1 if make_change
+drop make_change deaths_present
+
 drop if missing(cases) & !(inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York")
 
 * Merge with population
@@ -161,12 +167,13 @@ replace mobility_work = log(1 + mobility_work / 100)
 label variable mobility_work "Log mobility, workplaces"
 label variable mobility_rr "Log mobility, retail and rec"
 
-* Recode cases as per capita
+* Recode cases and deaths as per capita
 replace cases = cases / population
+replace deaths = deaths / population
 
 * Use moving average of cases
 rename cases raw_cases
-moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(5)
+moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(3)
 label variable cases "County cases p.c."
 
 * Create recovery-adjusted cases
@@ -187,22 +194,20 @@ label variable cases "County cases p.c."
 label variable adj_cases90 "County cases p.c. (0.1 rec rate)"
 label variable adj_cases80 "County cases p.c. (0.2 rec rate)"
 
+* Create lags of cases
+foreach var of varlist cases adj_cases90 adj_cases80 {
+	gen L_`var' = L.`var'
+}
+
 * Dummies
 tsset ctyid date
 
 local policies non_essential_closure school_closure dine_in_ban shelter_in_place
 foreach policy of local policies {
-// 	by ctyid: gen L`var' = `var'[_n-1]
-// 	by ctyid: gen F`var' = `var'[_n+1]
-	gen d_`policy' = (date >= `policy') if !missing(`policy')
-	gen Ld_`policy' = (date > `policy') if !missing(`policy')
-	gen Fd_`policy' = (date == `policy' - 1) if !missing(`policy')
+	gen d_`policy' = (date >= `policy') & !missing(`policy')
+	gen Ld_`policy' = (date > `policy') & !missing(`policy')
+	gen Fd_`policy' = (date >= `policy' - 1) & !missing(`policy')
 }
-
-// gen d_non_essential_closure = date >= non_essential_closure & !missing(non_essential_closure)
-// gen d_shelter_in_place = date >= shelter_in_place & !missing(shelter_in_place)
-// gen d_school_closure = date >= school_closure & !missing(school_closure)
-// gen d_dine_in_ban = date >= dine_in_ban & !missing(dine_in_ban)
 
 label variable d_non_essential_closure "Non-essential closure"
 label variable d_shelter_in_place "Shelter-in-place"

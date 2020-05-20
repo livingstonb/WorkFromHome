@@ -5,13 +5,28 @@ Non-linear least squares estimation on county-level mobility data
 clear
 do "stats/code/prepare_counties_data.do"
 
-* Set experiment
-local experiment 3
+// SET MACROS
+* Specification number
+local experiment 2
 
-* First differences
-local FD FD_
+* Name of cases variable
+local cases adj_cases90
 
-* Macros
+* Name of mobility variable
+local depvar mobility_work
+
+
+* More macros, set automatically based on macros assigned above
+if inlist(`experiment', 11, 12) {
+	local FD FD_
+	local cases_expr {b0=-1} * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
+	local depvar = FD_`depvar'
+}
+else {
+	local FD
+	local cases_expr {b0=-1} * `cases' ^ {b1=0.25}
+}
+
 #delimit ;
 local pvars `FD'd_dine_in_ban `FD'd_school_closure `FD'd_non_essential_closure
 	`FD'd_shelter_in_place;
@@ -19,31 +34,28 @@ local pvars `FD'd_dine_in_ban `FD'd_school_closure `FD'd_non_essential_closure
 local plags `FD'Ld_dine_in_ban `FD'Ld_school_closure `FD'Ld_non_essential_closure `FD'Ld_shelter_in_place;
 
 local pleads `FD'Fd_dine_in_ban `FD'Fd_school_closure `FD'Fd_non_essential_closure `FD'Fd_shelter_in_place;
-
-if "`FD'" == "FD_" {;
-	capture gen FD_adj_cases90 = D.adj_cases90;
-	replace FD_adj_cases90 = 0 if FD_adj_cases90 < 0;
-};
-local cases_expr {b0=-1} * `FD'adj_cases90 ^ {b1=0.25};
 #delimit cr
-
 
 * Benchmark
 if `experiment' == 1 {
+	capture drop nl_sample
+
 	#delimit ;
 	gen nl_sample = restr_sample &
-		!missing(`FD'd_dine_in_ban, `FD'd_school_closure,
-			`FD'd_non_essential_closure, `FD'd_shelter_in_place,
-			`FD'adj_cases90, `FD'mobility_work);
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars'
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	quietly nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 
 * Leads and lags
-if `experiment' == 2 {
+else if `experiment' == 2 {
+	capture drop nl_sample
+
 	#delimit ;
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
@@ -52,36 +64,34 @@ if `experiment' == 2 {
 			Fd_dine_in_ban, Fd_school_closure, Ld_shelter_in_place,
 			Ld_non_essential_closure, Fd_non_essential_closure,
 			Fd_shelter_in_place,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' `pleads' `plags'
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 
 * Population-weighted
-if `experiment' == 3 {
-	capture drop wgts
+else if `experiment' == 3 {
 	capture drop nl_sample
-	gen wgts = population / 10000
 	
 	#delimit ;
 	gen nl_sample = restr_sample &
-		!missing(`FD'd_dine_in_ban, `FD'd_school_closure,
-			`FD'd_non_essential_closure, `FD'd_shelter_in_place,
-			`FD'adj_cases90, `FD'mobility_work, wgts, population);
+		!missing(d_dine_in_ban, `FD'd_school_closure,
+			d_non_essential_closure, `FD'd_shelter_in_place,
+			`cases', `depvar', wgts, population);
 	#delimit cr
 
 	local linear xb: `pvars'
-	nl (mobility_work = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
 
-	drop wgts nl_sample
+	drop nl_sample
 }
 
 * Weighted, leads and lags
-if `experiment' == 4 {
-	gen wgts = population / 10000
+else if `experiment' == 4 {
+	capture drop nl_sample
 
 	#delimit ;
 	gen nl_sample = restr_sample &
@@ -91,16 +101,16 @@ if `experiment' == 4 {
 			Fd_dine_in_ban, Fd_school_closure, Ld_shelter_in_place
 			Ld_non_essential_closure, Fd_non_essential_closure,
 			Fd_shelter_in_place, wgts,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' `pleads' `plags'
-	nl (mobility_work = `cases_expr' + {`linear'}) [iw=wgts] if nl_sample, robust noconstant
-	drop wgts nl_sample
+	nl (`depvar' = `cases_expr' + {`linear'}) [iw=wgts] if nl_sample, robust noconstant
+	drop nl_sample
 }
 
 * State-specific fixed effect
-if `experiment' == 5 {
+else if `experiment' == 5 {
 	capture drop nl_sample
 	capture drop d_state*
 
@@ -110,16 +120,16 @@ if `experiment' == 5 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' d_state*
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample d_state*
 }
 
 * State-specific coefficients on policies
-if `experiment' == 6 {
+else if `experiment' == 6 {
 	capture drop nl_sample
 	capture drop d_state*
 
@@ -138,16 +148,16 @@ if `experiment' == 6 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' `stmacro'
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample d_state* state*_d_*
 }
 
 * State-specific fixed effects and coefficients on policies
-if `experiment' == 7 {
+else if `experiment' == 7 {
 	capture drop nl_sample
 	capture drop d_state*
 
@@ -166,16 +176,16 @@ if `experiment' == 7 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' `stmacro' d_state*
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample d_state* state*_d_*
 }
 
 * With state-specific 3/13 dummy
-if `experiment' == 8 {
+else if `experiment' == 8 {
 	capture drop nl_sample
 	capture drop d_state*
 
@@ -192,72 +202,92 @@ if `experiment' == 8 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			adj_cases90, mobility_work);
+			`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars' state*_march13
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample d_state*
 }
 
 * New cases instead of total
-if `experiment' == 9 {
+else if `experiment' == 9 {
 	capture drop nl_sample
 	capture drop new_cases
-	gen new_cases = D.cases
+	gen new_cases = D.`cases'
 	replace new_cases = 0 if new_cases < 0
 	
 	#delimit ;
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			new_cases, mobility_work);
+			new_cases, `depvar');
 	#delimit cr
 
 	local cases_expr {b0=-1} * new_cases ^ {b1=0.25}
 	local linear xb: `pvars'
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 
-* New cases, weighted
-if `experiment' == 10 {
-	capture drop wgts
+* New deaths, weighted
+else if `experiment' == 10 {
 	capture drop nl_sample
-	capture drop new_cases
+	capture drop new_deaths
 
-	gen new_cases = D.cases
-	gen wgts = population / 10000
+	gen new_deaths = D.deaths
 
-	replace new_cases = 0 if new_cases < 0
+	replace new_deaths = 0 if new_deaths < 0
 	
 	#delimit ;
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			new_cases, mobility_work);
+			new_deaths, `depvar');
 	#delimit cr
 
-	local cases_expr {b0=-1} * new_cases ^ {b1=0.25}
+	local cases_expr {b0=-1} * new_deaths ^ {b1=0.25}
 	local linear xb: `pvars'
-	nl (mobility_work = `cases_expr' + {`linear'}) [iw=wgts] if nl_sample, robust noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) [iw=wgts] if nl_sample, robust noconstant
+
 	drop nl_sample
 }
 
 * First differences
-if `experiment' == 11 {
+else if `experiment' == 11 {
 	capture drop nl_sample
-	capture drop dcases
+	
 	#delimit ;
 	gen nl_sample = restr_sample &
-		!missing(d_dine_in_ban, d_school_closure,
-			d_non_essential_closure, d_shelter_in_place,
-			adj_cases90, mobility_work);
+		!missing(FD_d_dine_in_ban, FD_d_school_closure,
+			FD_d_non_essential_closure, FD_d_shelter_in_place,
+			`cases', L_`cases', `depvar');
 	#delimit cr
 
 	local linear xb: `pvars'
-	nl (mobility_work = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, robust noconstant
+
 	drop nl_sample
 }
 
-esttab, coeflabels(b0: "Cases pc, coeff" b1: "Cases pc, power")
+* First differences, weighted
+else if `experiment' == 12 {
+	capture drop nl_sample
+	
+	#delimit ;
+	gen nl_sample = restr_sample &
+		!missing(FD_d_dine_in_ban, FD_d_school_closure,
+			FD_d_non_essential_closure, FD_d_shelter_in_place,
+			`cases', L_`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars'
+	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
+
+	drop nl_sample
+}
+
+* Show results
+estimates
+
+// esttab, coeflabels(b0: "Cases pc, coeff" b1: "Cases pc, power")

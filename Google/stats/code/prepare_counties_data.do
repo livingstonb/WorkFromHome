@@ -30,6 +30,9 @@ else {
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
+gen sunday = (day_of_week == 0)
+gen saturday = (day_of_week == 6)
+gen monday = (day_of_week == 1)
 replace restr_sample = 0 if weekend
 
 * Identify counties with all missing
@@ -52,13 +55,13 @@ replace gcases = 0 if missing(gcases)
 
 * Generate first-differenced variables
 foreach var of varlist *d_* mobility_work {
-	gen FD_`var' = D.`var'
+	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
 
 
 
-
-// gen wgts = population / 10000
+* Population weights
+gen wgts = population / 10000
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
 
 
