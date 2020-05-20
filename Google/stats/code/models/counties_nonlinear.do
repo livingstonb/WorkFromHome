@@ -6,7 +6,7 @@ clear
 do "stats/code/prepare_counties_data.do"
 
 * Set experiment
-local experiment 8
+local experiment 3
 
 * Macros
 #delimit ;
@@ -55,6 +55,7 @@ if `experiment' == 2 {
 
 * Population-weighted
 if `experiment' == 3 {
+	capture drop wgts nl_sample
 	gen wgts = population / 10000
 	
 	#delimit ;

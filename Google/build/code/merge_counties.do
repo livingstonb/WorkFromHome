@@ -37,8 +37,11 @@ replace county = subinstr(county, " city", "", .)
 
 * Merge with mobility
 sort state county date
-merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen keep(1 3)
+merge 1:1 state county date using "build/temp/mobility_counties.dta", gen(mob_merged)
 drop if county == "Unknown"
+
+keep if inlist(mob_merged, 1, 3) | (inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York")
+drop mob_merged
 
 * Missing cases means county was not listed for a date --> zero cases
 bysort state county: egen cases_present = count(cases)
@@ -47,7 +50,7 @@ replace cases = 0 if make_change
 replace deaths = 0 if make_change
 replace master = 1 if make_change
 drop make_change cases_present
-drop if missing(cases)
+drop if missing(cases) & !(inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York")
 
 * Merge with population
 preserve
@@ -104,6 +107,7 @@ save `nytmp'
 restore
 
 merge 1:1 state county date using `nytmp', nogen update
+drop if inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York"
 
 * Drop observations from using
 keep if master
@@ -195,14 +199,12 @@ label variable d_school_closure "School closure"
 label variable d_dine_in_ban "Dine-in ban"
 
 * Leads and lags
-gen Ld_non_essential_closure = LD.d_non_essential_closure
-gen Fd_non_essential_closure = FD.d_non_essential_closure
-gen Ld_school_closure = LD.d_school_closure
-gen Fd_school_closure = FD.d_school_closure
-gen Ld_dine_in_ban = LD.d_dine_in_ban
-gen Fd_dine_in_ban = FD.d_dine_in_ban
-gen Ld_shelter_in_place = LD.d_shelter_in_place
-gen Fd_shelter_in_place = FD.d_shelter_in_place
+tsset ctyid date
+
+foreach var of varlist d_non_essential_closure d_school_closure d_dine_in_ban d_shelter_in_place {
+	by ctyid: gen L`var' = `var'[_n-1]
+	by ctyid: gen F`var' = `var'[_n+1]
+}
 
 label variable Ld_non_essential_closure "Lag, non-essential closure"
 label variable Ld_school_closure "Lag, school closure"
@@ -220,6 +222,10 @@ gen d_march13 = date >= date("2020-03-13", "YMD")
 * State identifier
 rename state statename
 encode statename, gen(stateid)
+
+* Merge land area
+merge m:1 statename count using "build/temp/county_land_areas.dta", nogen keep(1 3)
+gen popdensity = population / land
 
 * Save
 save "build/output/cleaned_counties.dta", replace

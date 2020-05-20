@@ -43,3 +43,37 @@ drop nmiss
 * Week
 gen wk = week(date)
 
+
+* Growth rate of cases
+by ctyid: gen gcases = D.adj_cases90 / L.adj_cases90
+by ctyid: egen avg_gcases = mean(gcases) if restr_sample
+replace avg_gcases = 0 if adj_cases90 == 0
+replace gcases = 0 if missing(gcases)
+
+
+
+
+
+
+
+
+
+
+// gen wgts = population / 10000
+// twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
+
+
+
+
+
+
+
+
+* Average number of cases by county
+by ctyid: egen avg_cases = mean(adj_cases90) if restr_sample
+egen ctag = tag(ctyid) if !missing(avg_cases)
+
+// _pctile avg_cases if ctag, percentiles(5 95)
+//
+// replace restr_sample = 0 if avg_cases <= r(r1)
+// replace restr_sample = 0 if avg_cases >= r(r2)
