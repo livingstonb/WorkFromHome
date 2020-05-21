@@ -19,9 +19,6 @@ gen `s2' = substr(socstr, 4, 1)
 gen soc3d2010 = `s1' + `s2'
 destring soc3d2010, replace force
 
-gen soc5d2010 = substr(socstr, 1, 6)
-replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
-destring soc5d2010, replace force
 rename socstr soc2010
 
 if (`censusyear' == 2018) {
@@ -32,11 +29,16 @@ if (`censusyear' == 2018) {
 	replace soc3d2010 = 514 if (census == 7905)
 	replace soc3d2010 = 537 if (census == 6821)
 }
+else {
+	gen soc5d2010 = substr(soc2010, 1, 6)
+	replace soc5d2010 = subinstr(soc5d2010, "-", "", .)
+	destring soc5d2010, replace force
+
+	quietly do "build/output/soc5dlabels2010.do"
+	label values soc5d2010 soc5d2010_lbl
+}
 
 gen soc2d2010 = floor(soc3d2010 / 10)
-
-quietly do "build/output/soc5dlabels2010.do"
-label values soc5d2010 soc5d2010_lbl
 
 quietly do "build/output/soc3dlabels2010.do"
 label values soc3d2010 soc3d2010_lbl
@@ -45,7 +47,7 @@ quietly do "build/output/soc2dlabels2010.do"
 label values soc2d2010 soc2d2010_lbl
 
 drop if census >= 9800
-keep census soc3d2010 soc2d2010 soc2010 soc5d2010
+keep census soc2010 soc*d2010
 
 label variable soc2010 "Occupation, 6-digit"
 label variable soc3d2010 "Occupation, 3-digit"

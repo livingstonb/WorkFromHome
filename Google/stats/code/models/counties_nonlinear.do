@@ -2,12 +2,12 @@
 Non-linear least squares estimation on county-level mobility data
 */
 
-clear
-do "stats/code/prepare_counties_data.do"
+// clear
+// quietly do "stats/code/prepare_counties_data.do"
 
 // SET MACROS
 * Specification number
-local experiment 2
+local experiment 1
 
 * Name of cases variable
 local cases adj_cases90
@@ -20,7 +20,7 @@ local depvar mobility_work
 if inlist(`experiment', 11, 12) {
 	local FD FD_
 	local cases_expr {b0=-1} * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
-	local depvar = FD_`depvar'
+	local depvar FD_`depvar'
 }
 else {
 	local FD
@@ -80,10 +80,10 @@ else if `experiment' == 3 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, `FD'd_school_closure,
 			d_non_essential_closure, `FD'd_shelter_in_place,
-			`cases', `depvar', wgts, population);
+			`cases', `depvar', wgts, population, m13_cv);
 	#delimit cr
 
-	local linear xb: `pvars'
+	local linear xb: `pvars' m13_cv
 	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
 
 	drop nl_sample

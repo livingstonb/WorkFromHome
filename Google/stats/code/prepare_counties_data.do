@@ -54,7 +54,7 @@ replace avg_gcases = 0 if adj_cases90 == 0
 replace gcases = 0 if missing(gcases)
 
 * Generate first-differenced variables
-foreach var of varlist *d_* mobility_work {
+foreach var of varlist *d_* mobility_work mobility_rr {
 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
 
