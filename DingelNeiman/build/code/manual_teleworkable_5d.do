@@ -14,12 +14,29 @@ rename a_mean meanwage
 keep if broad_level
 
 preserve
-collapse (sum) employment (mean) meanwage, by(sector soc5d2010)
+
+rename employment wgt
+gen employment = 1
+
+bysort sector soc5d2010: egen sumwgts = total(wgt)
+replace wgt = 1 if sumwgts == 0
+replace employment = 0 if sumwgts == 0
+
+collapse (sum) employment (mean) meanwage [iw=wgt], by(sector soc5d2010)
+
 tempfile bysector
 save `bysector'
 restore
 
-collapse (sum) employment (mean) meanwage, by(soc5d2010)
+rename employment wgt
+gen employment = 1
+
+bysort soc5d2010: egen sumwgts = total(wgt)
+replace wgt = 1 if sumwgts == 0
+replace employment = 0 if sumwgts == 0
+
+collapse (sum) employment (mean) meanwage [iw=wgt], by(soc5d2010)
+
 append using `bysector'
 replace sector = 2 if missing(sector)
 label define sector_lbl 2 "Pooled", modify
@@ -52,5 +69,7 @@ recode teleworkable (0.25 = 0) (0.75 = 1)
 // Merge with OES
 merge 1:m soc5d2010 using `oesdata', nogen keep(1 3)
 drop if missing(sector)
+
+sort soc5d2010 sector
 
 save "build/output/DN_5d_manual_scores.dta", replace
