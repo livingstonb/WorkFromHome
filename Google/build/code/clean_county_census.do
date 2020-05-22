@@ -5,6 +5,8 @@ import excel using "build/input/PctUrbanRural_County.xls", firstrow
 rename STATENAME statename
 rename COUNTYNAME county
 rename AREA_COU land
+rename POPPCT_RURAL rural
+rename POP_COU pop2010
 
 destring STATE, force replace
 destring COUNTY, force replace
@@ -21,8 +23,16 @@ preserve
 
 keep if statename == "New York"
 keep if inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond")
-collapse (firstnm) statename (sum) land
-gen county = "New York City"
+
+quietly sum land
+replace land = r(sum)
+
+quietly sum rural [iw=pop2010]
+replace rural = r(mean)
+
+keep if _n == 1
+replace county = "New York City"
+keep statename county land rural
 
 tempfile nyctemp
 save `nyctemp'
@@ -32,6 +42,12 @@ restore
 drop if (statename == "New York") & inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond")
 append using `nyctemp'
 
-keep statename county land
+keep statename county land rural
+replace rural = rural / 100
+
+label variable land "Land area in sq meters"
+label variabl rural "Share of population in rural areas"
+
+drop if statename == "Puerto Rico"
 
 save "build/temp/county_land_areas.dta", replace

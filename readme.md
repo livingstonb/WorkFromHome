@@ -12,6 +12,12 @@ directories for the input, output, logs, and intermediate files.
 
 Code in each module expects the current working directory to be the module directory. E.g. to run code in the ACS module, first cd into *WorkFromHome/ACS*.
 
+## Running code for an individual module
+Most modules have a do file with *main* in the filename, located in the main module directory, e.g. *WorkFromHome/ACS/main_acs.do*. For the most part, these scripts accept one or more arguments corresponding with different parts of the  module. The ACS main do-file, for example, can be passed arguments *build* or *stats* (or both) which will execute the code in the *build* directory and/or the *stats* directory independently. When no arguments are passed to these scripts, they execute as if all applicable arguments are passed. The main do-files can be used to run all the code or simply to ascertain the desired run order of the different scripts in subdirectories.
+
+## Running all of the code
+The *master.do* script in the main directory allows the user to run code for all of the modules sequentially, with the exceptions of the OpenTable and Google modules. Some of the modules depend on output from previous modules so the run order is sometimes important. The main scripts in the occupations and industries modules, for example, create crosswalks used by most of the other modules.
+
 # Modules
 
 ## ACS
@@ -110,6 +116,19 @@ Value added by industry and price indexes by industry downloaded from BEA.
 
 ## Dingel-Neiman
 
+We use datasets provided by Jonathan Dingel and Brent Nieman to construct a teleworkable indicator by occupation and sector (<https://github.com/jdingel/DingelNeiman-workathome>).
+
+### Required inputs
+
+* *build/input/occupations_workathome.csv*
+
+A dataset with an O\*NET teleworkable score for each occupation.
+
+* *build/input/teleworkable_opinion_edited.csv*
+
+A modified version of Dingel and Neiman's manual (opinion) teleworkable scores by occupation, where we recoded teleworkable to zero or one in the cases that it took the value of 0.5, using our own judgment. The original dataset from Dingel and Neiman was *Teleworkable_BNJDopinion.csv*.
+
+
 ## OpenTable
 
 ### Required inputs
@@ -128,14 +147,23 @@ Population ranks were then coded into *city_data.csv*, along with the approximat
 
 ### Required inputs
 
-We use Google mobility data, downloaded from <https://www.google.com/covid19/mobility/>.
-The input file used is cleaned somewhat, with non-US observations as well as county-level observations excluded, and some variables were renamed.
+* *build/input/Global_Mobility_Report.csv*
 
-* *build/input/cleaned_mobility_report.csv*
+Google mobility data, downloaded from <https://www.google.com/covid19/mobility/>.
 
-A file containing state-level data such as population estimates is also used.
+* *build/input/covid_counties.csv*
 
-* *build/input/state_data.xlsx*
+County-level data on cases and deaths related to covid-19, from the New York Times. Downloaded from <https://github.com/nytimes/covid-19-data>.
+
+* *build/input/county_populations.csv*
+
+County population estimates for 2019, from the Census.
+
+
+<!-- * *build/input/PctUrbanRural_County.xls* -->
+
+<!-- A Census dataset providing land area by county. Downloaded from <https://www.census.gov/programs-surveys/geography/technical-documentation/records-layout/2010-urban-lists-record-layout.html> -->
+
 
 ## Occupation crosswalks
 

@@ -20,10 +20,12 @@ local depvar mobility_work
 if inlist(`experiment', 11, 12) {
 	local FD FD_
 	local cases_expr {b0=-1} * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
+// 	local cases_expr ({b0=-1} + {b2=1} * rural) * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
 	local depvar FD_`depvar'
 }
 else {
 	local FD
+// 	local cases_expr ({b0=-1} + {b2=1} * rural) * `cases' ^ {b1=0.25}
 	local cases_expr {b0=-1} * `cases' ^ {b1=0.25}
 }
 
@@ -80,10 +82,10 @@ else if `experiment' == 3 {
 	gen nl_sample = restr_sample &
 		!missing(d_dine_in_ban, `FD'd_school_closure,
 			d_non_essential_closure, `FD'd_shelter_in_place,
-			`cases', `depvar', wgts, population, m13_cv);
+			`cases', `depvar', wgts);
 	#delimit cr
 
-	local linear xb: `pvars' m13_cv
+	local linear xb: `pvars'
 	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
 
 	drop nl_sample

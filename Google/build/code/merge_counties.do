@@ -1,7 +1,7 @@
 
 adopath + "../ado"
 
-* COVID cases and deaths
+* Read COVID cases and deaths
 import delimited "build/input/covid_counties.csv", clear varnames(1)
 gen master = 1
 
@@ -13,6 +13,7 @@ drop tmp_date
 tempfile covidtmp
 save `covidtmp'
 
+* Create a dataset with no missing dates
 duplicates drop state county, force
 keep county state
 local d1 = date("2020-02-15", "YMD")

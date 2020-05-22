@@ -65,8 +65,8 @@ gen wgts = population / 10000
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
 
 
-
-
+* Tag each county
+egen ctytag = tag(ctyid) if restr_sample
 
 
 
