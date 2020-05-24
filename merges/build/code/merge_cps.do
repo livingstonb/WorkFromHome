@@ -30,10 +30,13 @@ collapse (mean) teleworkable (mean) essential
 #delimit cr
 merge 1:1 soc3d2010 using `m3d', nogen
 save `m3d', replace
-restore
 
 * Read CPS data
 use "../CPS/build/output/cps_output.dta", clear
 
 * Merge
 merge m:1 soc3d2010 using `m3d', nogen
+
+sort soc3d2010 year month
+
+save "build/output/merged_cps.dta", replace
