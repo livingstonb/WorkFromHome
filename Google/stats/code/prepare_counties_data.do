@@ -17,11 +17,18 @@ keep if date >= date("2020-02-24", "YMD")
 local final_date // "2020-04-15"
 
 if "`final_date'" == "" {
-	gen restr_sample = (date <= shelter_in_place) if !missing(shelter_in_place)
+    quietly sum shelter_in_place
+	local last_sip = r(max)
 
-	quietly sum shelter_in_place
-	replace restr_sample = 0 if missing(shelter_in_place)
-	replace restr_sample = 1 if (date <= `r(max)') & missing(shelter_in_place)
+	gen sample_until_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
+	replace sample_until_sip = 0 if missing(shelter_in_place)
+	replace sample_until_sip = 1 if (date <= last_sip) & missing(shelter_in_place)
+	
+	gen sample_7d_after_sip = (date <= shelter_in_place + 7) if !missing(shelter_in_place)
+	replace sample_7d_after_sip = 0 if missing(shelter_in_place)
+	replace sample_7d_after_sip = 1 if (date <= last_sip + 7) & missing(shelter_in_place)
+	
+	local samples sample_until_sip sample_until_7d_after_sip
 }
 else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))
@@ -33,11 +40,14 @@ gen weekend = inlist(day_of_week, 0, 6)
 gen sunday = (day_of_week == 0)
 gen saturday = (day_of_week == 6)
 gen monday = (day_of_week == 1)
-replace restr_sample = 0 if weekend
+
+foreach var of varlist samples {
+    replace `var' = 0 if weekend
+}
 
 * Identify counties with all missing
 by ctyid: egen nmiss = count(mobility_work) if restr_sample
-replace restr_sample = 0 if (nmiss == 0)
+// replace restr_sample = 0 if (nmiss == 0)
 drop nmiss
 
 // * Add Mondays following shelter-in-place, if SIP was over weekend
@@ -48,9 +58,9 @@ gen wk = week(date)
 
 
 * Growth rate of cases
-by ctyid: gen gcases = D.adj_cases90 / L.adj_cases90
+by ctyid: gen gcases = D.adj_cases10 / L.adj_cases10
 by ctyid: egen avg_gcases = mean(gcases) if restr_sample
-replace avg_gcases = 0 if adj_cases90 == 0
+replace avg_gcases = 0 if adj_cases10 == 0
 replace gcases = 0 if missing(gcases)
 
 * Generate first-differenced variables

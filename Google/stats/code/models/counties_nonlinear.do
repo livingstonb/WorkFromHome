@@ -15,6 +15,8 @@ local cases adj_cases90
 * Name of mobility variable
 local depvar mobility_work
 
+* Name of sample variable
+local in_sample sample_until_sip
 
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 11, 12) {
@@ -43,7 +45,7 @@ if `experiment' == 1 {
 	capture drop nl_sample
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			`cases', `depvar');
@@ -59,7 +61,7 @@ else if `experiment' == 2 {
 	capture drop nl_sample
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			Ld_dine_in_ban, Ld_school_closure,
@@ -79,7 +81,7 @@ else if `experiment' == 3 {
 	capture drop nl_sample
 	
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, `FD'd_school_closure,
 			d_non_essential_closure, `FD'd_shelter_in_place,
 			`cases', `depvar', wgts);
@@ -96,7 +98,7 @@ else if `experiment' == 4 {
 	capture drop nl_sample
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			Ld_dine_in_ban, Ld_school_closure,
@@ -119,7 +121,7 @@ else if `experiment' == 5 {
 	tab stateid, gen(d_state)
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			`cases', `depvar');
@@ -147,7 +149,7 @@ else if `experiment' == 6 {
 	}
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			`cases', `depvar');
@@ -175,7 +177,7 @@ else if `experiment' == 7 {
 	}
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			`cases', `depvar');
@@ -201,7 +203,7 @@ else if `experiment' == 8 {
 	}
 
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			`cases', `depvar');
@@ -220,7 +222,7 @@ else if `experiment' == 9 {
 	replace new_cases = 0 if new_cases < 0
 	
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			new_cases, `depvar');
@@ -242,7 +244,7 @@ else if `experiment' == 10 {
 	replace new_deaths = 0 if new_deaths < 0
 	
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
 			new_deaths, `depvar');
@@ -260,7 +262,7 @@ else if `experiment' == 11 {
 	capture drop nl_sample
 	
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(FD_d_dine_in_ban, FD_d_school_closure,
 			FD_d_non_essential_closure, FD_d_shelter_in_place,
 			`cases', L_`cases', `depvar');
