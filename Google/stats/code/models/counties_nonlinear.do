@@ -10,13 +10,13 @@ Non-linear least squares estimation on county-level mobility data
 local experiment 1
 
 * Name of cases variable
-local cases adj_cases90
+local cases deaths
 
 * Name of mobility variable
 local depvar mobility_work
 
 * Name of sample variable
-local in_sample sample_until_sip
+local in_sample sample_7d_after_sip
 
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 11, 12) {
@@ -52,7 +52,7 @@ if `experiment' == 1 {
 	#delimit cr
 
 	local linear xb: `pvars'
-	quietly nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 
@@ -279,7 +279,7 @@ else if `experiment' == 12 {
 	capture drop nl_sample
 	
 	#delimit ;
-	gen nl_sample = restr_sample &
+	gen nl_sample = `in_sample' &
 		!missing(FD_d_dine_in_ban, FD_d_school_closure,
 			FD_d_non_essential_closure, FD_d_shelter_in_place,
 			`cases', L_`cases', `depvar');

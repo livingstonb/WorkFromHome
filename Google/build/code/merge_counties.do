@@ -49,13 +49,12 @@ bysort state county: egen cases_present = count(cases)
 gen make_change = cases_present & missing(cases)
 replace cases = 0 if make_change
 replace master = 1 if make_change
-drop make_change cases_present
+drop make_change
 
-bysort state county: egen deaths_present = count(deaths)
-gen make_change = deaths_present & missing(deaths)
+gen make_change = cases_present & missing(deaths)
 replace deaths = 0 if make_change
 // replace master = 1 if make_change
-drop make_change deaths_present
+drop make_change cases_present
 
 drop if missing(cases) & !(inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York")
 
@@ -201,8 +200,8 @@ foreach val of local rec_rates {
 }
 drop dcases
 
-* Create lags of cases
-foreach var of varlist cases act_cases* {
+* Create lags of cases and deaths
+foreach var of varlist cases deaths act_cases* {
 	gen L_`var' = L.`var'
 }
 

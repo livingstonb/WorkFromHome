@@ -22,13 +22,13 @@ if "`final_date'" == "" {
 
 	gen sample_until_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
 	replace sample_until_sip = 0 if missing(shelter_in_place)
-	replace sample_until_sip = 1 if (date <= last_sip) & missing(shelter_in_place)
+	replace sample_until_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
 	
 	gen sample_7d_after_sip = (date <= shelter_in_place + 7) if !missing(shelter_in_place)
 	replace sample_7d_after_sip = 0 if missing(shelter_in_place)
-	replace sample_7d_after_sip = 1 if (date <= last_sip + 7) & missing(shelter_in_place)
+	replace sample_7d_after_sip = 1 if (date <= `last_sip' + 7) & missing(shelter_in_place)
 	
-	local samples sample_until_sip sample_until_7d_after_sip
+	local samples sample_until_sip sample_7d_after_sip
 }
 else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))
@@ -41,14 +41,14 @@ gen sunday = (day_of_week == 0)
 gen saturday = (day_of_week == 6)
 gen monday = (day_of_week == 1)
 
-foreach var of varlist samples {
+foreach var of local samples {
     replace `var' = 0 if weekend
 }
 
 * Identify counties with all missing
-by ctyid: egen nmiss = count(mobility_work) if restr_sample
+// by ctyid: egen nmiss = count(mobility_work) if restr_sample
 // replace restr_sample = 0 if (nmiss == 0)
-drop nmiss
+// drop nmiss
 
 // * Add Mondays following shelter-in-place, if SIP was over weekend
 // gen sip_weekend = inlist(dow(shelter_in_place), 0, 6)
@@ -56,34 +56,35 @@ drop nmiss
 * Week
 gen wk = week(date)
 
-
-* Growth rate of cases
-by ctyid: gen gcases = D.adj_cases10 / L.adj_cases10
-by ctyid: egen avg_gcases = mean(gcases) if restr_sample
-replace avg_gcases = 0 if adj_cases10 == 0
-replace gcases = 0 if missing(gcases)
-
+* Population weights
+gen wgts = population / 10000
+//
+//
+// * Growth rate of cases
+// by ctyid: gen gcases = D.adj_cases10 / L.adj_cases10
+// by ctyid: egen avg_gcases = mean(gcases) if restr_sample
+// replace avg_gcases = 0 if adj_cases10 == 0
+// replace gcases = 0 if missing(gcases)
+//
 * Generate first-differenced variables
 foreach var of varlist *d_* mobility_work mobility_rr {
 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
-
-
-
-* Population weights
-gen wgts = population / 10000
-// twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
-
-
-* Tag each county
-egen ctytag = tag(ctyid) if restr_sample
-
-
-
-
-* Average number of cases by county
-by ctyid: egen avg_cases = mean(adj_cases90) if restr_sample
-egen ctag = tag(ctyid) if !missing(avg_cases)
+//
+//
+//
+// // twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
+//
+//
+// * Tag each county
+// egen ctytag = tag(ctyid) if restr_sample
+//
+//
+//
+//
+// * Average number of cases by county
+// by ctyid: egen avg_cases = mean(adj_cases90) if restr_sample
+// egen ctag = tag(ctyid) if !missing(avg_cases)
 
 // _pctile avg_cases if ctag, percentiles(5 95)
 //
