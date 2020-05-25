@@ -183,20 +183,26 @@ tsset ctyid date
 gen dcases = D.cases
 replace dcases = 0 if (cases == 0) & missing(L.cases)
 
-gen adj_cases10 = cases if date <= date("2020-02-24", "YMD")
-by ctyid: replace adj_cases10 = cond(date > date("2020-02-24", "YMD"), max(dcases + 0.9 * adj_cases10[_n-1], 0), adj_cases10)
+local rec_rates 05 10 20
 
-gen adj_cases80 = cases if date <= date("2020-02-24", "YMD")
-by ctyid: replace adj_cases80 = cond(date > date("2020-02-24", "YMD"), max(dcases + 0.8 * adj_cases80[_n-1], 0), adj_cases80)
-
+foreach val of local rec_rates {
+	gen act_cases`val' = cases if date <= date("2020-02-24", "YMD")
+	
+	local rrate = `val' / 100
+	
+	#delimit ;
+	by ctyid: replace act_cases`val' =
+		cond(date > date("2020-02-24", "YMD"),
+			max(dcases + (1 - `rrate') * act_cases`val'[_n-1], 0),
+			act_cases`val');
+	#delimit cr
+	
+	label variable act_cases`val' "County cases pc, 0`rrate' rec rate"
+}
 drop dcases
 
-label variable cases "County cases p.c."
-label variable adj_cases10 "County cases p.c. (0.1 rec rate)"
-label variable adj_cases05 "County cases p.c. (0.05 rec rate)"
-
 * Create lags of cases
-foreach var of varlist cases adj_cases10 adj_cases05 {
+foreach var of varlist cases act_cases* {
 	gen L_`var' = L.`var'
 }
 
