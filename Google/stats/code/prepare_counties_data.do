@@ -39,8 +39,8 @@ else {
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
-gen sunday = (day_of_week == 0)
-gen saturday = (day_of_week == 6)
+gen sunday = (day_of_week == 0) * d_march13
+gen saturday = (day_of_week == 6) * d_march13
 gen monday = (day_of_week == 1) * d_march13
 gen tuesday = (day_of_week == 2) * d_march13
 gen wednesday = (day_of_week == 3) * d_march13
@@ -50,6 +50,9 @@ gen friday = (day_of_week == 5) * d_march13
 foreach var of local samples {
     replace `var' = 0 if weekend
 }
+
+* First cases
+gen d_first_case = cases > 0
 
 * Identify counties with all missing
 // by ctyid: egen nmiss = count(mobility_work) if restr_sample

@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 16
+local experiment 15
 
 * Name of cases variable
 local cases act_cases10
@@ -18,17 +18,32 @@ local depvar mobility_work
 * Name of sample variable
 local in_sample sample_until_sip
 
+* Nonlinear vs linear
+local nonlinear 0
+
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 11, 12) {
 	local FD FD_
-	local cases_expr {b0=-1} * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
+	
+	if `nonlinear' {
+		local cases_expr {b0=-1} * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
+	}
+	else {
+		local cases_expr {b0=-1} * (`cases' - L_`cases')
+	}
 // 	local cases_expr ({b0=-1} + {b2=1} * rural) * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
 	local depvar FD_`depvar'
 }
 else {
 	local FD
 // 	local cases_expr ({b0=-1} + {b2=1} * rural) * `cases' ^ {b1=0.25}
-	local cases_expr {b0=-1} * `cases' ^ {b1=0.25}
+
+	if `nonlinear' {
+		local cases_expr {b0=-1} * `cases' ^ {b1=0.25}
+	}
+	else {
+		local cases_expr {b0=-1} * `cases'
+	}
 }
 
 #delimit ;
@@ -51,7 +66,7 @@ if `experiment' == 1 {
 			`cases', `depvar');
 	#delimit cr
 
-	local linear xb: `pvars'
+	local linear xb: `pvars' saturday sunday
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
@@ -374,6 +389,25 @@ if `experiment' == 16 {
 	#delimit cr
 
 	local linear xb: `pvars' monday tuesday wednesday thursday friday
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* Day fixed effects
+if `experiment' == 17 {
+	capture drop nl_sample
+	capture drop d_nday
+	
+	tab nday if `in_sample', gen(d_nday)
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars' d_nday*
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
