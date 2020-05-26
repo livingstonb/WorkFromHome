@@ -7,16 +7,16 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 1
+local experiment 15
 
 * Name of cases variable
-local cases deaths
+local cases act_cases10
 
 * Name of mobility variable
 local depvar mobility_work
 
 * Name of sample variable
-local in_sample sample_7d_after_sip
+local in_sample sample_until_sip
 
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 11, 12) {
@@ -288,6 +288,77 @@ else if `experiment' == 12 {
 	local linear xb: `pvars'
 	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
 
+	drop nl_sample
+}
+
+* Linear time trend
+if `experiment' == 13 {
+	capture drop nl_sample
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars' ndays
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* County fixed effect
+if `experiment' == 14 {
+	capture drop nl_sample
+	capture drop d_cty*
+	
+	tab ctyid if `in_sample', gen(d_cty)
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars' d_cty*
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* Many leads and lags
+if `experiment' == 15 {
+	capture drop nl_sample
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(L5_d_dine_in_ban, L4_d_dine_in_ban, L3_d_dine_in_ban, L2_d_dine_in_ban, L1_d_dine_in_ban,
+			d_dine_in_ban,
+			F1_d_dine_in_ban, F2_d_dine_in_ban, F3_d_dine_in_ban, F4_d_dine_in_ban, F5_d_dine_in_ban,
+			L5_d_school_closure, L4_d_school_closure, L3_d_school_closure, L2_d_school_closure, L1_d_school_closure,
+			d_school_closure,
+			F1_d_school_closure, F2_d_school_closure, F3_d_school_closure, F4_d_school_closure, F5_d_school_closure,
+			L5_d_non_essential_closure, L4_d_non_essential_closure, L3_d_non_essential_closure, L2_d_non_essential_closure, L1_d_non_essential_closure,
+			d_non_essential_closure,
+			F1_d_non_essential_closure, F2_d_non_essential_closure, F3_d_non_essential_closure, F4_d_non_essential_closure, F5_d_non_essential_closure,
+			d_shelter_in_place,
+			`cases', `depvar');
+	
+	local pvars L5_d_dine_in_ban L4_d_dine_in_ban L3_d_dine_in_ban L2_d_dine_in_ban L1_d_dine_in_ban
+			d_dine_in_ban
+			F1_d_dine_in_ban F2_d_dine_in_ban F3_d_dine_in_ban F4_d_dine_in_ban F5_d_dine_in_ban
+			L5_d_school_closure L4_d_school_closure L3_d_school_closure L2_d_school_closure L1_d_school_closure
+			d_school_closure
+			F1_d_school_closure F2_d_school_closure F3_d_school_closure F4_d_school_closure F5_d_school_closure
+			L5_d_non_essential_closure L4_d_non_essential_closure L3_d_non_essential_closure L2_d_non_essential_closure L1_d_non_essential_closure
+			d_non_essential_closure
+			F1_d_non_essential_closure F2_d_non_essential_closure F3_d_non_essential_closure F4_d_non_essential_closure F5_d_non_essential_closure
+			d_shelter_in_place
+			F1_d_shelter_in_place F2_d_shelter_in_place F3_d_shelter_in_place F4_d_shelter_in_place F5_d_shelter_in_place;
+	#delimit cr
+
+	local linear xb: `pvars'
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 

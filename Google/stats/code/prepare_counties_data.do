@@ -6,7 +6,9 @@ estimates clear
 adopath + "../ado"
 
 * Read
-use "build/output/cleaned_counties.dta", clear
+clear all
+set maxvar 10000
+use "build/output/cleaned_counties.dta"
 
 * Declare panel
 tsset ctyid date
@@ -58,6 +60,11 @@ gen wk = week(date)
 
 * Population weights
 gen wgts = population / 10000
+
+* Linear trend
+tsset ctyid date
+by ctyid: gen ndays = _n - 1
+
 //
 //
 // * Growth rate of cases
@@ -70,6 +77,16 @@ gen wgts = population / 10000
 foreach var of varlist *d_* mobility_work mobility_rr {
 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
+
+* Generate leads and lags
+tsset ctyid date
+foreach var of varlist d_* {
+forvalues k = 1/5 {
+	gen L`k'_`var' = L`k'.`var'
+	gen F`k'_`var' = F`k'.`var'
+}
+}
+
 //
 //
 //
