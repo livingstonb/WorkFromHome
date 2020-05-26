@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 15
+local experiment 16
 
 * Name of cases variable
 local cases act_cases10
@@ -358,6 +358,22 @@ if `experiment' == 15 {
 	#delimit cr
 
 	local linear xb: `pvars'
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* Day-of-week dummies
+if `experiment' == 16 {
+	capture drop nl_sample
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars' monday tuesday wednesday thursday friday
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
