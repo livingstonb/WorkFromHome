@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 15
+local experiment 20
 
 * Name of cases variable
 local cases act_cases10
@@ -16,10 +16,10 @@ local cases act_cases10
 local depvar mobility_work
 
 * Name of sample variable
-local in_sample sample_until_sip
+local in_sample sample_after_sip
 
 * Nonlinear vs linear
-local nonlinear 0
+local nonlinear 1
 
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 11, 12) {
@@ -63,10 +63,10 @@ if `experiment' == 1 {
 	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			`cases', `depvar');
+			`cases', `depvar', F20_ddeaths);
 	#delimit cr
 
-	local linear xb: `pvars' saturday sunday
+	local linear xb: `pvars' F20_ddeaths
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
@@ -408,6 +408,106 @@ if `experiment' == 17 {
 	#delimit cr
 
 	local linear xb: `pvars' d_nday*
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+* State FE, linear time trend, and leads and lags
+if `experiment' == 18 {
+	capture drop nl_sample
+	
+	capture drop d_state*
+
+	tab stateid, gen(d_state)
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(L5_d_dine_in_ban, L4_d_dine_in_ban, L3_d_dine_in_ban, L2_d_dine_in_ban, L1_d_dine_in_ban,
+			d_dine_in_ban,
+			F1_d_dine_in_ban, F2_d_dine_in_ban, F3_d_dine_in_ban, F4_d_dine_in_ban, F5_d_dine_in_ban,
+			L5_d_school_closure, L4_d_school_closure, L3_d_school_closure, L2_d_school_closure, L1_d_school_closure,
+			d_school_closure,
+			F1_d_school_closure, F2_d_school_closure, F3_d_school_closure, F4_d_school_closure, F5_d_school_closure,
+			L5_d_non_essential_closure, L4_d_non_essential_closure, L3_d_non_essential_closure, L2_d_non_essential_closure, L1_d_non_essential_closure,
+			d_non_essential_closure,
+			F1_d_non_essential_closure, F2_d_non_essential_closure, F3_d_non_essential_closure, F4_d_non_essential_closure, F5_d_non_essential_closure,
+			d_shelter_in_place,
+			`cases', `depvar');
+	
+	local pvars L5_d_dine_in_ban L4_d_dine_in_ban L3_d_dine_in_ban L2_d_dine_in_ban L1_d_dine_in_ban
+			d_dine_in_ban
+			F1_d_dine_in_ban F2_d_dine_in_ban F3_d_dine_in_ban F4_d_dine_in_ban F5_d_dine_in_ban
+			L5_d_school_closure L4_d_school_closure L3_d_school_closure L2_d_school_closure L1_d_school_closure
+			d_school_closure
+			F1_d_school_closure F2_d_school_closure F3_d_school_closure F4_d_school_closure F5_d_school_closure
+			L5_d_non_essential_closure L4_d_non_essential_closure L3_d_non_essential_closure L2_d_non_essential_closure L1_d_non_essential_closure
+			d_non_essential_closure
+			F1_d_non_essential_closure F2_d_non_essential_closure F3_d_non_essential_closure F4_d_non_essential_closure F5_d_non_essential_closure
+			d_shelter_in_place
+			F1_d_shelter_in_place F2_d_shelter_in_place F3_d_shelter_in_place F4_d_shelter_in_place F5_d_shelter_in_place;
+	#delimit cr
+
+	local linear xb: `pvars' ndays d_state*
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* State FE and day fixed effects
+if `experiment' == 19 {
+	capture drop nl_sample
+	capture drop d_nday
+	capture drop d_state*
+
+	tab stateid, gen(d_state)
+	
+	tab nday if `in_sample', gen(d_nday)
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(d_dine_in_ban, d_school_closure,
+			d_non_essential_closure, d_shelter_in_place,
+			`cases', `depvar');
+	#delimit cr
+
+	local linear xb: `pvars' d_nday* d_state*
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	drop nl_sample
+}
+
+* Many leads and lags, post-SIP
+if `experiment' == 20 {
+	capture drop nl_sample
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(L5_d_dine_in_ban, L4_d_dine_in_ban, L3_d_dine_in_ban, L2_d_dine_in_ban, L1_d_dine_in_ban,
+			d_dine_in_ban,
+			F1_d_dine_in_ban, F2_d_dine_in_ban, F3_d_dine_in_ban, F4_d_dine_in_ban, F5_d_dine_in_ban,
+			L5_d_school_closure, L4_d_school_closure, L3_d_school_closure, L2_d_school_closure, L1_d_school_closure,
+			d_school_closure,
+			F1_d_school_closure, F2_d_school_closure, F3_d_school_closure, F4_d_school_closure, F5_d_school_closure,
+			L5_d_non_essential_closure, L4_d_non_essential_closure, L3_d_non_essential_closure, L2_d_non_essential_closure, L1_d_non_essential_closure,
+			d_non_essential_closure,
+			F1_d_non_essential_closure, F2_d_non_essential_closure, F3_d_non_essential_closure, F4_d_non_essential_closure, F5_d_non_essential_closure,
+			L5_d_shelter_in_place, F2_d_shelter_in_place, F3_d_shelter_in_place, F4_d_shelter_in_place, F5_d_shelter_in_place,
+			d_shelter_in_place,
+			L5_d_shelter_in_place, L4_d_shelter_in_place, L3_d_shelter_in_place, L2_d_shelter_in_place, L1_d_shelter_in_place,
+			`cases', `depvar');
+	
+	local pvars L5_d_dine_in_ban L4_d_dine_in_ban L3_d_dine_in_ban L2_d_dine_in_ban L1_d_dine_in_ban
+			d_dine_in_ban
+			F1_d_dine_in_ban F2_d_dine_in_ban F3_d_dine_in_ban F4_d_dine_in_ban F5_d_dine_in_ban
+			L5_d_school_closure L4_d_school_closure L3_d_school_closure L2_d_school_closure L1_d_school_closure
+			d_school_closure
+			F1_d_school_closure F2_d_school_closure F3_d_school_closure F4_d_school_closure F5_d_school_closure
+			L5_d_non_essential_closure L4_d_non_essential_closure L3_d_non_essential_closure L2_d_non_essential_closure L1_d_non_essential_closure
+			d_non_essential_closure
+			F1_d_non_essential_closure F2_d_non_essential_closure F3_d_non_essential_closure F4_d_non_essential_closure F5_d_non_essential_closure
+			L5_d_shelter_in_place L4_d_shelter_in_place L3_d_shelter_in_place L2_d_shelter_in_place L1_d_shelter_in_place
+			d_shelter_in_place
+			F1_d_shelter_in_place F2_d_shelter_in_place F3_d_shelter_in_place F4_d_shelter_in_place F5_d_shelter_in_place;
+	#delimit cr
+
+	local linear xb: `pvars'
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }

@@ -11,6 +11,21 @@ drop tmp_date fips
 
 save "build/temp/covid_deaths.dta", replace
 
+* IHME data
+clear
+import delimited "build/input/ihme_summary_stats.csv", varnames(1)
+
+gen gathering_restriction = date(any_gathering_restrict_start_dat, "YMD")
+gen non_essential_closure = date(all_noness_business_start_date, "YMD")
+
+format %td gathering_restriction
+format %td non_essential_closure
+
+rename location_name statename
+keep statename gathering_restriction non_essential_closure
+
+save "build/output/ihme_summary_stats.dta", replace
+
 * Dine-in bans
 clear
 import delimited "build/input/dine_in_bans.csv", varnames(1)

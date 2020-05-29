@@ -241,5 +241,7 @@ encode statename, gen(stateid)
 merge m:1 statename count using "build/temp/county_land_areas.dta", nogen keep(1 3)
 gen popdensity = population / land
 
+* Merge IHME data
+
 * Save
 save "build/output/cleaned_counties.dta", replace
