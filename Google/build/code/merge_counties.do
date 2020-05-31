@@ -211,24 +211,25 @@ tsset ctyid date
 local policies non_essential_closure school_closure dine_in_ban shelter_in_place
 foreach policy of local policies {
 	gen d_`policy' = (date >= `policy') & !missing(`policy')
-	gen Ld_`policy' = (date > `policy') & !missing(`policy')
-	gen Fd_`policy' = (date >= `policy' - 1) & !missing(`policy')
+// 	gen Ld_`policy' = (date > `policy') & !missing(`policy')
+// 	gen Fd_`policy' = (date >= `policy' - 1) & !missing(`policy')
 }
-
 label variable d_non_essential_closure "Non-essential closure"
 label variable d_shelter_in_place "Shelter-in-place"
 label variable d_school_closure "School closure"
 label variable d_dine_in_ban "Dine-in ban"
 
-label variable Ld_non_essential_closure "Lag, non-essential closure"
-label variable Ld_school_closure "Lag, school closure"
-label variable Ld_dine_in_ban "Lag, dine-in ban"
-label variable Ld_shelter_in_place "Lag, shelter-in-place"
-
-label variable Fd_non_essential_closure "Lead, non-essential closure"
-label variable Fd_shelter_in_place "Lead, shelter-in-place"
-label variable Fd_school_closure "Lead, school closure"
-label variable Fd_dine_in_ban "Lead, dine-in ban"
+* Generate leads and lags
+tsset ctyid date
+foreach policy of local policies {
+forvalues k = 1/5 {
+	gen L`k'_d_`policy' = (date >= `policy' + `k') & !missing(`policy')
+	gen F`k'_d_`policy' = (date >= `policy' - `k') & !missing(`policy')
+	
+	label variable L`k'_d_`policy' "Lag `k' of `policy'"
+	label variable F`k'_d_`policy' "Lead `k' of `policy'"
+}
+}
 
 * March 13th dummy
 gen d_march13 = date >= date("2020-03-13", "YMD")
@@ -242,7 +243,7 @@ merge m:1 statename county using "build/temp/county_land_areas.dta", nogen keep(
 gen popdensity = population / land
 
 * Merge IHME data
-merge m:1 statename using "build/output/ihme_summary_stats.dta", keep(1 3) keepusing(lifted_shelter_in_place)
+merge m:1 statename using "build/output/ihme_summary_stats.dta", nogen keep(1 3) keepusing(lifted_shelter_in_place)
 
 * Save
 save "build/output/cleaned_counties.dta", replace

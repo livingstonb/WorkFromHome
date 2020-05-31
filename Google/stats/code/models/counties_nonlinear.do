@@ -50,9 +50,9 @@ else {
 local pvars `FD'd_dine_in_ban `FD'd_school_closure `FD'd_non_essential_closure
 	`FD'd_shelter_in_place;
 
-local plags `FD'Ld_dine_in_ban `FD'Ld_school_closure `FD'Ld_non_essential_closure `FD'Ld_shelter_in_place;
+local plags `FD'L1_d_dine_in_ban `FD'L1_d_school_closure `FD'L1_d_non_essential_closure `FD'L1_d_shelter_in_place;
 
-local pleads `FD'Fd_dine_in_ban `FD'Fd_school_closure `FD'Fd_non_essential_closure `FD'Fd_shelter_in_place;
+local pleads `FD'F1_d_dine_in_ban `FD'F1_d_school_closure `FD'F1_d_non_essential_closure `FD'F1_d_shelter_in_place;
 #delimit cr
 
 * Benchmark
@@ -79,10 +79,10 @@ else if `experiment' == 2 {
 	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			Ld_dine_in_ban, Ld_school_closure,
-			Fd_dine_in_ban, Fd_school_closure, Ld_shelter_in_place,
-			Ld_non_essential_closure, Fd_non_essential_closure,
-			Fd_shelter_in_place,
+			L1_d_dine_in_ban, L1_d_school_closure,
+			F1_d_dine_in_ban, F1_d_school_closure, L1_d_shelter_in_place,
+			L1_d_non_essential_closure, F1_d_non_essential_closure,
+			F1_d_shelter_in_place,
 			`cases', `depvar');
 	#delimit cr
 

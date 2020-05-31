@@ -90,13 +90,13 @@ foreach var of varlist *d_* mobility_work mobility_rr {
 }
 
 * Generate leads and lags
-tsset ctyid date
-foreach var of varlist d_* {
-forvalues k = 1/5 {
-	gen L`k'_`var' = L`k'.`var'
-	gen F`k'_`var' = F`k'.`var'
-}
-}
+// tsset ctyid date
+// foreach var of varlist d_* {
+// forvalues k = 1/5 {
+// 	gen L`k'_`var' = L`k'.`var'
+// 	gen F`k'_`var' = F`k'.`var'
+// }
+// }
 
 //
 //
