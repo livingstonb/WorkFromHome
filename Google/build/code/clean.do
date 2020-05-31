@@ -15,14 +15,35 @@ save "build/temp/covid_deaths.dta", replace
 clear
 import delimited "build/input/ihme_summary_stats.csv", varnames(1)
 
+* Add missing stay-at-home dates
+replace stay_home_end_date = "2020-05-20" if location_name == "Connecticut"
+replace stay_home_end_date = "2020-06-01" if location_name == "Delaware"
+replace stay_home_end_date = "2020-04-31" if location_name == "Georgia"
+replace stay_home_end_date = "2020-06-01" if location_name == "Hawaii"
+replace stay_home_end_date = "2020-05-29" if location_name == "Illinois"
+replace stay_home_end_date = "2020-06-01" if location_name == "Maine"
+replace stay_home_end_date = "2020-05-15" if location_name == "Maryland"
+replace stay_home_end_date = "2020-05-18" if location_name == "Massachusetts"
+replace stay_home_end_date = "2020-06-12" if location_name == "Michigan"
+replace stay_home_end_date = "2020-06-01" if location_name == "New Hampshire"
+replace stay_home_end_date = "2020-06-05" if location_name == "New Jersey"
+replace stay_home_end_date = "2020-05-31" if location_name == "New Mexico"
+replace stay_home_end_date = "2020-05-28" if location_name == "New York"
+replace stay_home_end_date = "2020-05-29" if location_name == "Ohio"
+replace stay_home_end_date = "2020-06-04" if location_name == "Pennsylvania"
+replace stay_home_end_date = "2020-04-30" if location_name == "Tennessee"
+replace stay_home_end_date = "2020-06-10" if location_name == "Virginia"
+
 gen gathering_restriction = date(any_gathering_restrict_start_dat, "YMD")
 gen non_essential_closure = date(all_noness_business_start_date, "YMD")
+gen lifted_shelter_in_place = date(stay_home_end_date, "YMD")
 
 format %td gathering_restriction
 format %td non_essential_closure
+format %td lifted_shelter_in_place
 
 rename location_name statename
-keep statename gathering_restriction non_essential_closure
+keep statename gathering_restriction non_essential_closure lifted_shelter_in_place
 
 save "build/output/ihme_summary_stats.dta", replace
 
@@ -122,11 +143,14 @@ gen year = "2020"
 
 rename date orig_date
 gen tmp_date = day + " " + month + " " + year
+
 gen date = date(tmp_date, "DMY")
 format date %td
 drop tmp_date
 
 replace date = date + 1 if hour > 8
+
+replace date = . if inlist(state, "Oklahoma", "Utah", "Wyoming")
 
 rename date stay_at_home
 keep state stay_at_home

@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 20
+local experiment 1
 
 * Name of cases variable
 local cases act_cases10
@@ -16,7 +16,7 @@ local cases act_cases10
 local depvar mobility_work
 
 * Name of sample variable
-local in_sample sample_after_sip
+local in_sample sample_until_sip
 
 * Nonlinear vs linear
 local nonlinear 1
@@ -37,7 +37,7 @@ if inlist(`experiment', 11, 12) {
 else {
 	local FD
 // 	local cases_expr ({b0=-1} + {b2=1} * rural) * `cases' ^ {b1=0.25}
-
+//
 	if `nonlinear' {
 		local cases_expr {b0=-1} * `cases' ^ {b1=0.25}
 	}
@@ -63,10 +63,10 @@ if `experiment' == 1 {
 	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			`cases', `depvar', F20_ddeaths);
+			`cases', `depvar');
 	#delimit cr
 
-	local linear xb: `pvars' F20_ddeaths
+	local linear xb: `pvars'
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
@@ -103,7 +103,7 @@ else if `experiment' == 3 {
 	#delimit cr
 
 	local linear xb: `pvars'
-	nl (`depvar' = `cases_expr' + {`linear'}) [aw=wgts] if nl_sample, robust noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) [iw=wgts] if nl_sample, robust noconstant
 
 	drop nl_sample
 }

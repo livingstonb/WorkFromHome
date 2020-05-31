@@ -17,7 +17,7 @@ save `covidtmp'
 duplicates drop state county, force
 keep county state
 local d1 = date("2020-02-15", "YMD")
-local d2 = date("2020-05-01", "YMD")
+local d2 = date("2020-05-29", "YMD")
 
 local diff = `d2' - `d1' + 1
 expand `diff'
@@ -238,10 +238,11 @@ rename state statename
 encode statename, gen(stateid)
 
 * Merge land area
-merge m:1 statename count using "build/temp/county_land_areas.dta", nogen keep(1 3)
+merge m:1 statename county using "build/temp/county_land_areas.dta", nogen keep(1 3)
 gen popdensity = population / land
 
 * Merge IHME data
+merge m:1 statename using "build/output/ihme_summary_stats.dta", keep(1 3) keepusing(lifted_shelter_in_place)
 
 * Save
 save "build/output/cleaned_counties.dta", replace
