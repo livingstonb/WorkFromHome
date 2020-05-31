@@ -89,6 +89,10 @@ foreach var of varlist *d_* mobility_work mobility_rr {
 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
 
+* Duration of SIP
+tsset ctyid date
+by ctyid: gen duration_sip = sum(d_shelter_in_place)
+
 * Generate leads and lags
 // tsset ctyid date
 // foreach var of varlist d_* {
