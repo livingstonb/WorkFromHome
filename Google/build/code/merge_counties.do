@@ -211,9 +211,9 @@ tsset ctyid date
 local policies non_essential_closure school_closure dine_in_ban shelter_in_place
 foreach policy of local policies {
 	gen d_`policy' = (date >= `policy') & !missing(`policy')
-// 	gen Ld_`policy' = (date > `policy') & !missing(`policy')
-// 	gen Fd_`policy' = (date >= `policy' - 1) & !missing(`policy')
 }
+replace d_shelter_in_place = 0 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
+
 label variable d_non_essential_closure "Non-essential closure"
 label variable d_shelter_in_place "Shelter-in-place"
 label variable d_school_closure "School closure"
@@ -228,6 +228,11 @@ forvalues k = 1/5 {
 	
 	label variable L`k'_d_`policy' "Lag `k' of `policy'"
 	label variable F`k'_d_`policy' "Lead `k' of `policy'"
+	
+	if "`policy'" == "shelter_in_place" {
+		replace L`k'_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(shelter_in_place, lifted_shelter_in_place)
+		replace F`k'_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(shelter_in_place, lifted_shelter_in_place)
+	}
 }
 }
 

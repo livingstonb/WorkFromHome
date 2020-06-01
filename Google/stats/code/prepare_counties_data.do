@@ -54,14 +54,6 @@ foreach var of local samples {
 * First cases
 gen d_first_case = cases > 0
 
-* Identify counties with all missing
-// by ctyid: egen nmiss = count(mobility_work) if restr_sample
-// replace restr_sample = 0 if (nmiss == 0)
-// drop nmiss
-
-// * Add Mondays following shelter-in-place, if SIP was over weekend
-// gen sip_weekend = inlist(dow(shelter_in_place), 0, 6)
-
 * Week
 gen wk = week(date)
 
@@ -79,11 +71,6 @@ gen mavg = (act_cases10 + F.act_cases10) / 2
 gen gcases = D.act_cases10 / mavg
 replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
-// by ctyid: gen gcases = D.adj_cases10 / L.adj_cases10
-// by ctyid: egen avg_gcases = mean(gcases) if restr_sample
-// replace avg_gcases = 0 if adj_cases10 == 0
-// replace gcases = 0 if missing(gcases)
-
 * Generate first-differenced variables
 foreach var of varlist *d_* mobility_work mobility_rr {
 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
@@ -93,32 +80,17 @@ foreach var of varlist *d_* mobility_work mobility_rr {
 tsset ctyid date
 by ctyid: gen duration_sip = sum(d_shelter_in_place)
 
-* Generate leads and lags
-// tsset ctyid date
-// foreach var of varlist d_* {
-// forvalues k = 1/5 {
-// 	gen L`k'_`var' = L`k'.`var'
-// 	gen F`k'_`var' = F`k'.`var'
-// }
-// }
+* Plots
+// twoway scatter mobility_work adj_cases90 [aw=wgts] if sample_until_sip
 
-//
-//
-//
-// // twoway scatter mobility_work adj_cases90 [aw=wgts] if restr_sample
-//
-//
-// * Tag each county
-// egen ctytag = tag(ctyid) if restr_sample
-//
-//
-//
-//
-// * Average number of cases by county
-// by ctyid: egen avg_cases = mean(adj_cases90) if restr_sample
-// egen ctag = tag(ctyid) if !missing(avg_cases)
+* Tag each county
+// egen ctytag = tag(ctyid) if sample_until_sip
 
-// _pctile avg_cases if ctag, percentiles(5 95)
+* Average number of cases by county
+// by ctyid: egen avg_cases = mean(adj_cases90) if sample_until_sip
+// egen tmp_ctag = tag(ctyid) if !missing(avg_cases)
+// _pctile avg_cases if tmp_ctag, percentiles(5 95)
+// drop tmp_ctag
 //
 // replace restr_sample = 0 if avg_cases <= r(r1)
 // replace restr_sample = 0 if avg_cases >= r(r2)

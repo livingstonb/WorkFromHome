@@ -16,13 +16,12 @@ rename stay_at_home shelter_in_place
 merge m:1 state using "build/temp/dine_in_bans.dta", nogen
 
 * Merge with COVID cases
-merge m:1 state date using "build/temp/covid_deaths.dta", nogen keep(1 3)
+merge m:1 state date using "build/temp/covid_states.dta", nogen keep(1 3)
 replace cases = 0 if missing(cases)
 replace deaths = 0 if missing(deaths)
 
 * Merge with populations
 merge m:1 state using "build/temp/populations.dta", nogen
-
 
 rename state statename
 encode statename, gen(stateid)
@@ -100,25 +99,13 @@ label values day_of_week day_of_week_lbl
 
 gen weekend = inlist(day_of_week, 0, 6)
 
-* Day-of-week condl on after March 12th
-tab day_of_week, gen(d_day)
-
-local days Sunday Monday Tuesday Wednesday Thursday Friday Saturday
-forvalues i = 0/6 {
-	gen d_dow`i' = (day_of_week == `i') & d_march13
-	
-	local j = `i' + 1
-	local day: word `j' of `days'
-	label variable d_dow`i' "`day' after 3/12"
-}
-
-* Date of first case
-tsset stateid date
-by stateid: gen iobs = sum(cases > 0)
-gen tmp_firstcase = date if (iobs == 1)
-by stateid: egen firstcase = min(tmp_firstcase)
-drop iobs tmp_firstcase
-format %td firstcase
-
+// * Date of first case
+// tsset stateid date
+// by stateid: gen iobs = sum(cases > 0)
+// gen tmp_firstcase = date if (iobs == 1)
+// by stateid: egen firstcase = min(tmp_firstcase)
+// drop iobs tmp_firstcase
+// format %td firstcase
+//
 
 save "build/output/cleaned_states.dta", replace

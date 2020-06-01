@@ -17,17 +17,24 @@ if `build' {
 	capture mkdir "build/temp"
 	capture mkdir "build/output"
 
-	* Clean mobility data
-	do "build/code/clean_raw_mobility_report.do"
+	* Clean Google mobility data
+	do "build/code/clean_mobility_report.do"
 
-	* Clean 2019 population estimates
-	do "build/code/clean_acs.do"
+	* Clean Census data on county land area
+	do "build/code/clean_county_land_area.do"
+	
+	* Clean county-level NPIs
+	do "build/code/clean_county_npis.do"
+	
+	* Clean other datasetsd
+	do "build/code/clean_other_inputs.do"
+	
+	* Merge state-level data
+	do "build/code/merge_states.do"
+	
+	* Merge county-level data
+	do "build/code/merge_counties.do"
 }
 
 if `stats' {
-	* Compute statistics for ACS
-	do "stats/code/stats_acs.do"
-	
-	* Compute ACS statistics for SHED
-	do "stats/code/stats_for_shed.do"
 }

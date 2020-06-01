@@ -47,12 +47,11 @@ else {
 }
 
 #delimit ;
-local pvars `FD'd_dine_in_ban `FD'd_school_closure `FD'd_non_essential_closure
-	`FD'd_shelter_in_place;
+local pvars d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place;
 
-local plags `FD'L1_d_dine_in_ban `FD'L1_d_school_closure `FD'L1_d_non_essential_closure `FD'L1_d_shelter_in_place;
+local plags L1_d_dine_in_ban L1_d_school_closure L1_d_non_essential_closure L1_d_shelter_in_place;
 
-local pleads `FD'F1_d_dine_in_ban `FD'F1_d_school_closure `FD'F1_d_non_essential_closure `FD'F1_d_shelter_in_place;
+local pleads F1_d_dine_in_ban F1_d_school_closure F1_d_non_essential_closure F1_d_shelter_in_place;
 #delimit cr
 
 * Benchmark
@@ -116,10 +115,10 @@ else if `experiment' == 4 {
 	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			Ld_dine_in_ban, Ld_school_closure,
-			Fd_dine_in_ban, Fd_school_closure, Ld_shelter_in_place
-			Ld_non_essential_closure, Fd_non_essential_closure,
-			Fd_shelter_in_place, wgts,
+			L1_d_dine_in_ban, L1_d_school_closure,
+			F1_d_dine_in_ban, F1_d_school_closure, L1_d_shelter_in_place,
+			L1_d_non_essential_closure, F1_d_non_essential_closure,
+			F1_d_shelter_in_place,
 			`cases', `depvar');
 	#delimit cr
 
@@ -246,7 +245,7 @@ else if `experiment' == 9 {
 	local cases_expr {b0=-1} * new_cases ^ {b1=0.25}
 	local linear xb: `pvars'
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
-	drop nl_sample
+	drop nl_sample new_cases
 }
 
 * New deaths, weighted
