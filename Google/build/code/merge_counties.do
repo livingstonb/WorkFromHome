@@ -212,7 +212,9 @@ local policies non_essential_closure school_closure dine_in_ban shelter_in_place
 foreach policy of local policies {
 	gen d_`policy' = (date >= `policy') & !missing(`policy')
 }
-replace d_shelter_in_place = 0 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
+gen d_lifted_shelter_in_place = 0
+replace d_lifted_shelter_in_place = 1 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
+replace d_shelter_in_place = 0 if d_lifted_shelter_in_place
 
 label variable d_non_essential_closure "Non-essential closure"
 label variable d_shelter_in_place "Shelter-in-place"

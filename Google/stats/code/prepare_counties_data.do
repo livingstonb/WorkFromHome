@@ -26,11 +26,16 @@ if "`final_date'" == "" {
 	replace sample_until_sip = 0 if missing(shelter_in_place)
 	replace sample_until_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
 	
-	gen sample_7d_after_sip = (date <= shelter_in_place + 7) if !missing(shelter_in_place)
-	replace sample_7d_after_sip = 0 if missing(shelter_in_place)
-	replace sample_7d_after_sip = 1 if (date <= `last_sip' + 7) & missing(shelter_in_place)
+	gen sample_7d_into_sip = (date <= shelter_in_place + 7) if !missing(shelter_in_place)
+	replace sample_7d_into_sip = 0 if missing(shelter_in_place)
+	replace sample_7d_into_sip = 1 if (date <= `last_sip' + 7) & missing(shelter_in_place)
 	
-	local samples sample_until_sip sample_7d_after_sip
+	gen sample_with_7d_after_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
+	replace sample_with_7d_after_sip = 1 if inrange(date, lifted_shelter_in_place, lifted_shelter_in_place + 6) & !missing(lifted_shelter_in_place)
+	replace sample_with_7d_after_sip = 0 if missing(shelter_in_place)
+	replace sample_with_7d_after_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
+	
+	local samples sample_until_sip sample_7d_into_sip
 }
 else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))

@@ -11,4 +11,6 @@ gen cty_shelter_in_place = date(start_date, "MDY")
 format %td cty_shelter_in_place
 drop start_date
 
+rename state statename
+
 save "build/temp/county_npis.dta", replace
