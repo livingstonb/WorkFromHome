@@ -18,27 +18,30 @@ keep if date >= date("2020-02-24", "YMD")
 
 local final_date // "2020-04-15"
 
+* Shelter-in-place variable
+local sip jhu_shelter_in_place
+
 if "`final_date'" == "" {
     quietly sum shelter_in_place
 	local last_sip = r(max)
 
-	gen sample_until_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
-	replace sample_until_sip = 0 if missing(shelter_in_place)
-	replace sample_until_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
+	gen sample_until_sip = (date <= `sip') if !missing(`sip')
+	replace sample_until_sip = 0 if missing(`sip')
+	replace sample_until_sip = 1 if (date <= `last_sip') & missing(`sip')
 	
-	gen sample_7d_into_sip = (date <= shelter_in_place + 7) if !missing(shelter_in_place)
-	replace sample_7d_into_sip = 0 if missing(shelter_in_place)
-	replace sample_7d_into_sip = 1 if (date <= `last_sip' + 7) & missing(shelter_in_place)
+	gen sample_7d_into_sip = (date <= `sip' + 7) if !missing(`sip')
+	replace sample_7d_into_sip = 0 if missing(`sip')
+	replace sample_7d_into_sip = 1 if (date <= `last_sip' + 7) & missing(`sip')
 	
-	gen sample_with_7d_after_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
+	gen sample_with_7d_after_sip = (date <= `sip') if !missing(`sip')
 	#delimit ;
 	replace sample_with_7d_after_sip = 1
 		if inrange(date, lifted_shelter_in_place, lifted_shelter_in_place + 6)
 			& !missing(lifted_shelter_in_place)
 			& (lifted_shelter_in_place <= date("2020-05-19", "YMD"));
 	#delimit cr
-	replace sample_with_7d_after_sip = 0 if missing(shelter_in_place)
-	replace sample_with_7d_after_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
+	replace sample_with_7d_after_sip = 0 if missing(`sip')
+	replace sample_with_7d_after_sip = 1 if (date <= `last_sip') & missing(`sip')
 	
 	local samples sample_until_sip sample_7d_into_sip sample_with_7d_after_sip
 }
@@ -57,9 +60,9 @@ gen wednesday = (day_of_week == 3)
 gen thursday = (day_of_week == 4)
 gen friday = (day_of_week == 5)
 
-// foreach var of local samples {
-//     replace `var' = 0 if weekend
-// }
+foreach var of local samples {
+    replace `var' = 0 if weekend
+}
 
 * First cases
 gen d_first_case = cases > 0
@@ -84,15 +87,29 @@ replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
 * Generate first-differenced variables
 foreach var of varlist *d_* mobility_work mobility_rr {
-	gen FD_`var' = D.`var'
+	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
 }
 
 * Duration of SIP
 tsset ctyid date
-by ctyid: gen duration_sip = sum(d_shelter_in_place)
+by ctyid: gen duration_sip = sum(`sip')
 
 * Plots
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if sample_until_sip
+
+// #delimit ;
+// twoway scatter mobility_work act_cases10 if sample_until_sip & rural > 0.5,
+// 	graphregion(color(gs16)) xtitle("Active infections per capita")
+// 	ytitle("Log mobility, workplaces") title("Workplaces mobility vs cases, 2/24-SIP");
+// #delimit cr
+// graph export "stats/output/workplaces_infections_scatter.png", replace
+//
+// #delimit ;
+// twoway scatter mobility_rr act_cases10 if sample_until_sip,
+// 	graphregion(color(gs16)) xtitle("Active infections per capita")
+// 	ytitle("Log mobility, retail and rec") title("Retail and rec mobility vs cases, 2/24-SIP");
+// #delimit cr
+// graph export "stats/output/retail_rec_infections_scatter.png", replace
 
 * Tag each county
 // egen ctytag = tag(ctyid) if sample_until_sip

@@ -114,7 +114,7 @@ replace deaths = deaths / population
 
 * Use moving average of cases
 rename cases raw_cases
-moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(7)
+moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(3)
 label variable cases "County cases p.c."
 
 * Create recovery-adjusted cases
@@ -150,21 +150,21 @@ foreach var of varlist cases deaths act_cases* {
 rename state statename
 merge m:1 statename using "build/output/ihme_summary_stats.dta", nogen keep(1 3) keepusing(lifted_shelter_in_place)
 
-* Dummies
+* Intervention dates from JHU
+merge m:1 fips using "build/temp/jhu_interventions.dta", gen(jhu_merged) keep(1 3)
+rename jhu_entertainment_closure jhu_entertainment
+
+* Policies
 tsset ctyid date
 
 local policies non_essential_closure school_closure dine_in_ban shelter_in_place
 foreach policy of local policies {
 	gen d_`policy' = (date >= `policy') & !missing(`policy')
 }
+
 gen d_lifted_shelter_in_place = 0
 replace d_lifted_shelter_in_place = 1 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
 replace d_shelter_in_place = 0 if d_lifted_shelter_in_place
-
-label variable d_non_essential_closure "Non-essential closure"
-label variable d_shelter_in_place "Shelter-in-place"
-label variable d_school_closure "School closure"
-label variable d_dine_in_ban "Dine-in ban"
 
 * Generate leads and lags
 tsset ctyid date
@@ -182,6 +182,37 @@ forvalues k = 1/5 {
 	}
 }
 }
+
+* JHU policies
+#delimit ;
+local policies gathering_ban_50 gathering_ban_500 shelter_in_place dine_in_ban
+	school_closure entertainment_closure;
+#delimit cr
+foreach policy of local policies {
+	gen jhu_d_`policy' = (date >= jhu_`policy') & !missing(jhu_`policy')
+}
+replace jhu_d_shelter_in_place = 0 if d_lifted_shelter_in_place
+
+* Generate leads and lags
+tsset ctyid date
+foreach policy of local policies {
+forvalues k = 1/5 {
+	gen L`k'_jhu_d_`policy' = (date >= jhu_`policy' + `k') & !missing(jhu_`policy')
+	gen F`k'_jhu_d_`policy' = (date >= jhu_`policy' - `k') & !missing(jhu_`policy')
+	
+	label variable L`k'_jhu_d_`policy' "Lag `k' of jhu_`policy'"
+	label variable F`k'_jhu_d_`policy' "Lead `k' of jhu_`policy'"
+	
+	if "`policy'" == "shelter_in_place" {
+		replace L`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
+		replace F`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
+	}
+}
+}
+
+* Other JHU variables
+merge m:1 fips using "build/temp/jhu_summary.dta", nogen keep(1 3)
+replace icubeds = icubeds / population
 
 * March 13th dummy
 gen d_march13 = date >= date("2020-03-13", "YMD")
