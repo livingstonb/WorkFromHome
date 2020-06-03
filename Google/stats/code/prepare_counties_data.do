@@ -31,11 +31,16 @@ if "`final_date'" == "" {
 	replace sample_7d_into_sip = 1 if (date <= `last_sip' + 7) & missing(shelter_in_place)
 	
 	gen sample_with_7d_after_sip = (date <= shelter_in_place) if !missing(shelter_in_place)
-	replace sample_with_7d_after_sip = 1 if inrange(date, lifted_shelter_in_place, lifted_shelter_in_place + 6) & !missing(lifted_shelter_in_place)
+	#delimit ;
+	replace sample_with_7d_after_sip = 1
+		if inrange(date, lifted_shelter_in_place, lifted_shelter_in_place + 6)
+			& !missing(lifted_shelter_in_place)
+			& (lifted_shelter_in_place <= date("2020-05-19", "YMD"));
+	#delimit cr
 	replace sample_with_7d_after_sip = 0 if missing(shelter_in_place)
 	replace sample_with_7d_after_sip = 1 if (date <= `last_sip') & missing(shelter_in_place)
 	
-	local samples sample_until_sip sample_7d_into_sip
+	local samples sample_until_sip sample_7d_into_sip sample_with_7d_after_sip
 }
 else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))
@@ -44,8 +49,8 @@ else {
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
-gen sunday = (day_of_week == 0)
-gen saturday = (day_of_week == 6)
+gen sunday = (day_of_week == 0) * d_march13
+gen saturday = (day_of_week == 6) * d_march13
 gen monday = (day_of_week == 1)
 gen tuesday = (day_of_week == 2)
 gen wednesday = (day_of_week == 3)
@@ -67,7 +72,8 @@ gen wgts = population / 10000
 
 * Linear trend
 tsset ctyid date
-by ctyid: gen ndays = _n - 1
+local day1 = date("2020-02-24", "YMD")
+gen ndays = date - `day1'
 
 //
 //
