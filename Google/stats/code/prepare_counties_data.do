@@ -49,17 +49,17 @@ else {
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
-gen sunday = (day_of_week == 0) * d_march13
-gen saturday = (day_of_week == 6) * d_march13
+gen sunday = (day_of_week == 0)
+gen saturday = (day_of_week == 6)
 gen monday = (day_of_week == 1)
 gen tuesday = (day_of_week == 2)
 gen wednesday = (day_of_week == 3)
 gen thursday = (day_of_week == 4)
 gen friday = (day_of_week == 5)
 
-foreach var of local samples {
-    replace `var' = 0 if weekend
-}
+// foreach var of local samples {
+//     replace `var' = 0 if weekend
+// }
 
 * First cases
 gen d_first_case = cases > 0
@@ -84,7 +84,7 @@ replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
 * Generate first-differenced variables
 foreach var of varlist *d_* mobility_work mobility_rr {
-	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
+	gen FD_`var' = D.`var'
 }
 
 * Duration of SIP

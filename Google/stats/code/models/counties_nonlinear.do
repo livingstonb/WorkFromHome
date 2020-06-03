@@ -13,7 +13,7 @@ local experiment 11
 local cases act_cases10
 
 * Name of mobility variable
-local depvar mobility_work
+local depvar mobility_rr
 
 * Name of sample variable
 local in_sample sample_until_sip
@@ -25,7 +25,7 @@ local nonlinear 1
 local scale 0.0676
 
 * More macros, set automatically based on macros assigned above
-if inlist(`experiment', 11, 12, 22) {
+if inlist(`experiment', 11, 12, 22, 23) {
 	local FD FD_
 	
 	if `nonlinear' {
@@ -34,7 +34,7 @@ if inlist(`experiment', 11, 12, 22) {
 	else {
 		local cases_expr {b0=-1} * `scale' * (`cases' - L_`cases')
 	}
-// 	local cases_expr ({b0=-1} + {b2=1} * rural) * (`cases' ^ {b1=0.25} - L_`cases'^ {b1})
+// 	local cases_expr ({b0=-1} + {b2=1} * rural) * ((`scale' * `cases') ^ {b1=0.25} -(`scale' * L_`cases') ^ {b1})
 	local depvar FD_`depvar'
 }
 else {
@@ -65,10 +65,10 @@ if `experiment' == 1 {
 	gen nl_sample = `in_sample' &
 		!missing(d_dine_in_ban, d_school_closure,
 			d_non_essential_closure, d_shelter_in_place,
-			`cases', `depvar');
+			`cases', `depvar', std_cases);
 	#delimit cr
 
-	local linear xb: `pvars'
+	local linear xb: `pvars' std_cases
 	nl (`depvar' = {c0=0} + `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid)
 	drop nl_sample
 }
@@ -286,7 +286,7 @@ else if `experiment' == 11 {
 	#delimit cr
 
 	local linear xb: `pvars'
-	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster fips) noconstant
 
 	drop nl_sample
 }
@@ -574,6 +574,46 @@ else if `experiment' == 22 {
 	local linear xb: `pvars' d_nday*
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 
+	drop nl_sample
+}
+
+* FD, day FE, leads and lags
+if `experiment' == 23 {
+	capture drop nl_sample
+	capture drop d_nday*
+	
+	tab nday if `in_sample', gen(d_nday)
+
+	#delimit ;
+	gen nl_sample = `in_sample' &
+		!missing(`FD'L3_d_dine_in_ban, `FD'L2_d_dine_in_ban, `FD'L1_d_dine_in_ban,
+			`FD'd_dine_in_ban,
+			`FD'F1_d_dine_in_ban, `FD'F2_d_dine_in_ban, `FD'F3_d_dine_in_ban,
+			`FD'L3_d_school_closure, `FD'L2_d_school_closure, `FD'L1_d_school_closure,
+			`FD'd_school_closure,
+			`FD'F1_d_school_closure, `FD'F2_d_school_closure, `FD'F3_d_school_closure,
+			`FD'L3_d_non_essential_closure, `FD'L2_d_non_essential_closure, `FD'L1_d_non_essential_closure,
+			`FD'd_non_essential_closure,
+			`FD'F1_d_non_essential_closure, `FD'F2_d_non_essential_closure, `FD'F3_d_non_essential_closure,
+			`FD'd_shelter_in_place,
+			`cases', `depvar');
+	
+	local pvars `FD'L3_d_dine_in_ban `FD'L2_d_dine_in_ban `FD'L1_d_dine_in_ban
+			`FD'd_dine_in_ban
+			`FD'F1_d_dine_in_ban `FD'F2_d_dine_in_ban `FD'F3_d_dine_in_ban
+			`FD'L3_d_school_closure `FD'L2_d_school_closure `FD'L1_d_school_closure
+			`FD'd_school_closure
+			`FD'F1_d_school_closure `FD'F2_d_school_closure `FD'F3_d_school_closure
+			`FD'L3_d_non_essential_closure `FD'L2_d_non_essential_closure `FD'L1_d_non_essential_closure
+			`FD'd_non_essential_closure
+			`FD'F1_d_non_essential_closure `FD'F2_d_non_essential_closure `FD'F3_d_non_essential_closure
+			`FD'L3_d_shelter_in_place `FD'L2_d_shelter_in_place `FD'L1_d_shelter_in_place
+			`FD'd_shelter_in_place
+			`FD'F1_d_shelter_in_place `FD'F2_d_shelter_in_place `FD'F3_d_shelter_in_place;
+	#delimit cr
+
+	local linear xb: `pvars' d_nday*
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
 }
 
