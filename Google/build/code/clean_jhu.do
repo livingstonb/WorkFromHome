@@ -6,21 +6,64 @@ import delimited using "build/input/JHU_counties.csv", varnames(1)
 drop if state == "PR"
 drop if mod(fips, 1000) == 0
 
-destring icubeds, force replace
+foreach var of varlist icubeds *tempavgf {
+	destring `var', force replace
+}
 
 rename state statename
 rename area_name county
+rename febtempavgf tempf2
+rename martempavgf tempf3
+rename aprtempavgf tempf4
+rename maytempavgf tempf5
+rename juntempavgf tempf6
 
-keep statename county fips icubeds
+keep statename county fips icubeds tempf*
 
 * NYC
 replace fips = 99991 if inlist(fips, 36081, 36061, 36047, 36005, 36085)
+
 egen tmp_ny_icubeds = total(icubeds) if fips == 99991
-replace icubeds = tmp_ny_icubeds
-drop tmp_ny_icubeds
+replace icubeds = tmp_ny_icubeds if fips == 99991
+
+foreach var of varlist tempf* {
+	egen tmp_ny_`var' = mean(`var') if fips == 99991
+	replace `var' = tmp_ny_`var' if fips == 99991
+}
+
 drop if fips == 99991 & county != "Kings County"
 
-keep fips icubeds
+* Estimate temperature trend
+reshape long tempf, i(fips) j(month)
+
+gen day = .
+forvalues month = 2/6 {
+	local mid_month = date("2020-0`month'-15", "YMD")
+	replace day = doy(`mid_month') if month == `month'
+}
+
+levelsof statename, local(states)
+gen temp_b0 = .
+gen temp_b1 = .
+foreach state of local states {
+	di "`state'"
+	
+	if inlist("`state'", "UT", "VA", "WA", "WI", "WV", "WY") {
+		continue
+	}
+	quietly reg tempf ibn.fips ibn.fips#c.day if statename == "`state'", noconstant
+	
+	quietly levelsof fips if statename == "`state'", local(counties)
+	foreach county of local counties {
+		quietly replace temp_b0 = _b[`county'.fips] if fips == `county'
+		quietly replace temp_b1 = _b[`county'.fips#c.day] if fips == `county'
+	}
+}
+keep if month == 2
+
+keep fips icubeds temp_*
+rename temp_b0 tempf_b0
+rename temp_b1 tempf_b1
 save "build/temp/jhu_summary.dta", replace
 
 * County interventions

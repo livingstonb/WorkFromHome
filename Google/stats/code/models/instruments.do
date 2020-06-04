@@ -2,17 +2,22 @@
 Tests possible instruments for policy dummies.
 */
 
-// clear
-// quietly do "stats/code/prepare_counties_data.do"
+#delimit ;
+local policies dine_in_ban school_closure non_essential_closure
+	shelter_in_place;
+	
+	// jhu_dine_in_ban jhu_school_closure;
+	// jhu_entertainment jhu_shelter_in_place;
 
-* Set options
-local policy d_dine_in_ban
+local instruments icubeds rural popdensity;
+#delimit cr
 
-local instrument gcases
-* Macros
 local in_sample sample_until_sip
 
-local vcetype vce(cluster stateid)
-
-* Regression
-reg `policy' `instrument' if `in_sample', `vcetype'
+foreach policy of local policies {
+	estimates clear
+foreach instrument of local instruments {
+	do "stats/code/iv_first_stage.do" `policy' `instrument' `in_sample'
+	estimates table
+}
+}

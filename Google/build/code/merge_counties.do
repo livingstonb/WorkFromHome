@@ -186,7 +186,7 @@ forvalues k = 1/5 {
 * JHU policies
 #delimit ;
 local policies gathering_ban_50 gathering_ban_500 shelter_in_place dine_in_ban
-	school_closure entertainment_closure;
+	school_closure entertainment;
 #delimit cr
 foreach policy of local policies {
 	gen jhu_d_`policy' = (date >= jhu_`policy') & !missing(jhu_`policy')

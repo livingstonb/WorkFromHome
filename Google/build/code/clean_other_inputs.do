@@ -1,7 +1,7 @@
 
 
 * COVID cases and deaths
-import delimited "build/input/covid_deaths.csv", clear varnames(1)
+import delimited "build/input/covid_counties.csv", clear varnames(1)
 
 rename date tmp_date
 gen date = date(tmp_date, "YMD")

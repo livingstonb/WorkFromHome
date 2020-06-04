@@ -19,10 +19,10 @@ keep if date >= date("2020-02-24", "YMD")
 local final_date // "2020-04-15"
 
 * Shelter-in-place variable
-local sip jhu_shelter_in_place
+local sip shelter_in_place
 
 if "`final_date'" == "" {
-    quietly sum shelter_in_place
+    quietly sum `sip'
 	local last_sip = r(max)
 
 	gen sample_until_sip = (date <= `sip') if !missing(`sip')
@@ -96,18 +96,20 @@ by ctyid: gen duration_sip = sum(`sip')
 
 * Plots
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if sample_until_sip
-
+//
 // #delimit ;
-// twoway scatter mobility_work act_cases10 if sample_until_sip & rural > 0.5,
+// twoway scatter mobility_work act_cases10 if sample_until_sip & act_cases10 <= 0.0005,
 // 	graphregion(color(gs16)) xtitle("Active infections per capita")
-// 	ytitle("Log mobility, workplaces") title("Workplaces mobility vs cases, 2/24-SIP");
+// 	ytitle("Log mobility, workplaces") title("Workplaces mobility vs cases, 2/24-SIP")
+// 	msize(vtiny) ;
 // #delimit cr
 // graph export "stats/output/workplaces_infections_scatter.png", replace
 //
 // #delimit ;
-// twoway scatter mobility_rr act_cases10 if sample_until_sip,
+// twoway scatter mobility_rr act_cases10 if sample_until_sip & act_cases10 <= 0.0005,
 // 	graphregion(color(gs16)) xtitle("Active infections per capita")
-// 	ytitle("Log mobility, retail and rec") title("Retail and rec mobility vs cases, 2/24-SIP");
+// 	ytitle("Log mobility, retail and rec") title("Retail and rec mobility vs cases, 2/24-SIP")
+// 	msize(vtiny) ;
 // #delimit cr
 // graph export "stats/output/retail_rec_infections_scatter.png", replace
 
