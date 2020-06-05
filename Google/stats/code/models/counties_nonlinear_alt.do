@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 2
+local experiment 1
 
 * Name of cases variable
 local cases act_cases10

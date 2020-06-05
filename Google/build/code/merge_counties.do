@@ -115,7 +115,7 @@ replace deaths = deaths / population
 
 * Use moving average of cases
 rename cases raw_cases
-moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(3)
+moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(7)
 label variable cases "County cases p.c."
 
 * Create recovery-adjusted cases
@@ -167,22 +167,22 @@ gen d_lifted_shelter_in_place = 0
 replace d_lifted_shelter_in_place = 1 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
 replace d_shelter_in_place = 0 if d_lifted_shelter_in_place
 
-* Generate leads and lags
-tsset ctyid date
-foreach policy of local policies {
-forvalues k = 1/5 {
-	gen L`k'_d_`policy' = (date >= `policy' + `k') & !missing(`policy')
-	gen F`k'_d_`policy' = (date >= `policy' - `k') & !missing(`policy')
-	
-	label variable L`k'_d_`policy' "Lag `k' of `policy'"
-	label variable F`k'_d_`policy' "Lead `k' of `policy'"
-	
-	if "`policy'" == "shelter_in_place" {
-		replace L`k'_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(shelter_in_place, lifted_shelter_in_place)
-		replace F`k'_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(shelter_in_place, lifted_shelter_in_place)
-	}
-}
-}
+// * Generate leads and lags
+// tsset ctyid date
+// foreach policy of local policies {
+// forvalues k = 1/5 {
+// 	gen L`k'_d_`policy' = (date >= `policy' + `k') & !missing(`policy')
+// 	gen F`k'_d_`policy' = (date >= `policy' - `k') & !missing(`policy')
+//	
+// 	label variable L`k'_d_`policy' "Lag `k' of `policy'"
+// 	label variable F`k'_d_`policy' "Lead `k' of `policy'"
+//	
+// 	if "`policy'" == "shelter_in_place" {
+// 		replace L`k'_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(shelter_in_place, lifted_shelter_in_place)
+// 		replace F`k'_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(shelter_in_place, lifted_shelter_in_place)
+// 	}
+// }
+// }
 
 * JHU policies
 #delimit ;
@@ -194,21 +194,21 @@ foreach policy of local policies {
 }
 replace jhu_d_shelter_in_place = 0 if d_lifted_shelter_in_place
 
-* Generate leads and lags
-tsset ctyid date
-foreach policy of local policies {
-forvalues k = 1/5 {
-	gen L`k'_jhu_d_`policy' = (date >= jhu_`policy' + `k') & !missing(jhu_`policy')
-	gen F`k'_jhu_d_`policy' = (date >= jhu_`policy' - `k') & !missing(jhu_`policy')
-	
-	label variable L`k'_jhu_d_`policy' "Lag `k' of jhu_`policy'"
-	label variable F`k'_jhu_d_`policy' "Lead `k' of jhu_`policy'"
-	
-	if "`policy'" == "shelter_in_place" {
-		replace L`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
-		replace F`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
-	}
-}
+// * Generate leads and lags
+// tsset ctyid date
+// foreach policy of local policies {
+// forvalues k = 1/5 {
+// 	gen L`k'_jhu_d_`policy' = (date >= jhu_`policy' + `k') & !missing(jhu_`policy')
+// 	gen F`k'_jhu_d_`policy' = (date >= jhu_`policy' - `k') & !missing(jhu_`policy')
+//	
+// 	label variable L`k'_jhu_d_`policy' "Lag `k' of jhu_`policy'"
+// 	label variable F`k'_jhu_d_`policy' "Lead `k' of jhu_`policy'"
+//	
+// 	if "`policy'" == "shelter_in_place" {
+// 		replace L`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
+// 		replace F`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
+// 	}
+// }
 }
 
 * Other JHU variables

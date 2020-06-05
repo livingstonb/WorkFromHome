@@ -63,9 +63,9 @@ gen wednesday = (day_of_week == 3)
 gen thursday = (day_of_week == 4)
 gen friday = (day_of_week == 5)
 
-foreach var of local samples {
-    replace `var' = 0 if weekend
-}
+// foreach var of local samples {
+//     replace `var' = 0 if weekend
+// }
 
 * First cases
 gen d_first_case = cases > 0
