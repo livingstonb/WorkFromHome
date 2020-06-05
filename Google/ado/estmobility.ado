@@ -2,7 +2,7 @@ program estmobility
 	#delimit ;
 	syntax varlist, [FD(integer 0)] [XVAR(varlist)] [SCALE(real 0.0676)] [CONSTANT(integer 0)]
 		[SAMPLEVAR(varlist)] [STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
-		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)]
+		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)] [INTERACT(varlist)]
 		[DAYFE(integer 0)] [TITLE(string)] [WEEKENDS(integer 0)];
 	#delimit cr
 	
@@ -60,14 +60,26 @@ program estmobility
 	if `fd' {
 		tempvar lxvar
 		gen `lxvar' = L.`xvar'
-		local cases {alpha0=-1} * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+		
+		if "`interact'" == "" {
+			local cases {alpha0=-1} * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+		}
+		else {
+			local cases ({alpha0=-1} + {alphaX=0} * `interact') * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+		}
 		
 		capture drop FD_`varlist'
 		gen FD_`varlist' = D.`varlist'
 		local depvar FD_`varlist'
 	}
 	else {
-		local cases {alpha0=-1} * (`scale' * `xvar') ^ {alpha1=0.25}
+		if "`interact'" == "" {
+			local cases {alpha0=-1} * (`scale' * `xvar') ^ {alpha1=0.25}
+		}
+		else {
+			local cases ({alpha0=-1} + {alphaX=0} * `interact') * (`scale' * `xvar') ^ {alpha1=0.25}
+		}
+		
 		local lxvar
 		local depvar `varlist'
 	}
@@ -80,7 +92,7 @@ program estmobility
 	else {
 		#delimit ;
 		nl (`depvar' = `cases' + `linear'  `constexpr') if `samplevar' `conds', vce(cluster stateid)
-			variables(`depvar' `xvar' `lxvar' `regressors');
+			variables(`depvar' `xvar' `lxvar' `regressors' `interact');
 		#delimit cr
 	}
 	
