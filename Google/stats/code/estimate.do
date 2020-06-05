@@ -1,15 +1,16 @@
+/*
+Estimates a variety of models of log mobility.
+*/
 
+* Housekeeping
 adopath + "ado"
-
 discard
-// estmobility mobility_work, xvar(act_cases10) fd(0) samplevar(sample_until_sip) constant(0) gmm(1)
-
 shell rm -rd "stats/output/estimates/"
 capture mkdir "stats/output/estimates"
 
-file open record using "stats/output/estimates/models.txt", write text replace
-
-gen notsip = !d_shelter_in_place
+* Create list of specifications
+capture file close record
+file open record using "stats/output/estimates/models.txt", write replace text
 
 local vars work rr
 local models levels FD
@@ -22,9 +23,9 @@ foreach model of local models {
 
 	* Baseline
 	#delimit ;
-	local title "`label' in `model', baseline"
+	local title "`label' in `model', baseline";
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) constant(1) estnum(`=`k'+1')
+		xvar(act_cases10) samplevar(sample_until_sip) constant(`=!`fd'') estnum(`=`k'+1')
 		fd(`fd') title("`title'");
 	#delimit cr
 	file write record "(`=`k'+1') - `title'" _n
@@ -44,7 +45,7 @@ foreach model of local models {
 	local title "`label' in `model', with day FE"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) statefe(1) dayfe(1) estnum(`=`k'+3')
+		xvar(act_cases10) samplevar(sample_until_sip) statefe(`=!`fd'') dayfe(1) estnum(`=`k'+3')
 		fd(`fd') title("`title'");
 	#delimit cr
 	file write record "(`=`k'+3') - `title'" _n
@@ -53,7 +54,7 @@ foreach model of local models {
 	local title "`label' in `model', with weekends"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) statefe(1) dayfe(1) estnum(`=`k'+4')
+		xvar(act_cases10) samplevar(sample_until_sip) statefe(`=!`fd'') dayfe(1) estnum(`=`k'+4')
 		fd(`fd') weekends(1) title("`title'");
 	#delimit cr
 	file write record "(`=`k'+4') - `title'" _n
@@ -62,30 +63,51 @@ foreach model of local models {
 	local title "`label' in `model', with leads and lags"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) statefe(1) dayfe(1) estnum(`=`k'+5')
+		xvar(act_cases10) samplevar(sample_until_sip) statefe(`=!`fd'') dayfe(1) estnum(`=`k'+5')
 		fd(`fd') weekends(1) leadslags(3) title("`title'");
 	#delimit cr
 	file write record "(`=`k'+5') - `title'" _n
 	
 	* Baseline with inverse mills
-	local title "`label' in `model', baseline with Heckman correction"
-	estmills notsip ndays c.act_cases10##(c.rural c.popdensity c.icubeds c.republican) if sample_7d_into_sip, gen(imills)
+	local title "`label' in `model', baseline with Heckman correction (A)"
 	#delimit ;
+	estmills sample_until_sip ndays d_dine_in_ban d_school_closure
+		d_non_essential_closure sc_act_cases10
+		c.ndays##(c.rural c.popdensity c.icubeds c.republican)
+		if date <= date("2020-04-15", "YMD") & !weekend, gen(imills);
+
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) constant(1) estnum(`=`k'+6')
+		xvar(act_cases10) samplevar(sample_until_sip) constant(`=!`fd'') estnum(`=`k'+6')
 		fd(`fd') othervariables(imills) title("`title'");
 	#delimit cr
 	drop imills
 	file write record "(`=`k'+6') - `title'" _n
 	
+	* Baseline with inverse mills, probit estimated on 2/24-5/24
+	capture drop imills
+	local title "`label' in `model', baseline with Heckman correction (B)"
+	#delimit ;
+	estmills sample_until_sip ndays d_dine_in_ban d_school_closure
+		d_non_essential_closure sc_act_cases10
+		c.ndays##(c.rural c.popdensity c.icubeds c.republican)
+		if date <= date("2020-05-24", "YMD") & !weekend, gen(imills);
+
+	estmobility mobility_`suffix',
+		xvar(act_cases10) samplevar(sample_until_sip) constant(`=!`fd'') estnum(`=`k'+7')
+		fd(`fd') othervariables(imills) title("`title'");
+	#delimit cr
+	drop imills
+	file write record "(`=`k'+7') - `title'" _n
+	
 	* Baseline with rural share interaction
 	local title "`label' in `model', baseline with rural share interaction"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(act_cases10) samplevar(sample_until_sip) constant(1) estnum(`=`k'+7')
+		xvar(act_cases10) samplevar(sample_until_sip) constant(`=!`fd'') estnum(`=`k'+8')
 		fd(`fd') interact(rural) title("`title'");
 	#delimit cr
-	file write record "(`=`k'+7') - `title'" _n
+	file write record "(`=`k'+8') - `title'" _n
+	
 	
 	* Increment counter
 	local k = `k' + 10

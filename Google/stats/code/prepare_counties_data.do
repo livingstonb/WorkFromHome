@@ -18,6 +18,14 @@ keep if date >= date("2020-02-24", "YMD")
 
 local final_date // "2020-04-15"
 
+* New SIP variable
+rename shelter_in_place our_shelter_in_place
+bysort statename: egen jhu_state_sip = mode(jhu_shelter_in_place), maxmode
+
+gen shelter_in_place = our_shelter_in_place if (jhu_shelter_in_place == jhu_state_sip)
+replace shelter_in_place = min(jhu_shelter_in_place, our_shelter_in_place) if (jhu_shelter_in_place != jhu_state_sip)
+format %td shelter_in_place
+
 * Shelter-in-place variable
 local sip shelter_in_place
 
@@ -96,13 +104,14 @@ gen gcases = D.act_cases10 / mavg
 replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
 * Generate first-differenced variables
-foreach var of varlist *d_* mobility_work mobility_rr {
-	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
+foreach var of varlist mobility_work mobility_rr {
+	gen FD_`var' = D.`var'
 }
 
 * Duration of SIP
 tsset ctyid date
 by ctyid: gen duration_sip = sum(`sip')
+
 
 * Plots
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if sample_until_sip

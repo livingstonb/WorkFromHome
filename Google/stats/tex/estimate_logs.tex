@@ -14,8 +14,25 @@
 \begin{document}
 \maketitle
 
-\section{Regression tables}
-\verbatiminput{../output/estimates/table1.log}
+\section{Model}
+The model in levels is:
+$$
+\log m_{ct} = \alpha_1 I_{ct} ^ {\alpha_2} + \sum_j \beta_j P_{ct}^j + \epsilon_{ct}
+$$
+where $P_{ct}^j$ are the policy dummies.
 
+\section{Heckman Correction}
+Since observations are only included in the sample prior to or on the date of enactment of shelter-in-place, the potential exists for selection bias. First, I estimate the following probit model of the selection equation, where $\chi_{ct}$ is the shelter-in-place dummy recoded to be one when the county is not under shelter-in-place (is eligible to be included in the sample) and zero when shelter-in-place is active:
+$$
+Pr(P_{ct}^{SIP} = 0 \mid X_{ct})
+= \gamma_0 + \gamma_1 t +
+I_{ct} * (\gamma_2 + \gamma_3 rural_c + \gamma_4 republican_c + \gamma_5 icubeds_c + \gamma_6 popdensity_c) + \nu_{ct}
+$$
+I estimate this model using the window of 2/24 to 4/15.
+
+Next, I take the fitted values and compute the inverse mills ratio, which is then included in the non-linear regression, and so the following is then estimated in the second stage:
+$$
+\log m_{ct} = \alpha_1 I_{ct} ^ {\alpha_2} + \sum_j \beta_j P_{ct}^j + \lambda(X_{ct}'\hat{\gamma}) + \epsilon_{ct}
+$$
 
 \end{document}
