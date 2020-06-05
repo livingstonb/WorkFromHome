@@ -225,5 +225,8 @@ encode statename, gen(stateid)
 merge m:1 statename county using "build/temp/county_land_areas.dta", nogen keep(1 3)
 gen popdensity = population / land
 
+* Merge fraction republican
+merge m:1 statename
+
 * Save
 save "build/output/cleaned_counties.dta", replace

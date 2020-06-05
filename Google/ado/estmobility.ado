@@ -2,7 +2,7 @@ program estmobility
 	#delimit ;
 	syntax varlist, [FD(integer 0)] [XVAR(varlist)] [SCALE(real 0.0676)] [CONSTANT(integer 0)]
 		[SAMPLEVAR(varlist)] [STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
-		[LEADSLAGS(integer 0)]
+		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)]
 		[DAYFE(integer 0)] [TITLE(string)] [WEEKENDS(integer 0)];
 	#delimit cr
 	
@@ -23,7 +23,7 @@ program estmobility
 			local regressors `regressors' `var'
 
 			forvalues z = 1/`leadslags' {
-				quietly gen LLL`z'_`var' = LL`z'.`var'
+				quietly gen LL`z'_`var' = LL`z'.`var'
 				local regressors `regressors' LL`z'_`var'
 			}
 		}
@@ -32,19 +32,25 @@ program estmobility
 		local regressors `policies'
 	}
 	
+	local regressors `regressors' `othervariables'
+	
 	local constexpr = cond(`constant', "+ {_cons=0}", "")
 
 	if `statefe' & `gmm' {
 		local regressors `regressors' i.stateid
 	}
 	else if `statefe' {
-		quietly tab stateid, gen(d_state)
+		quietly tab stateid if `samplevar', gen(d_state)
 		local regressors `regressors' d_state*
 	}
 	
 	if `dayfe' {
-		quietly tab ndays, gen(d_nday)
+		quietly tab ndays if `samplevar', gen(d_nday)
 		local regressors `regressors' d_nday*
+		
+		if `statefe' {
+			drop d_nday1
+		}
 	}
 	
 	if !`weekends' {
@@ -55,21 +61,26 @@ program estmobility
 		tempvar lxvar
 		gen `lxvar' = L.`xvar'
 		local cases {alpha0=-1} * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+		
+		capture drop FD_`varlist'
+		gen FD_`varlist' = D.`varlist'
+		local depvar FD_`varlist'
 	}
 	else {
 		local cases {alpha0=-1} * (`scale' * `xvar') ^ {alpha1=0.25}
 		local lxvar
+		local depvar `varlist'
 	}
 	
 	local linear {xb: `regressors'}
 
 	if `gmm' {
-		gmm (`varlist' - `cases' - `linear') if `samplevar' `conds', instruments(`regressors' `xvar' L3.`xvar', noconstant)
+		gmm (`depvar' - `cases' - `linear') if `samplevar' `conds', instruments(`regressors' `xvar' L3.`xvar', noconstant)
 	}
 	else {
 		#delimit ;
-		nl (`varlist' = `cases' + `linear'  `constexpr') if `samplevar' `conds', vce(cluster stateid)
-			variables(`varlist' `xvar' `lxvar' `regressors');
+		nl (`depvar' = `cases' + `linear'  `constexpr') if `samplevar' `conds', vce(cluster stateid)
+			variables(`depvar' `xvar' `lxvar' `regressors');
 		#delimit cr
 	}
 	

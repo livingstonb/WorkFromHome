@@ -1,4 +1,17 @@
 
+* Party affiliation
+import delimited "build/input/party_affiliation.csv", clear varnames(1)
+replace republican = subinstr(republican, "%", "", .)
+replace democrat = subinstr(democrat, "%", "", .)
+
+destring republican, force replace
+destring democrat, force replace
+
+replace republican = republican / 100
+
+keep state republican
+rename state statename
+save "build/temp/party_affiliation.dta", replace
 
 * COVID cases and deaths
 import delimited "build/input/covid_counties.csv", clear varnames(1)
