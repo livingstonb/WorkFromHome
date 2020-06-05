@@ -7,7 +7,7 @@ Non-linear least squares estimation on county-level mobility data
 
 // SET MACROS
 * Specification number
-local experiment 1
+local experiment 2
 
 * Name of cases variable
 local cases act_cases10
@@ -32,6 +32,9 @@ local scale 0.0676
 
 * Other variables
 local other_vars
+
+* Cluster variable
+local clustvar stwk
 
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 999) {
@@ -83,50 +86,40 @@ else {
 
 * Benchmark
 if `experiment' == 1 {
-	local pvars jhu_d_dine_in_ban jhu_d_school_closure jhu_d_shelter_in_place jhu_d_entertainment
+	local pvars d_dine_in_ban d_school_closure d_shelter_in_place d_non_essential_closure
 
 	capture drop nl_sample
-
-	#delimit ;
-	gen nl_sample = `in_sample' &
-		!missing(jhu_d_dine_in_ban,
-			jhu_d_school_closure,
-			jhu_d_entertainment,
-			jhu_d_shelter_in_place,
-			`cases', `depvar');
-	#delimit cr
+	gen nl_sample = `in_sample' & !missing(`cases', `depvar')
 	
+	foreach var of local pvars {
+		replace nl_sample = 0 if missing(`var')
+	}
 	foreach var of local other_vars {
 		replace nl_sample = 0 if missing(`var')
 	}
 
 	local linear xb: `pvars' `state_fe_vars' `day_fe_vars' `other_vars'
-	nl (`depvar' = `constant' `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid)
+	nl (`depvar' = `constant' `cases_expr' + {`linear'}) if nl_sample, vce(cluster `clustvar')
 	drop nl_sample
 }
 * First differences
 else if `experiment' == 2 {
-	local pvars FD_jhu_d_dine_in_ban FD_jhu_d_school_closure FD_jhu_d_shelter_in_place FD_jhu_d_entertainment
+	local pvars FD_d_dine_in_ban FD_d_school_closure FD_d_non_essential_closure FD_d_shelter_in_place
 	local depvar FD_`depvar'
 	
 	capture drop nl_sample
+	gen nl_sample = `in_sample' & !missing(`cases', `depvar')
 	
-	#delimit ;
-	gen nl_sample = `in_sample' &
-		!missing(FD_jhu_d_dine_in_ban,
-			FD_jhu_d_school_closure,
-			FD_jhu_d_entertainment,
-			FD_jhu_d_shelter_in_place,
-			`cases', `depvar');
-	#delimit cr
-	
+	foreach var of local pvars {
+		replace nl_sample = 0 if missing(`var')
+	}
 	foreach var of local other_vars {
 		replace nl_sample = 0 if missing(`var')
 	}
 
 	local linear xb: `pvars' `state_fe_vars' `day_fe_vars' `other_vars'
 	local cases_expr {b0=-1} * ((`scale' * `cases') ^ {b1=0.25} - (`scale' * L_`cases') ^ {b1})
-	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
+	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster `clustvar') noconstant
 	drop nl_sample
 }
 

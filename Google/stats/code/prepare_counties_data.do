@@ -73,6 +73,9 @@ gen d_first_case = cases > 0
 * Week
 gen wk = week(date)
 
+* State-week identifier
+egen stwk = group(stateid wk)
+
 * Population weights
 gen wgts = population / 10000
 
@@ -92,10 +95,10 @@ gen mavg = (act_cases10 + F.act_cases10) / 2
 gen gcases = D.act_cases10 / mavg
 replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
-// * Generate first-differenced variables
-// foreach var of varlist *d_* mobility_work mobility_rr {
-// 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
-// }
+* Generate first-differenced variables
+foreach var of varlist *d_* mobility_work mobility_rr {
+	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
+}
 
 * Duration of SIP
 tsset ctyid date
