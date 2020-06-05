@@ -49,6 +49,9 @@ else {
 	gen restr_sample =  (date <= date("`final_date'", "YMD"))
 }
 
+* Tag each county
+gen tag = date == date("2020-03-19", "YMD")
+
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
@@ -78,6 +81,10 @@ tsset ctyid date
 local day1 = date("2020-02-24", "YMD")
 gen ndays = date - `day1'
 
+* Temperature trend
+gen day_of_year = doy(date)
+gen temperature = tempf_b0 + tempf_b1 * day_of_year
+
 //
 //
 * Growth rate of cases
@@ -85,10 +92,10 @@ gen mavg = (act_cases10 + F.act_cases10) / 2
 gen gcases = D.act_cases10 / mavg
 replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
-* Generate first-differenced variables
-foreach var of varlist *d_* mobility_work mobility_rr {
-	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
-}
+// * Generate first-differenced variables
+// foreach var of varlist *d_* mobility_work mobility_rr {
+// 	gen FD_`var' = D.`var' if inrange(day_of_week, 2, 5)
+// }
 
 * Duration of SIP
 tsset ctyid date

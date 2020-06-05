@@ -96,7 +96,8 @@ drop if (state == "Missouri") & inlist(county, "Cass", "Jackson", "Clay", "Platt
 merge m:1 state using "build/temp/dine_in_bans.dta", nogen keep(1 3)
 merge m:1 state using "build/temp/stay_at_home.dta", nogen keep (1 3)
 rename stay_at_home shelter_in_place
-merge m:1 state using "build/temp/cleaned_npis.dta", nogen keep(1 3) keepusing(non_essential_closure school_closure)
+merge m:1 state using "build/temp/cleaned_npis.dta", nogen keep(1 3) keepusing(non_essential_closure)
+merge m:1 state using "build/temp/school_closures.dta", nogen keep(1 3)
 
 * County id
 gen ctyid = fips

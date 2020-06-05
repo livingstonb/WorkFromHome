@@ -13,7 +13,7 @@ local experiment 1
 local cases act_cases10
 
 * Name of mobility variable
-local depvar mobility_work
+local depvar mobility_rr
 
 * Name of sample variable
 local in_sample sample_until_sip

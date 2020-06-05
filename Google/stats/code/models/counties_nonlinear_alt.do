@@ -30,6 +30,9 @@ local day_fe 0
 * Cases scale
 local scale 0.0676
 
+* Other variables
+local other_vars
+
 * More macros, set automatically based on macros assigned above
 if inlist(`experiment', 999) {
 	local FD FD_
@@ -92,8 +95,12 @@ if `experiment' == 1 {
 			jhu_d_shelter_in_place,
 			`cases', `depvar');
 	#delimit cr
+	
+	foreach var of local other_vars {
+		replace nl_sample = 0 if missing(`var')
+	}
 
-	local linear xb: `pvars' `state_fe_vars' `day_fe_vars'
+	local linear xb: `pvars' `state_fe_vars' `day_fe_vars' `other_vars'
 	nl (`depvar' = `constant' `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid)
 	drop nl_sample
 }
@@ -112,7 +119,12 @@ else if `experiment' == 2 {
 			FD_jhu_d_shelter_in_place,
 			`cases', `depvar');
 	#delimit cr
-	local linear xb: `pvars' `state_fe_vars' `day_fe_vars'
+	
+	foreach var of local other_vars {
+		replace nl_sample = 0 if missing(`var')
+	}
+
+	local linear xb: `pvars' `state_fe_vars' `day_fe_vars' `other_vars'
 	local cases_expr {b0=-1} * ((`scale' * `cases') ^ {b1=0.25} - (`scale' * L_`cases') ^ {b1})
 	nl (`depvar' = `cases_expr' + {`linear'}) if nl_sample, vce(cluster stateid) noconstant
 	drop nl_sample
