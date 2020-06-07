@@ -5,40 +5,82 @@ Results are optionally saved to a log file.
 
 program estmobility
 	#delimit ;
-	syntax varlist, [FD(integer 0)] [XVAR(varlist)] [SCALE(real 0.0676)] [CONSTANT(integer 0)]
-		[SAMPLEVAR(varlist)] [STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
+	syntax varlist, [DIFF(integer 0)] [XVAR(varlist)] [SCALE(real 0.0676)] [CONSTANT(integer 0)]
+		[STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
 		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)] [INTERACT(varlist)]
-		[DAYFE(integer 0)] [TITLE(string)] [WEEKENDS(integer 0)];
+		[DAYFE(integer 0)] [TITLE(string)] [FACTORVARS(varlist)]
+		[BEGIN(string)] [END(string)] [DAYSAFTER(integer 0)] [INCLUDE(varlist)] [EXCLUDE(varlist)];
 	#delimit cr
-	
-	* Additional sample restrictions
-	local conds
 	
 	* Macro of linear explanatory variables
 	local regressors
+	
+	* Macro for beginning and end of sample
+	tempvar date0 date1
+	gen `date0' = date("`begin'", "YMD")
+	
+	if "`end'" == "SIP" {
+		gen `date1' = shelter_in_place
+		quietly sum shelter_in_place
+		replace `date1' = r(max) if missing(shelter_in_place)
+		replace `date1' = `date1' + `daysafter'
+	}
+	else if "`end'" != "" {
+		gen `date1' = date("`end'", "YMD")
+	}
+	else {
+		gen `date1' = date("2020-12-31", "YMD")
+	}
+	
+	* SAMPLE RESTRICTIONS
+	tempvar in_sample
+	gen `in_sample' = inrange(date, `date0', `date1')
 
+	if "`include'" != "" {
+		replace `in_sample' = 1 if `include'
+	}
+	
+	if "`exclude'" != "" {
+		foreach var of local exclude {
+			replace `in_sample' = 0 if `var'
+		}
+	}
+	
 	* MACRO FOR POLICY DUMMIES
-	local prefix = cond(`fd', "FD_", "")
-	local policies `prefix'd_dine_in_ban `prefix'd_school_closure `prefix'd_non_essential_closure `prefix'd_shelter_in_place
+	local policies d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+	
+	* DIFFERENCES
+	if `diff' > 0 {
+		local policyvars
+		foreach var of local policies {
+			local policyvars `policyvars' D`diff'_`var'
+			capture gen D`diff'_`var' = S`diff'.`var'
+		}
+	}
+	else {
+		local policyvars `policies'
+	}
 	
 	* LEADS AND LAGS OF POLICY DUMMIES
 	if `leadslags' {
-		foreach var of local policies {
+		capture drop FF*_*
+		capture drop LL*_*
+		foreach var of local policyvars {
 			forvalues z = `leadslags'(-1)1 {
-				quietly gen FF`z'_`var' = FF`z'.`var'
+				quietly gen FF`z'_`var' = F`z'.`var'
 				local regressors `regressors' FF`z'_`var'
 			}
 		
 			local regressors `regressors' `var'
 
 			forvalues z = 1/`leadslags' {
-				quietly gen LL`z'_`var' = LL`z'.`var'
+				quietly gen LL`z'_`var' = L`z'.`var'
 				local regressors `regressors' LL`z'_`var'
 			}
 		}
 	}
 	else {
-		local regressors `policies'
+		local regressors `policyvars'
 	}
 	
 	* ADD OTHER VARIABLES
@@ -57,13 +99,13 @@ program estmobility
 		local regressors `regressors' i.stateid
 	}
 	else if `statefe' {
-		quietly tab stateid if `samplevar', gen(d_state)
+		quietly tab stateid if `in_sample', gen(d_state)
 		local regressors `regressors' d_state*
 	}
 	
 	* CALENDAR DAY FIXED EFFECTS
 	if `dayfe' {
-		quietly tab ndays if `samplevar', gen(d_nday)
+		quietly tab ndays if `in_sample', gen(d_nday)
 		local regressors `regressors' d_nday*
 		
 		if `statefe' {
@@ -71,19 +113,21 @@ program estmobility
 			drop d_nday1
 		}
 	}
-
-	* INCLUDE/EXCLUDE WEEKENDS
-	if !`weekends' {
-		local conds `conds' & !weekend
-		if `fd' {
-			local conds `conds' & !monday
+	
+	* OTHER FACTOR VARIABLES
+	if "`factorvars'" != "" {
+		capture drop dum_*
+		foreach var of local factorvars {
+			quietly tab `var' if `in_sample', gen(dum_`var')
+			local regressors `regressors' dum_`var'*
 		}
 	}
 	
 	* SET MACRO FOR NONLINEAR ACTIVE CASES EXPRESSION
-	if `fd' {
+	if `diff' > 0 {
 		tempvar lxvar
-		gen `lxvar' = L.`xvar'
+		gen `lxvar' = L`diff'.`xvar'
+		replace `lxvar' = 0 if `xvar' == 0 & missing(`lxvar')
 		
 		if "`interact'" == "" {
 			local cases {alpha0=-1} * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
@@ -92,9 +136,9 @@ program estmobility
 			local cases ({alpha0=-1} + {alphaX=0} * `interact') * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
 		}
 		
-		capture drop FD_`varlist'
-		gen FD_`varlist' = D.`varlist'
-		local depvar FD_`varlist'
+		capture drop D`diff'_`varlist'
+		gen D`diff'_`varlist' = S`diff'.`varlist'
+		local depvar D`diff'_`varlist'
 	}
 	else {
 		if "`interact'" == "" {
@@ -117,11 +161,11 @@ program estmobility
 		gen `constvar' = 1
 		
 		local use_noconstant = cond(`constant', "", "noconstant")
-		gmm (`depvar' - `cases' - `linear' `constexpr') if `samplevar' `conds', instruments(`regressors' `xvar', `use_noconstant')
+		gmm (`depvar' - `cases' - `linear' `constexpr') if `in_sample', instruments(`regressors' `xvar')
 	}
 	else {
 		#delimit ;
-		nl (`depvar' = `cases' + `linear'  `constexpr') if `samplevar' `conds', vce(cluster stateid)
+		nl (`depvar' = `cases' + `linear'  `constexpr') if `in_sample', vce(cluster stateid)
 			variables(`depvar' `xvar' `lxvar' `regressors' `interact');
 		#delimit cr
 	}
@@ -129,7 +173,7 @@ program estmobility
 	* SAVE ESTIMATES TABLE AS LOG FILE
 	if `estnum' {
 		capture mkdir "stats/output/estimates"
-		log using "stats/output/estimates/table`estnum'", text replace nomsg
+		log using "stats/output/estimates/table`estnum'", text replace nomsg name(esttable)
 		di "`title'" _n
 		di as text "{hline 13}{c +}{hline 94}" _n "VALUE OF LIFE STATISTICS" _n "{hline 13}{c +}{hline 94}" _n
 		
@@ -139,7 +183,7 @@ program estmobility
 		}
 		else {
 			di "Coefficient on cases taken to be alpha_0 + alpha_X * E[`interact']"
-			quietly sum `interact' if `samplevar' `conds'
+			quietly sum `interact' if `in_sample'
 			local alpha0 = _b[/alpha0] + _b[/alphaX] * r(mean)
 			
 			di "VSL = " as result `alpha0' * (1 / (90 * 100000)) ^ _b[/alpha1]
@@ -147,7 +191,7 @@ program estmobility
 		}
 
 		estimates
-		log close
+		log close esttable
 	}
 
 	* CLEANUP
@@ -155,4 +199,5 @@ program estmobility
 	capture drop d_nday*
 	capture drop FF*_d_*
 	capture drop LL*_d_*
+	capture drop dum_*
 end

@@ -1,7 +1,9 @@
-
+/*
+Merges various datasets to produce a county-level panel.
+*/
 adopath + "../ado"
 
-* Population
+* Start with population data
 import delimited "build/input/county_populations.csv", clear varnames(1)
 drop if county == 0
 
@@ -13,6 +15,7 @@ rename stname state
 rename ctyname county
 rename popestimate2019 population
 
+* Rename for consistency with other datasets
 replace county = subinstr(county, " County", "", .)
 replace county = subinstr(county, " Parish", "", .)
 
@@ -30,6 +33,7 @@ keep state county population fips
 
 drop if state == "District of Columbia"
 
+* Create one row for each date
 local last_date = date("2020-06-01", "YMD")
 local first_date = date("2020-02-10", "YMD")
 local dur = `last_date' - `first_date'
@@ -46,7 +50,7 @@ replace county = subinstr(county, " Census Area", "", .) if state == "Alaska"
 sort state county date
 merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen keep(1 3)
 
-* Combine NYC
+* Combine NYC since COVID cases & deaths are aggregated for NYC
 preserve
 keep if inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York"
 
@@ -84,12 +88,14 @@ save `coviddata'
 restore
 
 merge 1:1 fips date using `coviddata', keep(1 3) nogen
+
+* Missing cases & deaths should be zeros per NYT (up until last date used)
 quietly sum date if !missing(cases)
 
 replace cases = 0 if missing(cases) & date <= r(max)
 replace deaths = 0 if missing(deaths) & date <= r(max)
 
-* Remove counties overlapping Kansas city
+* Remove counties overlapping Kansas city per NYT
 drop if (state == "Missouri") & inlist(county, "Cass", "Jackson", "Clay", "Platte")
 
 * Merge with state-level data
@@ -113,20 +119,36 @@ label variable mobility_rr "Log mobility, retail and rec"
 replace cases = cases / population
 replace deaths = deaths / population
 
-* Use moving average of cases
-rename cases raw_cases
-moving_average raw_cases, time(date) panelid(ctyid) gen(cases) nperiods(7)
-label variable cases "County cases p.c."
-
-* Create recovery-adjusted cases
+* Use 7-day moving average of cases
 tsset ctyid date
 
+rename cases raw_cases
+local nperiods = 7
+local d = (`nperiods' - 1) / 2
+
+tempvar vsum vcount
+gen `vsum' = raw_cases
+gen `vcount' = !missing(raw_cases)
+forvalues z = 1/`d' {
+	replace `vsum' = `vsum' + L`z'.raw_cases if !missing(L`z'.raw_cases)
+	replace `vcount' = `vcount' + 1 if !missing(L`z'.raw_cases)
+	
+	replace `vsum' = `vsum' + F`z'.raw_cases if !missing(F`z'.raw_cases)
+	replace `vcount' = `vcount' + 1 if !missing(F`z'.raw_cases)
+}
+gen cases = `vsum' / `vcount'
+drop `vsum' `vcount'
+replace cases = . if missing(raw_cases)
+label variable cases "County cases p.c."
+
+* Create recovery-adjusted cases, fixing the recovery rate
 gen dcases = D.cases
 replace dcases = 0 if (cases == 0) & missing(L.cases)
 
 local rec_rates 05 10 20
 
 foreach val of local rec_rates {
+	* Assume initial date of 2/24
 	gen act_cases`val' = cases if date <= date("2020-02-24", "YMD")
 	
 	local rrate = `val' / 100
@@ -142,20 +164,24 @@ foreach val of local rec_rates {
 }
 drop dcases
 
-* Create lags of cases and deaths
-foreach var of varlist cases deaths act_cases* {
-	gen L_`var' = L.`var'
-}
-
 * Merge IHME data
 rename state statename
 merge m:1 statename using "build/output/ihme_summary_stats.dta", nogen keep(1 3) keepusing(lifted_shelter_in_place)
 
 * Intervention dates from JHU
-merge m:1 fips using "build/temp/jhu_interventions.dta", gen(jhu_merged) keep(1 3)
+merge m:1 fips using "build/temp/jhu_interventions.dta", keep(1 3)
 rename jhu_entertainment_closure jhu_entertainment
 
-* Policies
+* New SIP variable using our state-level variable and JHU's county-specific in some cases
+rename shelter_in_place our_shelter_in_place
+bysort statename: egen jhu_state_sip = mode(jhu_shelter_in_place), maxmode
+
+gen shelter_in_place = our_shelter_in_place if (jhu_shelter_in_place == jhu_state_sip)
+replace shelter_in_place = min(jhu_shelter_in_place, our_shelter_in_place) if (jhu_shelter_in_place != jhu_state_sip)
+format %td shelter_in_place
+drop jhu_state_sip
+
+* Policy dummies
 tsset ctyid date
 
 local policies non_essential_closure school_closure dine_in_ban shelter_in_place
@@ -163,26 +189,8 @@ foreach policy of local policies {
 	gen d_`policy' = (date >= `policy') & !missing(`policy')
 }
 
-gen d_lifted_shelter_in_place = 0
-replace d_lifted_shelter_in_place = 1 if (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
+gen d_lifted_shelter_in_place = (date >= lifted_shelter_in_place) & !missing(lifted_shelter_in_place)
 replace d_shelter_in_place = 0 if d_lifted_shelter_in_place
-
-// * Generate leads and lags
-// tsset ctyid date
-// foreach policy of local policies {
-// forvalues k = 1/5 {
-// 	gen L`k'_d_`policy' = (date >= `policy' + `k') & !missing(`policy')
-// 	gen F`k'_d_`policy' = (date >= `policy' - `k') & !missing(`policy')
-//	
-// 	label variable L`k'_d_`policy' "Lag `k' of `policy'"
-// 	label variable F`k'_d_`policy' "Lead `k' of `policy'"
-//	
-// 	if "`policy'" == "shelter_in_place" {
-// 		replace L`k'_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(shelter_in_place, lifted_shelter_in_place)
-// 		replace F`k'_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(shelter_in_place, lifted_shelter_in_place)
-// 	}
-// }
-// }
 
 * JHU policies
 #delimit ;
@@ -193,23 +201,6 @@ foreach policy of local policies {
 	gen jhu_d_`policy' = (date >= jhu_`policy') & !missing(jhu_`policy')
 }
 replace jhu_d_shelter_in_place = 0 if d_lifted_shelter_in_place
-
-// * Generate leads and lags
-// tsset ctyid date
-// foreach policy of local policies {
-// forvalues k = 1/5 {
-// 	gen L`k'_jhu_d_`policy' = (date >= jhu_`policy' + `k') & !missing(jhu_`policy')
-// 	gen F`k'_jhu_d_`policy' = (date >= jhu_`policy' - `k') & !missing(jhu_`policy')
-//	
-// 	label variable L`k'_jhu_d_`policy' "Lag `k' of jhu_`policy'"
-// 	label variable F`k'_jhu_d_`policy' "Lead `k' of jhu_`policy'"
-//	
-// 	if "`policy'" == "shelter_in_place" {
-// 		replace L`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place + `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
-// 		replace F`k'_jhu_d_`policy' = 0 if date >= lifted_shelter_in_place - `k' & !missing(jhu_shelter_in_place, lifted_shelter_in_place)
-// 	}
-// }
-}
 
 * Other JHU variables
 merge m:1 fips using "build/temp/jhu_summary.dta", nogen keep(1 3)
@@ -226,7 +217,20 @@ merge m:1 statename county using "build/temp/county_land_areas.dta", nogen keep(
 gen popdensity = population / land
 
 * Merge fraction republican
-merge m:1 statename
+merge m:1 statename using "build/temp/party_affiliation.dta", nogen keep(1 3)
+
+* Population weights
+gen wgts = population / 10000
+
+* Linear trend
+tsset ctyid date
+local day1 = date("2020-02-24", "YMD")
+gen ndays = date - `day1'
+
+* Temperature trend
+gen day_of_year = doy(date)
+gen temperature = tempf_b0 + tempf_b1 * day_of_year
+drop tempf_b0 tempf_b1 day_of_year
 
 * Save
 save "build/output/cleaned_counties.dta", replace

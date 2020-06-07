@@ -13,50 +13,6 @@ use "build/output/cleaned_counties.dta"
 * Declare panel
 tsset ctyid date
 
-* Set period of sample
-keep if date >= date("2020-02-24", "YMD")
-
-local final_date // "2020-04-15"
-
-* New SIP variable
-rename shelter_in_place our_shelter_in_place
-bysort statename: egen jhu_state_sip = mode(jhu_shelter_in_place), maxmode
-
-gen shelter_in_place = our_shelter_in_place if (jhu_shelter_in_place == jhu_state_sip)
-replace shelter_in_place = min(jhu_shelter_in_place, our_shelter_in_place) if (jhu_shelter_in_place != jhu_state_sip)
-format %td shelter_in_place
-
-* Shelter-in-place variable
-local sip shelter_in_place
-
-if "`final_date'" == "" {
-    quietly sum `sip'
-	local last_sip = r(max)
-
-	gen sample_until_sip = (date <= `sip') if !missing(`sip')
-	replace sample_until_sip = 0 if missing(`sip')
-	replace sample_until_sip = 1 if (date <= `last_sip') & missing(`sip')
-	
-	gen sample_7d_into_sip = (date <= `sip' + 7) if !missing(`sip')
-	replace sample_7d_into_sip = 0 if missing(`sip')
-	replace sample_7d_into_sip = 1 if (date <= `last_sip' + 7) & missing(`sip')
-	
-	gen sample_with_7d_after_sip = (date <= `sip') if !missing(`sip')
-	#delimit ;
-	replace sample_with_7d_after_sip = 1
-		if inrange(date, lifted_shelter_in_place, lifted_shelter_in_place + 6)
-			& !missing(lifted_shelter_in_place)
-			& (lifted_shelter_in_place <= date("2020-05-19", "YMD"));
-	#delimit cr
-	replace sample_with_7d_after_sip = 0 if missing(`sip')
-	replace sample_with_7d_after_sip = 1 if (date <= `last_sip') & missing(`sip')
-	
-	local samples sample_until_sip sample_7d_into_sip sample_with_7d_after_sip
-}
-else {
-	gen restr_sample =  (date <= date("`final_date'", "YMD"))
-}
-
 * Tag each county
 gen tag = date == date("2020-03-19", "YMD")
 
@@ -71,10 +27,6 @@ gen wednesday = (day_of_week == 3)
 gen thursday = (day_of_week == 4)
 gen friday = (day_of_week == 5)
 
-// foreach var of local samples {
-//     replace `var' = 0 if weekend
-// }
-
 * First cases
 gen d_first_case = cases > 0
 
@@ -84,36 +36,23 @@ gen wk = week(date)
 * State-week identifier
 egen stwk = group(stateid wk)
 
-* Population weights
-gen wgts = population / 10000
 
-* Linear trend
-tsset ctyid date
-local day1 = date("2020-02-24", "YMD")
-gen ndays = date - `day1'
-
-* Temperature trend
-gen day_of_year = doy(date)
-gen temperature = tempf_b0 + tempf_b1 * day_of_year
-
-//
-//
 * Growth rate of cases
 gen mavg = (act_cases10 + F.act_cases10) / 2
 gen gcases = D.act_cases10 / mavg
 replace gcases = 0 if (act_cases10 == 0) & (mavg == 0)
 
-* Generate first-differenced variables
-foreach var of varlist mobility_work mobility_rr {
-	gen FD_`var' = D.`var'
-}
 
 * Duration of SIP
 tsset ctyid date
-by ctyid: gen duration_sip = sum(`sip')
+by ctyid: gen duration_sip = sum(d_shelter_in_place)
 
 
 * Plots
+// xtline mobility_work if statename == "Oregon" & date < date("2020-04-01", "YMD") & !weekend, overlay
+// twoway scatter act_cases10 date if county == "Cook" & statename == "Illinois"
+//
+
 // twoway scatter mobility_work adj_cases90 [aw=wgts] if sample_until_sip
 //
 // #delimit ;
