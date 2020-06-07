@@ -7,6 +7,7 @@ Within each of these modules are directories, typically
 *build* and/or *stats*, each of which contain code and/or other files related to the module. Each of these directories contains
 a subdirectory for the code and may or may not contain
 directories for the input, output, logs, and intermediate files.
+See module readmes for more details--though some of these may be incomplete.
 
 ## The current working directory
 
@@ -22,153 +23,56 @@ The *master.do* script in the main directory allows the user to run code for all
 
 ## ACS
 
-### Required inputs
-
-The raw ACS dataset, downloaded from IPUMS. To view the variables needed from IPUMS, see the variables listed under the `keep` command in *ACS/build/code/read_acs.do*.
-
-* *build/input/acs_raw.dta*
+Estimates WFH share in each occupation from the American Community Survey.
 
 ## ATUS
 
-### Required inputs
-
-All ATUS data can be downloaded from the BLS website. Make sure to change the import lines in the downloaded do-files to point to the data file--use the relative filepath starting with *build/input/*.
-
-* *build/input/atuscps_2017.dat*
-* *build/input/atuscps_2017.do*
-* *build/input/atuscps_2018.dat*
-* *build/input/atuscps_2018.do*
-* *build/input/atusresp_2017.dat*
-* *build/input/atusresp_2017.do*
-* *build/input/atusresp_2018.dat*
-* *build/input/atusresp_2018.do*
-* *build/input/atusrost_2017.dat*
-* *build/input/atusrost_2017.do*
-* *build/input/atusrost_2018.dat*
-* *build/input/atusrost_2018.do*
-* *build/input/atussum_2017.dat*
-* *build/input/atussum_2017.do*
-* *build/input/atussum_2018.dat*
-* *build/input/atussum_2018.do*
-* *build/input/lvresp_1718.dat*
-* *build/input/lvresp_1718.do*
-
-## OES
-
-### Required inputs
-
-To run *stats/code/stats2017.do*, only the following is necessary:
-
-* *build/input/nat3d2017.xlsx*
-
-Otherwise, various other years are required, which can be downloaded from the BLS. I rename the cross-ownership employment-by-industry files as *nat#d####*, followed by the original extension, where the first \# symbol is the digit at which industries are aggregated and the four symbols at the end represent the year.
-
-* *build/input/nat2d1999.xls*
-* *build/input/nat2d2000.xls*
-* *build/input/nat2d2001.xls*
-* *build/input/nat4d2002.xls*
-* *build/input/nat3d2003.xls*
-* *build/input/nat2d2004.xls*
-* *build/input/nat2d2005.xls*
-* *build/input/nat2d2006.xls*
-* *build/input/nat2d2007.xls*
-* *build/input/nat2d2008.xls*
-* *build/input/nat2d2009.xls*
-* *build/input/nat2d2010.xls*
-* *build/input/nat2d2011.xls*
-* *build/input/nat2d2012.xls*
-* *build/input/nat2d2013.xls*
-* *build/input/nat2d2014.xlsx*
-* *build/input/nat2d2015.xlsx*
-* *build/input/nat2d2016.xlsx*
-* *build/input/nat2d2017.xlsx*
-* *build/input/nat2d2018.xlsx*
-* *build/input/nat2d2019.xlsx*
-
-## SIPP
-
-### Required inputs
-
-We use waves 1-4 of the 2014 SIPP. These are large files named *pu2014w#.dta*, which can be split into chunks and compressed with the *build/code/read_sipp.do* do-file. This do-file should be passed the wave number of the raw dataset to be processed, e.g. `do "build/code/do/read_sipp.do" 2` for wave 2.
-
-* *build/input/pu2014w1.dta*
-* *build/input/pu2014w2.dta*
-* *build/input/pu2014w3.dta*
-* *build/input/pu2014w4.dta*
-
-The raw datasets can then be deleted and one can use the following files, produced with the command described above:
-
-* *build/input/sipp_raw_w1.dta*
-* *build/input/sipp_raw_w2.dta*
-* *build/input/sipp_raw_w3.dta*
-* *build/input/sipp_raw_w4.dta*
+Estimates WFH share in each occupation from the American Time Use Survey.
 
 ## BEA
 
-### Required inputs
+Computates Tornquist indexes from BEA data dating back to 1963.
 
-Value added by industry and price indexes by industry downloaded from BEA.
+## CPS
 
-* *build/input/price_indexes_1947_1997.xls*
-* *build/input/price_indexes_1998_2019.xls*
-* *build/input/value_added_1947_1997.xls*
-* *build/input/value_added_1998_2019.xls*
+Produces employment statistics at the occupation-year-month level using the Current Population Survey.
 
-## Dingel-Neiman
+## CriticalInfrastructure
 
-We use datasets provided by Jonathan Dingel and Brent Nieman to construct a teleworkable indicator by occupation and sector (<https://github.com/jdingel/DingelNeiman-workathome>).
+Estimates share of critical workers in each occupation.
 
-### Required inputs
+## DingelNeiman
 
-* *build/input/occupations_workathome.csv*
-
-A dataset with an O\*NET teleworkable score for each occupation.
-
-* *build/input/teleworkable_opinion_edited.csv*
-
-A modified version of Dingel and Neiman's manual (opinion) teleworkable scores by occupation, where we recoded teleworkable to zero or one in the cases that it took the value of 0.5, using our own judgment. The original dataset from Dingel and Neiman was *Teleworkable_BNJDopinion.csv*.
-
-
-## OpenTable
-
-### Required inputs
-
-We use a dataset provided by OpenTable, downloaded from <https://www.opentable.com/state-of-industry>.
-
-* *build/input/state_of_industry.csv*
-
-To rank cities by population, we use 2018 estimates produced by the Census, downloaded from
-<https://www.census.gov/data/tables/time-series/demo/popest/2010s-total-cities-and-towns.html>.
-Population ranks were then coded into *city_data.csv*, along with the approximate dates at which city or state dine-in bans went into effect.
-
-* *build/input/city_data.csv*
+Aggregates an occupation-level measure of teleworkable and estimates industry-level teleworkable shares, using data provided by Dingel and Neiman.
 
 ## Google
 
-### Required inputs
+Estimates the relationship between active COVID-19 cases and mobility using county-level Google data.
 
-* *build/input/Global_Mobility_Report.csv*
+## industries
 
-Google mobility data, downloaded from <https://www.google.com/covid19/mobility/>.
+Produces industry code crosswalks.
 
-* *build/input/covid_counties.csv*
+## merges
 
-County-level data on cases and deaths related to covid-19, from the New York Times. Downloaded from <https://github.com/nytimes/covid-19-data>.
+Merges various datasets.
 
-* *build/input/county_populations.csv*
+## occupations
 
-County population estimates for 2019, from the Census.
+Produces occupation code crosswalks and labels.
 
+## OES
 
-<!-- * *build/input/PctUrbanRural_County.xls* -->
+Estimates occupation-level employment and wage statistics from BLS data.
 
-<!-- A Census dataset providing land area by county. Downloaded from <https://www.census.gov/programs-surveys/geography/technical-documentation/records-layout/2010-urban-lists-record-layout.html> -->
+## OpenTable
 
+Produces plots of OpenTable reservations vs. date.
 
-## Occupation crosswalks
+## SHED
 
-### Required inputs
+Estimates various occupation-level statistics related to hand-to-mouth.
 
-We use various crosswalks, mostly provided by the BLS. Our occupation classification consists of three-digit 2010 SOC (aka major) categories. Most of our datasets use 2010 Census occupation codes, and for this we rely on a crosswalk provided by the BLS. One occupation code in the 2014 SIPP occupation variables doesn't line up with this crosswalk and is manually adjusted in the SIPP code we use.
+## SIPP
 
-* *build/input/yr2010_census_to_soc.csv*
+Estimates wealth statistics by occupation from the Survey of Income and Program Participation.
