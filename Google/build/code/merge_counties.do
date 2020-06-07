@@ -119,51 +119,6 @@ label variable mobility_rr "Log mobility, retail and rec"
 replace cases = cases / population
 replace deaths = deaths / population
 
-* Use 7-day moving average of cases
-tsset ctyid date
-
-rename cases raw_cases
-local nperiods = 7
-local d = (`nperiods' - 1) / 2
-
-tempvar vsum vcount
-gen `vsum' = raw_cases
-gen `vcount' = !missing(raw_cases)
-forvalues z = 1/`d' {
-	replace `vsum' = `vsum' + L`z'.raw_cases if !missing(L`z'.raw_cases)
-	replace `vcount' = `vcount' + 1 if !missing(L`z'.raw_cases)
-	
-	replace `vsum' = `vsum' + F`z'.raw_cases if !missing(F`z'.raw_cases)
-	replace `vcount' = `vcount' + 1 if !missing(F`z'.raw_cases)
-}
-gen cases = `vsum' / `vcount'
-drop `vsum' `vcount'
-replace cases = . if missing(raw_cases)
-label variable cases "County cases p.c."
-
-* Create recovery-adjusted cases, fixing the recovery rate
-gen dcases = D.cases
-replace dcases = 0 if (cases == 0) & missing(L.cases)
-
-local rec_rates 05 10 20
-
-foreach val of local rec_rates {
-	* Assume initial date of 2/24
-	gen act_cases`val' = cases if date <= date("2020-02-24", "YMD")
-	
-	local rrate = `val' / 100
-	
-	#delimit ;
-	by ctyid: replace act_cases`val' =
-		cond(date > date("2020-02-24", "YMD"),
-			max(dcases + (1 - `rrate') * act_cases`val'[_n-1], 0),
-			act_cases`val');
-	#delimit cr
-	
-	label variable act_cases`val' "County cases pc, 0`rrate' rec rate"
-}
-drop dcases
-
 * Merge IHME data
 rename state statename
 merge m:1 statename using "build/output/ihme_summary_stats.dta", nogen keep(1 3) keepusing(lifted_shelter_in_place)
