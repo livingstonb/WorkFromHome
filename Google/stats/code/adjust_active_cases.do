@@ -1,4 +1,7 @@
-
+/*
+Computes a moving average of raw total cases, then adjusts the moving average of total
+cases to an approximation of active cases using the desired recovery rate.
+*/
 args ma_periods recovery_rate new_var
 
 capture drop `new_var'

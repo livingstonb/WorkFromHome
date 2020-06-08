@@ -16,25 +16,18 @@ else {
 if `build' {
 	capture mkdir "build/temp"
 	capture mkdir "build/output"
-
-	* Clean Google mobility data
-	do "build/code/clean_mobility_report.do"
-
-	* Clean Census data on county land area
+	
 	do "build/code/clean_county_land_area.do"
 	
-	* Clean county-level NPIs
-	do "build/code/clean_county_npis.do"
+	do "build/code/clean_jhu.do"
 	
-	* Clean other datasetsd
+	do "build/code/clean_mobility_report.do"
+	
 	do "build/code/clean_other_inputs.do"
 	
-	* Merge state-level data
-	do "build/code/merge_states.do"
-	
-	* Merge county-level data
 	do "build/code/merge_counties.do"
 }
 
 if `stats' {
+	do "stats/code/estimate.do"
 }

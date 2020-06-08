@@ -1,5 +1,8 @@
 /*
 Estimates a variety of models of log mobility.
+
+Note: The stats/output/estimates/ directory is deleted by this script and
+recreated.
 */
 
 estimates clear
@@ -25,7 +28,7 @@ local end = "SIP"
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
 
-* Create cases variables
+* Create cases variables, 0.1 recovery rate with 3- and 7-day moving avg
 do "stats/code/adjust_active_cases.do" 3 0.1 active_cases3
 do "stats/code/adjust_active_cases.do" 7 0.1 active_cases7
 
@@ -33,8 +36,13 @@ do "stats/code/adjust_active_cases.do" 7 0.1 active_cases7
 capture file close record
 file open record using "stats/output/estimates/models.txt", write replace text
 
+* Loop over number of days in moving average used to smooth raw cases data
 local n_mavgs 3 7
+
+* Loop over workplaces mobility, retail and recration mobility
 local vars work rr
+
+* Loop over levels and 7-day difference
 local diffs 0 7
 
 local k = 100

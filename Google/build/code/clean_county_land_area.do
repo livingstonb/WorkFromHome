@@ -1,3 +1,6 @@
+/*
+Cleans Census data on county land area and pct rural vs. urban.
+*/
 
 clear
 import excel using "build/input/PctUrbanRural_County.xls", firstrow

@@ -1,3 +1,6 @@
+/*
+Cleans a variety of different input files and resaves.
+*/
 
 * Party affiliation
 import delimited "build/input/party_affiliation.csv", clear varnames(1)
@@ -22,7 +25,7 @@ format date %td
 
 drop tmp_date fips
 
-save "build/temp/covid_deaths.dta", replace
+save "build/temp/covid_counties.dta", replace
 
 * IHME data
 clear
@@ -97,20 +100,6 @@ rename date_school_closure school_closure
 rename date_shelter_in_place shelter_in_place
 
 save "build/temp/cleaned_npis.dta", replace
-
-* State population levels
-clear
-import excel "build/input/census_populations.xlsx", firstrow
-
-keep state land pop2019
-
-replace state = subinstr(state, ".", "", .)
-gen persons_per_sqmi = pop2019 / land
-rename pop2019 population
-
-drop if missing(state)
-
-save "build/temp/populations.dta", replace
 
 * School closures data
 clear

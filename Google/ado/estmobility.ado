@@ -1,6 +1,29 @@
 /* estmobility
 Estimates a regression model of log mobility using GMM or nonlinear least squares.
 Results are optionally saved to a log file.
+
+Arguments:
+	DIFF : Number of differences to be taken before estimation.
+	XVAR : The cases variable, which enters the model as alpha_1 * (scale * xvar) ^ alpha_2.
+	SCALE : A scaling factor that multiplies the cases variable.
+	CONSTANT : Set to 1 to include a constant.
+	STATEFE : Set to 1 to include state fixed effects.
+	GMM : Set to 1 to estimate by GMM instead of NL. Does not appear to work.
+	ESTNUM : Number to append to name of log file, if applicable.
+	LEADSLAGS : Number of leads and lags of policy dummies to include.
+	OTHERVARIABLES : Other variables to enter the model linearly.
+	INTERACT : An optional variable to interact with the cases expression.
+	DAYFE : Set to 1 to include calendar day fixed effects, will not be differenced.
+	TITLE : Title of table in log file, if applicable.
+	FACTORVARS : Optional variables to include as factors. Enter the model linearly.
+	BEGIN : First date to use for sample.
+	END : Last date to use for sample. Entering SIP selects the first date of SIP order for county.
+	DAYSAFTER : Number of days to include after SIP order goes into effect, if applicable.
+	INCLUDE : Binary variable used to force certain observations to be included.
+	EXCLUDE : Binary variable used to force certain observations to be excluded.
+
+Example:
+	estmobility mobility_work, xvar(cases) constant(1) exclude(weekend)
 */
 
 program estmobility
