@@ -29,8 +29,8 @@ gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
 
 * Create cases variables, 0.1 recovery rate with 3- and 7-day moving avg
-do "stats/code/adjust_active_cases.do" 3 0.1 active_cases3
-do "stats/code/adjust_active_cases.do" 7 0.1 active_cases7
+do "stats/code/adjust_active_cases.do" cases 3 0.1 active_cases3
+do "stats/code/adjust_active_cases.do" cases 7 0.1 active_cases7
 
 * Create list of specifications
 capture file close record

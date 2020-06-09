@@ -21,6 +21,8 @@ Arguments:
 	DAYSAFTER : Number of days to include after SIP order goes into effect, if applicable.
 	INCLUDE : Binary variable used to force certain observations to be included.
 	EXCLUDE : Binary variable used to force certain observations to be excluded.
+	INITIAL1 : Initial value for coefficient on cases.
+	INITIAL2 : Initial value for exponent on cases.
 
 Example:
 	estmobility mobility_work, xvar(cases) constant(1) exclude(weekend)
@@ -32,7 +34,8 @@ program estmobility
 		[STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
 		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)] [INTERACT(varlist)]
 		[DAYFE(integer 0)] [TITLE(string)] [FACTORVARS(varlist)]
-		[BEGIN(string)] [END(string)] [DAYSAFTER(integer 0)] [INCLUDE(varlist)] [EXCLUDE(varlist)];
+		[BEGIN(string)] [END(string)] [DAYSAFTER(integer 0)] [INCLUDE(varlist)] [EXCLUDE(varlist)]
+		[INITIAL1(real -1)] [INITIAL2(real 0.25)];
 	#delimit cr
 	
 	* Macro of linear explanatory variables
@@ -153,10 +156,10 @@ program estmobility
 		replace `lxvar' = 0 if `xvar' == 0 & missing(`lxvar')
 		
 		if "`interact'" == "" {
-			local cases {alpha0=-1} * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+			local cases {alpha0=`initial1'} * ((`scale' * `xvar') ^ {alpha1=`initial2'} - (`scale' * `lxvar') ^ {alpha1})
 		}
 		else {
-			local cases ({alpha0=-1} + {alphaX=0} * `interact') * ((`scale' * `xvar') ^ {alpha1=0.25} - (`scale' * `lxvar') ^ {alpha1})
+			local cases ({alpha0=`initial1'} + {alphaX=0} * `interact') * ((`scale' * `xvar') ^ {alpha1=`initial2'} - (`scale' * `lxvar') ^ {alpha1})
 		}
 		
 		capture drop D`diff'_`varlist'
@@ -165,10 +168,10 @@ program estmobility
 	}
 	else {
 		if "`interact'" == "" {
-			local cases {alpha0=-1} * (`scale' * `xvar') ^ {alpha1=0.25}
+			local cases {alpha0=`initial1'} * (`scale' * `xvar') ^ {alpha1=`initial2'}
 		}
 		else {
-			local cases ({alpha0=-1} + {alphaX=0} * `interact') * (`scale' * `xvar') ^ {alpha1=0.25}
+			local cases ({alpha0=`initial1'} + {alphaX=0} * `interact') * (`scale' * `xvar') ^ {alpha1=`initial2'}
 		}
 		
 		local lxvar

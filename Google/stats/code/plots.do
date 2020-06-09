@@ -30,3 +30,19 @@ twoway scatter act_cases10 date if county == "`county'" & statename == "`state'"
 // 	msize(vtiny) ;
 // #delimit cr
 // graph export "stats/output/retail_rec_infections_scatter.png", replace
+
+* Share of US under lockdown by date
+// drop totalpop *lockdownpop lockdownshare
+// bysort date: egen totalpop = total(population)
+//
+// gen cty_lockdownpop = population * (date >= shelter_in_place) * !missing(shelter_in_place) * ((date < lifted_shelter_in_place) | missing(lifted_shelter_in_place))
+// by date: egen lockdownpop = total(cty_lockdownpop)
+//
+// gen lockdownshare = lockdownpop / totalpop
+//
+// #delimit ;
+// twoway scatter lockdownshare date if (date <= date("2020-05-01", "YMD")) & fips == 1001,
+// 	graphregion(color(gs16)) xtitle("Date") tlabel(none) tmlabel(#28, angle(45))
+// 	ytitle("Share of US population under lockdown")
+// 	msize(tiny);
+// #delimit cr
