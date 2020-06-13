@@ -32,6 +32,18 @@ gen weekend = inlist(day_of_week, 0, 6)
 do "stats/code/adjust_active_cases.do" cases 3 0.1 active_cases3
 do "stats/code/adjust_active_cases.do" cases 7 0.1 active_cases7
 
+* Policy variables
+local policies d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+
+* Test
+// #delimit ;
+// estmobility mobility_work,
+// 	xvar(active_cases3) begin("2020-02-24") end("SIP") constant(1)
+// 	diff(0) exclude(weekend) clustvar(stateid)
+// 	policies(d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place)
+// 	othervariables(mobility_rr);
+// #delimit cr
+
 * Create list of specifications
 capture file close record
 file open record using "stats/output/estimates/models.txt", write replace text
@@ -58,7 +70,7 @@ foreach diff of local diffs {
 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, baseline";
 	estmobility mobility_`suffix',
 		xvar(`casevar') begin("`begin'") end("`end'") constant(`constant') estnum(`=`k'+1')
-		diff(`diff') title("`title'") exclude(weekend);
+		diff(`diff') title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+1') - `title'" _n
 
@@ -67,36 +79,39 @@ foreach diff of local diffs {
 	if (`diff' == 0) {
 		#delimit ;
 		estmobility mobility_`suffix',
-			xvar(`casevar') begin("`begin'") end("`end'") statefe(1) estnum(`=`k'+2')
-			title("`title'") exclude(weekend);
+			xvar(`casevar') begin("`begin'") end("`end'") factorvars(stateid) estnum(`=`k'+2')
+			title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
 		#delimit cr
 	file write record "(`=`k'+2') - `title'" _n
 	}
 
 	* Adding day FE
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding day FE"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") statefe(`constant') dayfe(1) estnum(`=`k'+3')
-		diff(`diff') title("`title'") exclude(weekend);
+		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+3')
+		diff(`diff') title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+3') - `title'" _n
 
 	* Adding weekends
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding weekends"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") statefe(`constant') dayfe(1) estnum(`=`k'+4')
-		diff(`diff') title("`title'");
+		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+4')
+		diff(`diff') title("`title'") clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+4') - `title'" _n
 
 	* Adding leads and lags
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding leads and lags"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") statefe(`constant') dayfe(1) estnum(`=`k'+5')
-		diff(`diff') leadslags(3) title("`title'");
+		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+5')
+		diff(`diff') leadslags(3) title("`title'") clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+5') - `title'" _n
 	
@@ -136,7 +151,8 @@ foreach diff of local diffs {
 	#delimit ;
 	estmobility mobility_`suffix',
 		xvar(`casevar') begin("`begin'") end("`end'") constant(`constant') estnum(`=`k'+6')
-		diff(`diff') interact(rural) title("`title'") exclude(weekend);
+		diff(`diff') interact(rural) title("`title'") exclude(weekend) clustvar(stateid)
+		policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+6') - `title'" _n
 	
@@ -145,7 +161,7 @@ foreach diff of local diffs {
 	#delimit ;
 	estmobility mobility_`suffix',
 		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) constant(`constant') estnum(`=`k'+7')
-		diff(`diff') title("`title'") exclude(weekend);
+		diff(`diff') title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+7') - `title'" _n
 	
@@ -154,7 +170,7 @@ foreach diff of local diffs {
 	#delimit ;
 	estmobility mobility_`suffix',
 		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) constant(`constant') estnum(`=`k'+8')
-		diff(`diff') title("`title'") exclude(weekend) leadslags(3);
+		diff(`diff') title("`title'") exclude(weekend) leadslags(3) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+8') - `title'" _n
 	

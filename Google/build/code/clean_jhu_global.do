@@ -1,11 +1,14 @@
 
+args variable
+// cases or recoveries or deaths
+
 clear
-import excel "build/input/global_cases.xlsx", allstring
+import excel "build/input/global_`variable'.xlsx", allstring
 
 foreach var of varlist E-EL {
 	local lab = `var'[1]
-	rename `var' cases`lab'
-	destring cases`lab', force replace
+	rename `var' `variable'`lab'
+	destring `variable'`lab', force replace
 }
 rename A province
 rename B country
@@ -13,7 +16,7 @@ drop C D
 
 drop in 1
 
-reshape long cases, i(province country) j(datestr) string
+quietly reshape long `variable', i(province country) j(datestr) string
 
 gen date = date(datestr, "DMY")
 drop datestr
@@ -28,7 +31,7 @@ replace country = "Hong Kong" if province == "Hong Kong"
 gen cntry_acc = inlist(country, "Australia", "Canada", "China")
 
 preserve
-collapse (sum) cases if cntry_acc, by(country date)
+collapse (sum) `variable' if cntry_acc, by(country date)
 
 tempfile acc
 save `acc'
@@ -54,7 +57,7 @@ replace country = "Cape Verde" if country == "Cabo Verde"
 replace country = "Kyrgyz Republic" if country == "Kyrgyzstan"
 replace country = "Myanmar" if country == "Burma"
 replace country = "South Korea" if country == "Korea, South"
-replace country = "Taiwan" if country == "Taiwan"
+replace country = "Taiwan" if country == "Taiwan*"
 
 sort country date
-save "build/temp/global_cases.dta", replace
+save "build/temp/global_`variable'.dta", replace

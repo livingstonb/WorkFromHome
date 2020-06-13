@@ -30,6 +30,12 @@ merge 1:1 country date using "build/temp/mobility_country.dta", nogen keep(1 3)
 * Merge with cases
 merge 1:1 country date using "build/temp/global_cases.dta", nogen keep(1 3)
 
+* Merge with recoveries
+merge 1:1 country date using "build/temp/global_recoveries.dta", nogen keep(1 3)
+
+* Merge with deaths
+merge 1:1 country date using "build/temp/global_deaths.dta", nogen keep(1 3)
+
 * Drop early/late entries
 quietly sum date if !missing(mobility_work)
 drop if date < r(min)
@@ -46,9 +52,5 @@ bysort country: egen mob_present = count(mobility_work)
 drop if (mob_present == 0)
 drop mob_present
 
-* Get cases per capita
-replace cases = cases / population
-drop if missing(population)
-
 * Save
-save "build/output/global_cleaned.dta", replace
+save "build/temp/merged_global.dta", replace
