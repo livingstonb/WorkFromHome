@@ -2,6 +2,18 @@
 Cleans a variety of different input files and resaves.
 */
 
+* Spending data
+clear
+import delimited "build/input/affinity.csv", varnames(1)
+gen date = mdy(month, day, year)
+format %td date
+drop month day year
+
+rename countyfips fips
+rename spend_all spending
+
+save "build/temp/spending.dta", replace
+
 * Party affiliation
 import delimited "build/input/party_affiliation.csv", clear varnames(1)
 replace republican = subinstr(republican, "%", "", .)

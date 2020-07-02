@@ -18,7 +18,30 @@ rename aprtempavgf tempf4
 rename maytempavgf tempf5
 rename juntempavgf tempf6
 
-keep statename county fips icubeds tempf*
+rename percentofadultswithabachelorsdeg share_bachelors
+rename pctpovall_2018 share_poverty
+rename unemployment_rate_2018 share_unemployed
+
+foreach var of varlist share_* {
+	destring `var', force replace
+    replace `var' = `var' / 100
+}
+
+#delimit ;
+foreach var of varlist median_household_income_2018
+	total_male total_female total_age65plus total_age85plusr {;
+	destring `var', force replace;
+};
+#delimit cr
+
+gen log_median_income = log(median_household_income_2018)
+
+gen totpop = total_male + total_female
+gen share_65plus = total_age65plus / totpop
+gen share_85plus = total_age85plusr / totpop
+gen share_female = total_female / totpop
+
+keep statename county fips icubeds tempf* share_* log_median_income totpop
 
 * NYC
 replace fips = 99991 if inlist(fips, 36081, 36061, 36047, 36005, 36085)
@@ -26,12 +49,15 @@ replace fips = 99991 if inlist(fips, 36081, 36061, 36047, 36005, 36085)
 egen tmp_ny_icubeds = total(icubeds) if fips == 99991
 replace icubeds = tmp_ny_icubeds if fips == 99991
 
-foreach var of varlist tempf* {
-	egen tmp_ny_`var' = mean(`var') if fips == 99991
-	replace `var' = tmp_ny_`var' if fips == 99991
+gen wgts = totpop / 10000
+foreach var of varlist tempf* share_* log_median_income {
+    quietly sum `var' [aw=wgts] if fips == 99991
+	replace `var' = r(mean) if fips == 99991
 }
+drop wgts totpop
 
 drop if fips == 99991 & county != "Kings County"
+replace county = "New York City" if fips == 99991
 
 * Estimate temperature trend
 reshape long tempf, i(fips) j(month)
@@ -61,7 +87,7 @@ foreach state of local states {
 }
 keep if month == 2
 
-keep fips icubeds temp_*
+keep fips icubeds share_* temp_* log_median_income
 rename temp_b0 tempf_b0
 rename temp_b1 tempf_b1
 save "build/temp/jhu_summary.dta", replace

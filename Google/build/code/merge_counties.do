@@ -51,13 +51,19 @@ replace county = subinstr(county, " Census Area", "", .) if state == "Alaska"
 sort state county date
 merge 1:1 state county date using "build/temp/mobility_counties.dta", nogen keep(1 3)
 
+* Merge with spending
+sort fips date
+merge 1:1 fips date using "build/temp/spending.dta", nogen keep(1 3)
+gen lspending = log(1 + spending)
+label variable lspending "Log expenditures"
+
 * Combine NYC since COVID cases & deaths are aggregated for NYC
 preserve
 keep if inlist(county, "New York", "Kings", "Queens", "Bronx", "Richmond") & state == "New York"
 
 rename population wgts
 gen population = 1
-collapse (mean) mobility_work (mean) mobility_rr (sum) population [fw=wgts], by(date)
+collapse (mean) mobility_work (mean) mobility_rr (mean) spending (sum) population [fw=wgts], by(date)
 
 gen fips = 99991
 gen county = "New York City"
@@ -180,7 +186,7 @@ gen wgts = population / 10000
 
 * Linear trend
 tsset ctyid date
-local day1 = date("2020-02-24", "YMD")
+local day1 = date("2020-02-29", "YMD")
 gen ndays = date - `day1'
 
 * Temperature trend

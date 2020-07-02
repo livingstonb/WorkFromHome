@@ -31,7 +31,7 @@ Example:
 program estmobility
 	#delimit ;
 	syntax varlist [pweight aweight fweight],
-		[DIFF(integer 0)] [XVAR(string)] [SCALE(real 0.0676)] [CONSTANT(integer 0)]
+		[DIFF(integer 0)] [XVAR(string)] [SCALE(real 0.058)] [CONSTANT(integer 0)]
 		[STATEFE(integer 0)] [GMM(integer 0)] [ESTNUM(integer 0)]
 		[LEADSLAGS(integer 0)] [OTHERVARIABLES(varlist)] [INTERACT(varlist)]
 		[DAYFE(integer 0)] [TITLE(string)] [FACTORVARS(varlist)]
@@ -180,7 +180,7 @@ program estmobility
 	else {
 		local vce = cond("`weight'"=="", "vce(cluster `clustvar')", "robust")
 		#delimit ;
-		nl (`depvar' = `cases' + `linear'  `constexpr') [`weight' `exp' ]if `in_sample', `vce'
+		nl (`depvar' = `cases' + `linear'  `constexpr') [`weight' `exp' ] if `in_sample', `vce'
 			variables(`depvar' `xvar' `lxvar' `regressors' `interact');
 		#delimit cr
 	}

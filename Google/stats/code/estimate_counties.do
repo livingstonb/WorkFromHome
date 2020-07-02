@@ -21,35 +21,59 @@ discard
 shell rm -rd "stats/output/estimates/"
 capture mkdir "stats/output/estimates"
 
-local begin = "2020-02-24"
+local begin = "2020-02-29"
 local end = "SIP"
 
 * Weekends
 gen day_of_week = dow(date)
 gen weekend = inlist(day_of_week, 0, 6)
 
-* Create cases variables, 0.1 recovery rate with 3- and 7-day moving avg
-do "stats/code/adjust_active_cases.do" cases 3 0.1 active_cases3
+* Create cases variables, 0.1 recovery rate with 7-day moving avg
 do "stats/code/adjust_active_cases.do" cases 7 0.1 active_cases7
+
+* Policy variables reset to zero after SIP
+gen adj_dine_in_ban = d_dine_in_ban
+replace adj_dine_in_ban = 0 if d_lifted_shelter_in_place
+
+gen adj_non_essential_closure = d_non_essential_closure
+replace adj_non_essential_closure = 0 if d_lifted_shelter_in_place
+
+* Variable for SIP order, for exclusion
+gen sip_exclude = d_shelter_in_place
+replace sip_exclude = 0 if (date == shelter_in_place)
 
 * Policy variables
 local policies d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+local adj_policies adj_dine_in_ban d_school_closure adj_non_essential_closure d_shelter_in_place
 
 * Test
+// gen missing_spending = missing(spending)
+// local sc = 100000 * 0.058
 // #delimit ;
 // estmobility mobility_work,
-// 	xvar(active_cases3) begin("2020-02-24") end("SIP") constant(1)
+// 	xvar(active_cases3) begin("2020-02-24") end("SIP") constant(1) scale(`sc')
 // 	diff(0) exclude(weekend) clustvar(stateid)
-// 	policies(d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place)
-// 	othervariables(mobility_rr);
+// 	policies(d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place);
 // #delimit cr
+
+gen D7_lspending = S7.lspending
+gen spending_miss = missing(lspending)
+
+local factorvars = "ndays stateid"
+local policies d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
+
+#delimit ;
+estmobility mobility_work,
+	xvar(active_cases7) begin("2020-02-29") end("SIP") factorvars(`factorvars')
+	diff(0) leadslags(3) exclude(weekend spending_miss) clustvar(stateid) policies(`policies');
+#delimit cr
 
 * Create list of specifications
 capture file close record
 file open record using "stats/output/estimates/models.txt", write replace text
 
-* Loop over number of days in moving average used to smooth raw cases data
-local n_mavgs 3 7
+* Use 7-day moving avg
+local n_mavg 7
 
 * Loop over workplaces mobility, retail and recration mobility
 local vars work rr
@@ -58,9 +82,9 @@ local vars work rr
 local diffs 0 7
 
 local k = 100
-foreach n_mavg of local n_mavgs {
 foreach suffix of local vars {
 foreach diff of local diffs {
+	
 	local label = cond("`suffix'"=="work", "Workplaces", "Retail and rec")
 	local constant = (`diff' == 0)
 	local casevar active_cases`n_mavg'
@@ -95,15 +119,15 @@ foreach diff of local diffs {
 	#delimit cr
 	file write record "(`=`k'+3') - `title'" _n
 
-	* Adding weekends
-	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
-	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding weekends"
-	#delimit ;
-	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+4')
-		diff(`diff') title("`title'") clustvar(stateid) policies(`policies');
-	#delimit cr
-	file write record "(`=`k'+4') - `title'" _n
+// 	* Adding weekends
+// 	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+// 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding weekends"
+// 	#delimit ;
+// 	estmobility mobility_`suffix',
+// 		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+4')
+// 		diff(`diff') title("`title'") clustvar(stateid) policies(`policies');
+// 	#delimit cr
+// 	file write record "(`=`k'+4') - `title'" _n
 
 	* Adding leads and lags
 	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
@@ -111,72 +135,76 @@ foreach diff of local diffs {
 	#delimit ;
 	estmobility mobility_`suffix',
 		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+5')
-		diff(`diff') leadslags(3) title("`title'") clustvar(stateid) policies(`policies');
+		diff(`diff') leadslags(3) title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+5') - `title'" _n
-	
-// 	* Baseline with inverse mills
-// 	local title "`label' `diff'-differenced, baseline with Heckman correction (A)"
-// 	#delimit ;
-// 	estmills sample_until_sip ndays d_dine_in_ban d_school_closure
-// 		d_non_essential_closure sc_act_cases10
-// 		c.ndays##(c.rural c.popdensity c.icubeds c.republican)
-// 		if date <= date("2020-04-15", "YMD") & !weekend, gen(imills);
-//
-// 	estmobility mobility_`suffix',
-// 		xvar(act_cases10) begin("`begin'") end("`end'") constant(`=!`fd'') estnum(`=`k'+6')
-// 		fd(`fd') othervariables(imills) title("`title'") exclude(weekend);
-// 	#delimit cr
-// 	drop imills
-// 	file write record "(`=`k'+6') - `title'" _n
-//	
-// 	* Baseline with inverse mills, probit estimated on 2/24-5/24
-// 	capture drop imills
-// 	local title "`label' in `model', baseline with Heckman correction (B)"
-// 	#delimit ;
-// 	estmills sample_until_sip ndays d_dine_in_ban d_school_closure
-// 		d_non_essential_closure sc_act_cases10
-// 		c.ndays##(c.rural c.popdensity c.icubeds c.republican)
-// 		if date <= date("2020-05-24", "YMD") & !weekend, gen(imills);
-//
-// 	estmobility mobility_`suffix',
-// 		xvar(act_cases10) begin("`begin'") end("`end'") constant(`=!`fd'') estnum(`=`k'+7')
-// 		fd(`fd') othervariables(imills) title("`title'") exclude(weekend);
-// 	#delimit cr
-// 	drop imills
-// 	file write record "(`=`k'+7') - `title'" _n
-	
-	* Baseline with rural share interaction
-	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, baseline with rural share interaction"
+
+	* Adding expenditure variable
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, adding log expenditures"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") constant(`constant') estnum(`=`k'+6')
-		diff(`diff') interact(rural) title("`title'") exclude(weekend) clustvar(stateid)
-		policies(`policies');
+		xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+6')
+		diff(`diff') leadslags(3) title("`title'") exclude(weekend) clustvar(stateid) policies(`policies')
+		othervariables(lspending);
 	#delimit cr
 	file write record "(`=`k'+6') - `title'" _n
 	
-	* Extending to 7-days after first day of SIP
-	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, baseline extd to 7d after SIP start"
+// 	* Extending to 7-days after first day of SIP
+// 	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+// 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, extd to 7d after SIP start"
+// 	#delimit ;
+// 	estmobility mobility_`suffix',
+// 		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) factorvars(`factorvars') estnum(`=`k'+7')
+// 		diff(`diff') leadslags(3) title("`title'") clustvar(stateid) policies(`policies');
+// 	#delimit cr
+// 	file write record "(`=`k'+7') - `title'" _n
+
+// 	* Extending to 7-days after first day of SIP
+// 	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+// 	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, extd to 7d after SIP start"
+// 	#delimit ;
+// 	estmobility mobility_`suffix',
+// 		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) factorvars(`factorvars') estnum(`=`k'+7')
+// 		diff(`diff') leadslags(3) title("`title'") clustvar(stateid) policies(`policies');
+// 	#delimit cr
+// 	file write record "(`=`k'+7') - `title'" _n
+
+	* Extending to dates after lifting of SIP order, keeping non-essential closure & dine-in ban equal 1
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, extd to after SIP lifted"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) constant(`constant') estnum(`=`k'+7')
-		diff(`diff') title("`title'") exclude(weekend) clustvar(stateid) policies(`policies');
+		xvar(`casevar') begin("`begin'") factorvars(`factorvars') estnum(`=`k'+7')
+		diff(`diff') leadslags(3) title("`title'") exclude(sip_exclude weekend) clustvar(stateid) policies(`policies');
 	#delimit cr
 	file write record "(`=`k'+7') - `title'" _n
 	
-	* 7 days after SIP with leads and lags
-	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, baseline extd to 7d after SIP start, w/leads and lags"
+	* Extending to dates after lifting of SIP order, adjusting non-essential closure & dine-in ban
+	local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+	local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, extd to after SIP lifted, policies set to zero upon SIP lifting"
 	#delimit ;
 	estmobility mobility_`suffix',
-		xvar(`casevar') begin("`begin'") end("`end'") daysafter(7) constant(`constant') estnum(`=`k'+8')
-		diff(`diff') title("`title'") exclude(weekend) leadslags(3) clustvar(stateid) policies(`policies');
+		xvar(`casevar') begin("`begin'") factorvars(`factorvars') estnum(`=`k'+8')
+		diff(`diff') leadslags(3) title("`title'") exclude(sip_exclude weekend) clustvar(stateid) policies(`adj_policies');
 	#delimit cr
 	file write record "(`=`k'+8') - `title'" _n
 	
+	* Regress with county controls
+	if `diff' == 0 {
+		local factorvars = cond(`diff'>0, "ndays", "ndays stateid")
+		local title "`label' `diff'-differenced, `n_mavg'-day mavg cases, county controls"
+		#delimit ;
+		estmobility mobility_`suffix',
+			xvar(`casevar') begin("`begin'") end("`end'") factorvars(`factorvars') estnum(`=`k'+9')
+			diff(`diff') leadslags(3) title("`title'") exclude(weekend) clustvar(stateid) policies(`policies')
+			othervariables(rural republican popdensity share_* log_median_income icubeds);
+		#delimit cr
+		file write record "(`=`k'+9') - `title'" _n
+	}
+
 	* Increment counter
 	local k = `k' + 100
-}
 }
 }
 
