@@ -31,12 +31,28 @@ gen tag = date == date("2020-03-29", "YMD")
 // #delimit cr
 // graph export "stats/output/retail_rec_infections_scatter.png", replace
 
+* Create cases variables, 0.1 recovery rate with 7-day moving avg
+do "stats/code/adjust_active_cases.do" cases 7 0.1 active_cases7
+
+* Sample selection
+gen insample = 1 if date >= date("2020-02-29", "YMD")
+replace insample = 0 if date > shelter_in_place & !missing(shelter_in_place)
+
+quietly sum shelter_in_place
+replace insample = 0 if date > r(max) & missing(shelter_in_place)
+
+* Log mobility vs cases
+#delimit ;
+twoway scatter mobility_work active_cases7 if insample & act_cases7 <= 0.0005,
+	graphregion(color(gs16)) xtitle("Active cases per capita")
+	ytitle("Log mobility, workplaces") title("Workplaces mobility vs cases, 2/29-SIP")
+	msize(vtiny);
+#delimit cr
+// graph export "stats/output/workplaces_infections_scatter.png", replace
+
 * Share of US under lockdown by date
-local intervention non_essential_closure
 capture drop totalpop *lockdownpop lockdownshare
 bysort date: egen totalpop = total(population)
-
-// gen cty_lockdownpop = population * (date >= shelter_in_place) * !missing(shelter_in_place) * ((date < lifted_shelter_in_place) | missing(lifted_shelter_in_place))
 
 local policies dine_in_ban shelter_in_place non_essential_closure school_closure
 local plots twoway
@@ -61,6 +77,20 @@ label variable share_dine_in_ban "Dine-in ban"
 local plots `plots', graphregion(color(gs16)) xtitle("Date") tlabel(none) tmlabel(#28, angle(45)) ytitle("Share of US population under policy")
 
 `plots'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // #delimit ;
 // twoway scatter lockdownshare date if (date >= date("2020-03-01", "YMD")) & (date <= date("2020-04-15", "YMD")) & fips == 1001,

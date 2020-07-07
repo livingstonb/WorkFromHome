@@ -2,6 +2,28 @@
 Cleans a variety of different input files and resaves.
 */
 
+* County election results
+clear
+import delimited "build/input/county_election_results.csv", varnames(1)
+keep if year == 2016
+
+destring fips, force replace
+drop if missing(fips)
+
+destring candidatevotes, force gen(votes)
+
+keep fips votes party
+
+keep if inlist(party, "democrat", "republican")
+bysort fips: egen totalvotes = total(votes)
+
+keep if party == "democrat"
+gen democrat = votes / totalvotes
+
+keep fips democrat
+
+save "build/temp/election_results.dta", replace
+
 * Spending data
 clear
 import delimited "build/input/affinity.csv", varnames(1)

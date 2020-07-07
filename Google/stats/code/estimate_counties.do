@@ -62,10 +62,14 @@ gen spending_miss = missing(lspending)
 local factorvars = "ndays stateid"
 local policies d_dine_in_ban d_school_closure d_non_essential_closure d_shelter_in_place
 
+local begin = "2020-02-29"
+local end = "SIP"
+
 #delimit ;
-estmobility mobility_work,
-	xvar(active_cases7) begin("2020-02-29") end("SIP") factorvars(`factorvars')
-	diff(0) leadslags(3) exclude(weekend spending_miss) clustvar(stateid) policies(`policies');
+estmobility mobility_rr,
+		xvar(active_cases7) begin("`begin'") end("`end'") factorvars(`factorvars')
+		diff(0) leadslags(3) title("`title'") exclude(weekend) clustvar(stateid) policies(`policies')
+		othervariables(rural democrat popdensity share_* log_median_income icubeds);
 #delimit cr
 
 * Create list of specifications
