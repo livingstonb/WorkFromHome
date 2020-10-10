@@ -18,8 +18,9 @@ save `cwalk10'
 
 * Read CPS data
 clear
-use "build/input/cps.dta"
+use "build/input/cps2.dta"
 keep if inrange(age, 16, 65)
+drop if asecflag == 1
 drop age
 
 * Clean

@@ -22,6 +22,22 @@
 // keep state mobility* date
 // save "build/temp/cleaned_mobility.dta", replace
 
+* US aggregate
+clear
+import delimited using "build/input/2020_US_Region_Mobility_Report.csv", varnames(1)
+keep if sub_region_1 == ""
+keep if sub_region_2 == ""
+rename retail_and_recreation_percent_ch retail_and_rec
+rename workplaces_percent_change_from_b workplaces
+keep date retail_and_rec workplaces
+
+rename date tmp_date
+gen date = date(tmp_date, "YMD")
+format date %td
+drop tmp_date
+
+save "build/output/mobility_us.dta", replace
+
 * County level
 clear
 import delimited using "build/input/Global_Mobility_Report.csv", varnames(1)
