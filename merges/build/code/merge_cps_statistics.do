@@ -70,9 +70,9 @@ gen labshare_S       = wagebill_S/totwagebill_S
 
 *Average hourly wage 
 sort year month
-by year month: egen Ausual_hourlywagebill = sum(usual_hourlywage * employment)
+by year month: egen temp_Ausual_hourlywagebill = sum(usual_hourlywage * employment)
 by year month: egen Aemployment = sum(employment)
-gen Ausual_hourlywage_ind = Ausual_hourlywagebill / Aemployment
+gen Ausual_hourlywage = temp_Ausual_hourlywagebill / Aemployment
 
 save $OutDir/cps_output_temp, replace
 
@@ -136,7 +136,8 @@ save $OutDir/cps_output_temp, replace
 *REDUCE
 /******************************************************************************/
 duplicates drop year month, force
-keep year month A* E* CI* SI*
+
+keep year month Ausual_hourlywage *weeklywage Ewagebill CIFwagebill CIRwagebill SIFwagebill SIRwagebill
 
 if "`format_wide'" == "1" {
 	gen dtag = 100 * month + year - 2000
@@ -146,5 +147,7 @@ if "`format_wide'" == "1" {
 	
 	gen ii = 1
 	reshape wide A* E* CI* SI*, i(ii) j(dtag) string
+	drop ii *_0418
 }
 
+save $OutDir/cps_output_summary, replace
