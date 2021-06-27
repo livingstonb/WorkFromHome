@@ -8,7 +8,7 @@ args censusyear
 * Use crosswalk between CENSUS2010 and SOC2010
 local cwalk "build/input/yr`censusyear'_census_to_soc.csv"
 import delimited "`cwalk'", clear bindquotes(strict)
-rename ïsoc socstr
+rename soc socstr
 
 drop if missing(census)
 replace socstr = strtrim(socstr)

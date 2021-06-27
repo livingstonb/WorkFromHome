@@ -40,3 +40,4 @@ merge m:1 soc3d2010 using `m3d', nogen
 sort soc3d2010 year month
 
 save "build/output/merged_cps.dta", replace
+

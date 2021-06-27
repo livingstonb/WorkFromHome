@@ -18,7 +18,7 @@ save `cwalk10'
 
 * Read CPS data
 clear
-use "build/input/cps2.dta"
+use "build/input/cps4.dta"
 keep if inrange(age, 16, 65)
 drop if asecflag == 1
 drop age
@@ -29,10 +29,11 @@ recode ahrsworkt (999 = .)
 recode earnweek (9999.99 = .)
 recode wksworkorg (0 98 = .)
 recode uhrsworkt (997 999 = .)
+recode covidtelew (99 = .)
 
 * Merge occupation codes
 gen yr_occ = 2010 if year < 2020
-replace yr_occ = 2018 if year == 2020
+replace yr_occ = 2018 if year >= 2020
 
 merge m:1 occ yr_occ using `cwalk18', keep(1 3) nogen keepusing(soc3d2010 soc2d2010)
 merge m:1 occ yr_occ using `cwalk10', keep(1 3 4) nogen keepusing(soc3d2010 soc2d2010) update
@@ -62,7 +63,10 @@ gen weights = wtfinl / wgt_ahrsworkt if wtfinl > 0
 gen weighted = ahrsworkt * weights
 bysort soc3d2010 sample: egen mean_ahrsworkt = total(weighted), missing
 
-drop weights weighted
+bysort soc3d2010 sample: egen mean_onsite_ahrsworkt = total(weighted) if (covidtelew == 1), missing
+bysort soc3d2010 sample: egen mean_remote_ahrsworkt = total(weighted) if (covidtelew == 2), missing
+
+drop *weights weighted
 
 * Average hours, n
 bysort soc3d2010: egen n_ahrsworkt = count(ahrsworkt)
@@ -102,6 +106,8 @@ collapse (firstnm) earnweek=mean_earnweek (firstnm) ahrsworkt=mean_ahrsworkt
 	(firstnm) employed=share_employed (firstnm) wgt_employed
 	(firstnm) wksworkorg=mean_wksworkorg (firstnm) wgt_wksworkorg
 	(firstnm) uhrsworkt=mean_uhrsworkt (firstnm) wgt_uhrsworkt
+	(firstnm) remote_ahrsworkt=mean_remote_ahrsworkt
+	(firstnm) onsite_ahrsworkt=mean_onsite_ahrsworkt
 	(firstnm) n_ahrsworkt (firstnm) n_earnweek, by(soc3d2010 year month);
 #delimit cr
 

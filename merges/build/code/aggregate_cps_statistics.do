@@ -74,6 +74,11 @@ by year month: egen temp_Ausual_hourlywagebill = sum(usual_hourlywage * employme
 by year month: egen Aemployment = sum(employment)
 gen Ausual_hourlywage = temp_Ausual_hourlywagebill / Aemployment
 
+* Total hours
+by year month: egen Atothours = sum(ahrsworkt * employment)
+by year month: egen Aremotehours = sum(remote_ahrsworkt * employment)
+by year month: egen Aonsitehours = sum(onsite_ahrsworkt * employment)
+
 save $OutDir/cps_output_temp, replace
 
 
@@ -88,6 +93,10 @@ sort year month
 by year month: egen Ewagebill = sum(weeklyearn * Eweight * employment)
 by year month: egen Etotempl = sum(Eweight * employment)
 gen Eweeklywage = Ewagebill / Etotempl
+
+by year month: egen Etothours = sum(Eweight * ahrsworkt * employment)
+by year month: egen Eremotehours = sum(Eweight * remote_ahrsworkt * employment)
+by year month: egen Eonsitehours = sum(Eweight * onsite_ahrsworkt * employment)
 
 save $OutDir/cps_output_temp, replace
 
@@ -113,21 +122,33 @@ gen Rweight = (1-essential)*(1-teleworkable)
 
 sort year month
 
-/* Total wage bill, employment and wage*/	
+/* Total wage bill, employment, wage, hours */	
 by year month: egen CIFwagebill = sum(weeklyearn*Fweight*employment*C_intensive)
 by year month: egen CIFtotempl = sum(Fweight*employment*C_intensive)
+by year month: egen CIFtothours = sum(Fweight*ahrsworkt*employment*C_intensive)
+by year month: egen CIFremotehours = sum(Fweight*remote_ahrsworkt*employment*C_intensive)
+by year month: egen CIFonsitehours = sum(Fweight*onsite_ahrsworkt*employment*C_intensive)
 gen CIFweeklywage = CIFwagebill / CIFtotempl
 
 by year month: egen CIRwagebill = sum(weeklyearn*Rweight*employment*C_intensive)
 by year month: egen CIRtotempl = sum(Rweight*employment*C_intensive)
+by year month: egen CIRtothours = sum(Rweight*ahrsworkt*employment*C_intensive)
+by year month: egen CIRremotehours = sum(Rweight*remote_ahrsworkt*employment*C_intensive)
+by year month: egen CIRonsitehours = sum(Rweight*onsite_ahrsworkt*employment*C_intensive)
 gen CIRweeklywage = CIRwagebill / CIRtotempl
 
 by year month: egen SIFwagebill = sum(weeklyearn*Fweight*employment*S_intensive)
 by year month: egen SIFtotempl = sum(Fweight*employment*S_intensive)
+by year month: egen SIFtothours = sum(Fweight*ahrsworkt*employment*S_intensive)
+by year month: egen SIFremotehours = sum(Fweight*remote_ahrsworkt*employment*S_intensive)
+by year month: egen SIFonsitehours = sum(Fweight*onsite_ahrsworkt*employment*S_intensive)
 gen SIFweeklywage = SIFwagebill / SIFtotempl
 
 by year month: egen SIRwagebill = sum(weeklyearn*Rweight*employment*S_intensive)
 by year month: egen SIRtotempl = sum(Rweight*employment*S_intensive)
+by year month: egen SIRtothours = sum(Rweight*ahrsworkt*employment*S_intensive)
+by year month: egen SIRremotehours = sum(Rweight*remote_ahrsworkt*employment*S_intensive)
+by year month: egen SIRonsitehours = sum(Rweight*onsite_ahrsworkt*employment*S_intensive)
 gen SIRweeklywage = SIRwagebill / SIRtotempl
 
 save $OutDir/cps_output_temp, replace
@@ -137,7 +158,7 @@ save $OutDir/cps_output_temp, replace
 /******************************************************************************/
 duplicates drop year month, force
 
-keep year month Ausual_hourlywage *weeklywage Ewagebill CIFwagebill CIRwagebill SIFwagebill SIRwagebill
+keep year month Ausual_hourlywage *hours *weeklywage Ewagebill CIFwagebill CIRwagebill SIFwagebill SIRwagebill
 
 if "`format_wide'" == "1" {
 	gen dtag = 100 * month + year - 2000
@@ -149,5 +170,14 @@ if "`format_wide'" == "1" {
 	reshape wide A* E* CI* SI*, i(ii) j(dtag) string
 	drop ii *_0418
 }
+
+drop *remotehours_*19
+drop *remotehours_0220
+drop *remotehours_0320
+drop *remotehours_0420
+drop *onsitehours_0220
+drop *onsitehours_0320
+drop *onsitehours_0420
+drop *onsitehours_*19
 
 save $OutDir/cps_output_summary, replace

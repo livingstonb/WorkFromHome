@@ -35,3 +35,4 @@ misc/procedures
 *.dvi
 **/old
 *.*#
+*_old*
